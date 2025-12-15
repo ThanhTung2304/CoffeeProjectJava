@@ -72,7 +72,7 @@ public class AccountRepositoryImpl implements AccountRepository {
      */
     @Override
     public void save(Account account) {
-        String sql = "INSERT INTO accounts (username, password, createdTime,updateTime, is_active) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO accounts (username, password, createdTime,updateTime, is_active, role) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -103,6 +103,8 @@ public class AccountRepositoryImpl implements AccountRepository {
                 }
             }
 
+            ps.setString(6, account.getRole());
+
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi khi lưu account", e);
         }
@@ -117,7 +119,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Override
     public void updated(Account account) {
 
-        String sql = "UPDATE accounts SET password=?, createdTime=?, updateTime?, is_active=? WHERE id=?";
+        String sql = "UPDATE accounts SET password=?, createdTime=?, updateTime?, is_active=?, role=? WHERE id=?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -139,7 +141,10 @@ public class AccountRepositoryImpl implements AccountRepository {
                 ps.setNull(4, java.sql.Types.TIMESTAMP);
             }
 
+
             ps.setBoolean(5, account.isActive());
+
+            ps.setString(6, account.getRole());
 
             // Lấy ID tự động tăng (nếu có)
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -214,6 +219,8 @@ public class AccountRepositoryImpl implements AccountRepository {
 
         if (updated != null)
             acc.setUpdateTime(updated.toLocalDateTime());
+
+        acc.setRole(rs.getString("role"));
 
         acc.setActive(rs.getInt("is_active") == 1);
 
