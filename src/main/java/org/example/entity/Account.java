@@ -10,7 +10,7 @@ public class Account {
 
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
-
+    private String role;
     private boolean active;
 
     public Account() {
@@ -18,20 +18,22 @@ public class Account {
 
     // Full constructor
     public Account(int id, String username, String password,
-                   LocalDateTime createdTime, LocalDateTime updateTime,
+                   LocalDateTime createdTime, LocalDateTime updateTime, String role,
                    boolean active) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.createdTime = createdTime;
         this.updateTime = updateTime;
+        this.role = role;
         this.active = active;
     }
 
     // Constructor khi insert mới (chỉ cần username + password + active)
-    public Account(String username, String password, boolean active) {
+    public Account(String username, String password, String role, boolean active) {
         this.username = username;
         this.password = password;
+        this.role = role;
         this.active = active;
     }
 
@@ -76,6 +78,10 @@ public class Account {
         this.updateTime = updateTime;
     }
 
+    public String getRole() {return role;}
+
+    public void setRole(String role) {this.role = role;}
+
     public boolean isActive() {
         return active;
     }
@@ -83,5 +89,6 @@ public class Account {
     public void setActive(boolean active) {
         this.active = active;
     }
+
 }
 
