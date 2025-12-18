@@ -19,6 +19,13 @@ public interface AccountService {
      */
     Account findByUsername(String username);
 
+//    /**
+//     * Lưu tài khoản mới.
+//     * @param account tài khoản cần lưu
+//     */
+//    void save(Account account);
+
+
     /**
      * Tạo tài khoản mới.
      * @param account tài khoản cần cập nhật
@@ -43,5 +50,7 @@ public interface AccountService {
      * @return true nếu tồn tại, false nếu không
      */
     boolean existsByUsername(String username);
+
+
 }
 

@@ -47,15 +47,17 @@ public class AuthController {
             throw new IllegalArgumentException("Mật khẩu xác nhận không trùng khớp");
         }
 
-        RegisterRequest request = new RegisterRequest(username, password);
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername(username);
+        request.setPassword(password);
         return authService.register(request);
     }
 
-    /**
-     * Kiểm tra username đã tồn tại
-     */
-    public boolean exists(String username) {
-        return authService.existsByUsername(username);
-    }
+//    /**
+//     * Kiểm tra username đã tồn tại
+//     */
+//    public boolean existsByUsername(String username) {
+//        return authService.existsByUsername(username);
+//    }
 }
 

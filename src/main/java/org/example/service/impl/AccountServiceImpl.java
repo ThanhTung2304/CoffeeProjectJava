@@ -36,9 +36,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public Account findByUsername(String username) {
-        System.out.println("Timf tài khoản với username" + username);
+        System.out.println("Tìm tài khoản với username" + username);
         return  accountRepository.findByUsername(username);
     }
+
+
 
 
     /**
@@ -47,12 +49,21 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void create(Account account) {
-        System.out.println("Tạo tài khoản mới: " + account.getUsername());
-        if(account == null){
-            throw new IllegalCallerException("không được để tài khoản null");
+        if (account == null) {
+            throw new IllegalArgumentException("Account không được null");
         }
+
+        if (account.getUsername() == null || account.getUsername().isBlank()) {
+            throw new IllegalArgumentException("Username không được để trống");
+        }
+
+        if (existsByUsername(account.getUsername())) {
+            throw new IllegalArgumentException("Username đã tồn tại");
+        }
+
         accountRepository.save(account);
     }
+
 
 
     /**
