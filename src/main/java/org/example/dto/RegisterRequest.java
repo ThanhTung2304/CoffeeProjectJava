@@ -5,7 +5,7 @@ public class RegisterRequest {
     private String password;
     private String confirmPassword;
 
-    public RegisterRequest(String username, String password){
+    public RegisterRequest(){
 
     }
 
@@ -41,6 +41,10 @@ public class RegisterRequest {
     }
 
     public boolean isPasswordConfirmed() {
-        return this.password==null && this.password.equals(this.confirmPassword);
+        if (password == null || confirmPassword == null) {
+            return false;
+        }
+        return password.equals(confirmPassword);
     }
+
 }

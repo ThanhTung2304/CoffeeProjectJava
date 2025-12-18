@@ -59,10 +59,10 @@ public class AuthServiceImpl implements AuthService {
         validateInfo(request); //Kiểm tra dữ liệu đăng ký trước khi lưu
 
         Account account = new Account(
-//                request.getUsername(),
-//                request.getPassword(),
-//                "USER",
-//                true
+                request.getUsername(),
+                request.getPassword(),
+                "USER",
+                true
         );
 
         accountRepository.save(account);
