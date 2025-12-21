@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if(!request.isPasswordConfirmed()){
-            throw new RuntimeException("Password và ConfirmPassword khôngg khớp!");
+            throw new RuntimeException("Password và ConfirmPassword không khớp!");
         }
     }
 

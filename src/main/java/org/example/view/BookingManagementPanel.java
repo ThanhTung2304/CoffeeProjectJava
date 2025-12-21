@@ -1,4 +1,6 @@
 package org.example.view;
 
-public class BookingManagementPanel {
+import java.awt.*;
+
+public class BookingManagementPanel extends Component{
 }

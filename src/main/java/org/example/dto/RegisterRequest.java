@@ -4,11 +4,19 @@ public class RegisterRequest {
     private String username;
     private String password;
     private String confirmPassword;
+    private String role;
 
     public RegisterRequest(){
 
     }
 
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getRole() {
+        return role;
+    }
 
     public RegisterRequest(String username, String password, String confirmPassword) {
         this.username = username;

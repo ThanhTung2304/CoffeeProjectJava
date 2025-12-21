@@ -1,5 +1,3 @@
-
-
 package org.example.view;
 
 import org.example.dto.LoginRequest;
@@ -157,8 +155,12 @@ public class LoginForm extends JFrame {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            new MainFrame(account.getUsername()).setVisible(true);
+            new MainFrame(
+                    account.getUsername(),
+                    account.getRole()
+            ).setVisible(true);
             dispose();
+
         } else {
             JOptionPane.showMessageDialog(this,
                     "Sai tài khoản hoặc mật khẩu!",

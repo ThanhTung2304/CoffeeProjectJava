@@ -1,4 +1,6 @@
 package org.example.view;
 
-public class EmployeeManagementPanel {
+import java.awt.*;
+
+public class EmployeeManagementPanel extends Component {
 }
