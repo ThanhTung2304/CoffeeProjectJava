@@ -244,22 +244,48 @@ public class AccountRepositoryImpl implements AccountRepository {
     /* ================== FIND ALL ================== */
     @Override
     public List<Account> findAll() {
-        List<Account> accounts = new ArrayList<>();
-        String sql = "SELECT * FROM account";
+        List<Account> list = new ArrayList<>();
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
+        String sql = """
+        SELECT id, username, role, is_active, createdTime, updateTime
+        FROM account
+    """;
+
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                accounts.add(mapRow(rs));
+                Account acc = new Account();
+
+                acc.setId(rs.getInt("id"));
+                acc.setUsername(rs.getString("username"));
+                acc.setRole(rs.getString("role"));
+                acc.setActive(rs.getInt("is_active") == 1);
+
+                //createdTime (không null)
+                Timestamp created = rs.getTimestamp("createdTime");
+                if (created != null) {
+                    acc.setCreatedTime(created.toLocalDateTime());
+                }
+
+                //updateTime (CÓ THỂ NULL)
+                Timestamp updated = rs.getTimestamp("updateTime");
+                if (updated != null) {
+                    acc.setUpdateTime(updated.toLocalDateTime());
+                } else {
+                    acc.setUpdateTime(null);
+                }
+
+                list.add(acc);
             }
 
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi khi lấy danh sách account", e);
         }
-        return accounts;
+        return list;
     }
+
 
     /* ================== FIND BY USERNAME ================== */
     @Override
@@ -308,7 +334,7 @@ public class AccountRepositoryImpl implements AccountRepository {
             ps.setBoolean(5, true);         // is_active
             ps.setString(6, account.getRole());
 
-            ps.executeUpdate(); // 🔥 BẮT BUỘC
+            ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {

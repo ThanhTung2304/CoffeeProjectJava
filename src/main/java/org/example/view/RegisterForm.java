@@ -1,12 +1,5 @@
 package org.example.view;
 
-//public class RegisterForm {
-//    public void setVisible(boolean b) {
-//
-//    }
-//}
-
-
 import org.example.dto.RegisterRequest;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
@@ -21,6 +14,8 @@ public class RegisterForm extends JFrame {
     private JPasswordField txtConfirm;
     private JButton btnRegister;
     private JLabel linkLogin;
+    private JComboBox<String> cbRole;
+
 
     private final AuthService authService = new AuthServiceImpl();
 
@@ -39,16 +34,13 @@ public class RegisterForm extends JFrame {
         main.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         add(main);
 
-        /* ===== IMAGE + TITLE ===== */
+        /* ===== TOP ===== */
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setBackground(Color.WHITE);
 
-        ImageIcon icon = new ImageIcon(
-                getClass().getResource("/logoHighland.png")
-
-        );
-        Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+        ImageIcon icon = new ImageIcon(getClass().getResource("/logoHighland.png"));
+        Image img = icon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
         JLabel lblImage = new JLabel(new ImageIcon(img));
         lblImage.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -63,26 +55,37 @@ public class RegisterForm extends JFrame {
         main.add(topPanel, BorderLayout.NORTH);
 
         /* ===== FORM ===== */
-        JPanel form = new JPanel(new GridLayout(6, 1, 0, 12));
+        JPanel form = new JPanel();
         form.setBackground(Color.WHITE);
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
 
-        txtUsername = createTextField("Username");
-        txtPassword = createPasswordField("Password");
-        txtConfirm  = createPasswordField("Confirm password");
+        form.add(createRow("Username", txtUsername = new JTextField()));
+        form.add(Box.createVerticalStrut(12));
+        form.add(createRow("Password", txtPassword = new JPasswordField()));
+        form.add(Box.createVerticalStrut(12));
+        form.add(createRow("ConfirmPassword", txtConfirm = new JPasswordField()));
+        form.add(Box.createVerticalStrut(25));
 
+        /* ===== BUTTON CENTER ===== */
         btnRegister = new JButton("ĐĂNG KÝ");
+        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnRegister.setPreferredSize(new Dimension(160, 40));
+        btnRegister.setMaximumSize(new Dimension(160, 40));
         btnRegister.setBackground(new Color(70, 130, 180));
         btnRegister.setForeground(Color.WHITE);
-        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnRegister.setFocusPainted(false);
-        btnRegister.setPreferredSize(new Dimension(200, 40));
-
+        btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnRegister.addActionListener(e -> onRegister());
 
+        form.add(btnRegister);
+        form.add(Box.createVerticalStrut(18));
+
+        /* ===== LINK CENTER ===== */
         linkLogin = new JLabel("Đã có tài khoản? Đăng nhập");
+        linkLogin.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         linkLogin.setForeground(new Color(70, 130, 180));
-        linkLogin.setHorizontalAlignment(SwingConstants.CENTER);
         linkLogin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        linkLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
         linkLogin.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 dispose();
@@ -90,29 +93,32 @@ public class RegisterForm extends JFrame {
             }
         });
 
-        form.add(txtUsername);
-        form.add(txtPassword);
-        form.add(txtConfirm);
-        form.add(Box.createVerticalStrut(5));
-        form.add(btnRegister);
         form.add(linkLogin);
 
         main.add(form, BorderLayout.CENTER);
     }
 
-    private JTextField createTextField(String placeholder) {
-        JTextField field = new JTextField();
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        field.setBorder(BorderFactory.createTitledBorder(placeholder));
-        return field;
+    /* ===== ROW LABEL + FIELD (CĂN GIỮA) ===== */
+    private JPanel createRow(String labelText, JComponent field) {
+        JPanel row = new JPanel();
+        row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+        row.setBackground(Color.WHITE);
+        row.setMaximumSize(new Dimension(360, 35));
+        row.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel label = new JLabel(labelText);
+        label.setPreferredSize(new Dimension(140, 30));
+
+        field.setPreferredSize(new Dimension(200, 30));
+        field.setMaximumSize(new Dimension(200, 30));
+
+        row.add(label);
+        row.add(Box.createHorizontalStrut(10));
+        row.add(field);
+
+        return row;
     }
 
-    private JPasswordField createPasswordField(String placeholder) {
-        JPasswordField field = new JPasswordField();
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        field.setBorder(BorderFactory.createTitledBorder(placeholder));
-        return field;
-    }
 
     private void onRegister() {
         RegisterRequest req = new RegisterRequest();

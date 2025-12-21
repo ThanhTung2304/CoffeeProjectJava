@@ -1,4 +1,7 @@
 package org.example.view;
 
-public class ProductManagementPanel {
+import javax.swing.*;
+import java.awt.*;
+
+public class ProductManagementPanel extends JPanel {
 }
