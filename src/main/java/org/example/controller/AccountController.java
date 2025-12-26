@@ -10,43 +10,54 @@ public class AccountController {
 
     private final AccountService accountService;
 
-
     public AccountController() {
         this.accountService = new AccountServiceImpl();
     }
 
-    /**
-     * Lấy danh sách tất cả account
-     */
-    public List<Account> getAllAccount(){
+    /* ================= LOAD ================= */
+
+    public List<Account> loadAccounts() {
         return accountService.findAll();
     }
 
-    /**
-     * Tạo mới account
-     */
-    public void createAccount(String username, String password, String role, boolean is_active){
-        Account account = new Account(username, password, role, is_active);
+    /* ================= ADD ================= */
+
+    public void addAccount(String username, String password, String role, boolean active) {
+
+        if (username.isBlank() || password.isBlank()) {
+            throw new RuntimeException("Username & Password không được trống");
+        }
+
+        if (accountService.existsByUsername(username)) {
+            throw new RuntimeException("Username đã tồn tại");
+        }
+
+        Account account = new Account(username, password, role, active);
         accountService.create(account);
     }
 
+    /* ================= UPDATE ================= */
 
-    /**
-     * Cập nhật account
-     */
-    public void updateAccount(Account account){
+    public void updateAccount(int id, String username, String password, String role, boolean active) {
+
+        if (id <= 0) {
+            throw new RuntimeException("Account không hợp lệ");
+        }
+
+        Account account = new Account();
+        account.setId(id);
+        account.setUsername(username);
+        account.setPassword(password);
+        account.setRole(role);
+        account.setActive(active);
+
         accountService.update(account);
     }
 
-    /**
-     * Xóa account theo ID
-     */
-    public void deleteAccount(Account account){
-        accountService.deleteById(account.getId());
-    }
+    /* ================= DELETE ================= */
 
-    /**
-     * Tìm account theo username
-     */
+    public void deleteAccount(int id) {
+        accountService.deleteById(id);
+    }
 
 }

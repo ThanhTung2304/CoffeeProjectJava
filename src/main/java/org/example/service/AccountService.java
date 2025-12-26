@@ -19,18 +19,14 @@ public interface AccountService {
      */
     Account findByUsername(String username);
 
-//    /**
-//     * Lưu tài khoản mới.
-//     * @param account tài khoản cần lưu
-//     */
-//    void save(Account account);
-
-
     /**
      * Tạo tài khoản mới.
      * @param account tài khoản cần cập nhật
      */
     void create(Account account);
+
+
+    Account findById(Long id);
 
     /**
      * Cập nhật tài khoản.

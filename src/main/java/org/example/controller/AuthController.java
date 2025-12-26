@@ -53,11 +53,6 @@ public class AuthController {
         return authService.register(request);
     }
 
-//    /**
-//     * Kiểm tra username đã tồn tại
-//     */
-//    public boolean existsByUsername(String username) {
-//        return authService.existsByUsername(username);
-//    }
+
 }
 

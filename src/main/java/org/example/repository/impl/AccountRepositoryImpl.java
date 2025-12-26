@@ -238,6 +238,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AccountRepositoryImpl implements AccountRepository {
 
@@ -285,6 +286,26 @@ public class AccountRepositoryImpl implements AccountRepository {
         }
         return list;
     }
+
+    /* ================= FIND BY ID ================= */
+//    @Override
+//    public findById(Long id) {
+//        String sql = "SELECT * FROM accounts WHERE id=?";
+//        try (Connection conn = DatabaseConfig.getConnection();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//
+//            ps.setLong(1, id);
+//            ResultSet rs = ps.executeQuery();
+//
+//            if (rs.next()) {
+//                return Optional.of(map(rs));
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return Optional.empty();
+//    }
 
 
     /* ================== FIND BY USERNAME ================== */
@@ -350,19 +371,20 @@ public class AccountRepositoryImpl implements AccountRepository {
     /* ================== UPDATE ================== */
     @Override
     public void updated(Account account) {
+
         String sql = """
-            UPDATE account
-            SET password = ?, updateTime = ?, is_active = ?, role = ?
-            WHERE id = ?
-        """;
+        UPDATE account
+        SET username = ?, role = ?, is_active = ?, updateTime = ?
+        WHERE id = ?
+    """;
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, account.getPassword());
-            ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            ps.setString(1, account.getUsername());
+            ps.setString(2, account.getRole());
             ps.setBoolean(3, account.isActive());
-            ps.setString(4, account.getRole());
+            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
             ps.setInt(5, account.getId());
 
             ps.executeUpdate();
@@ -371,6 +393,31 @@ public class AccountRepositoryImpl implements AccountRepository {
             throw new RuntimeException("Lỗi khi cập nhật account", e);
         }
     }
+
+
+    @Override
+    public Optional<Account> findById(Long id) {
+
+        String sql = "SELECT * FROM account WHERE id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tìm account theo id", e);
+        }
+
+        return Optional.empty();
+    }
+
 
     /* ================== DELETE ================== */
     @Override
@@ -406,6 +453,34 @@ public class AccountRepositoryImpl implements AccountRepository {
             throw new RuntimeException("Lỗi khi kiểm tra username", e);
         }
     }
+
+    @Override
+    public Account findByUsername(int username) {
+
+            String sql = "SELECT * FROM accounts WHERE username = ?";
+
+            try (Connection conn = DatabaseConfig.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                ps.setInt(1, username);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    Account acc = new Account();
+//                    acc.setId(rs.getInt("id"));
+                    acc.setUsername(rs.getString("username"));
+                    acc.setPassword(rs.getString("password"));
+                    acc.setRole(rs.getString("role"));
+                    acc.setActive(rs.getBoolean("active"));
+                    return acc;
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
 
     /* ================== MAP RESULT ================== */
     private Account mapRow(ResultSet rs) throws SQLException {

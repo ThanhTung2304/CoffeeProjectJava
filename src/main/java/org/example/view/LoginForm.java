@@ -11,12 +11,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 
+
 public class LoginForm extends JFrame {
 
     private JTextField username;
     private JPasswordField password;
     private JButton btnLogin;
-    private JLabel linkRegister;
 
     private final AuthService authService;
 
@@ -45,7 +45,7 @@ public class LoginForm extends JFrame {
 
         // Logo
         ImageIcon icon = new ImageIcon(
-                getClass().getResource("/logoHighland.png")
+                Objects.requireNonNull(getClass().getResource("/logoHighland.png"))
 
         );
         Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
@@ -116,7 +116,7 @@ public class LoginForm extends JFrame {
         formPanel.add(btnLogin, gbc);
 
         // Register link
-        linkRegister = new JLabel("<html><u>Chưa có tài khoản? Đăng ký ngay</u></html>");
+        var linkRegister = new JLabel("<html><u>Chưa có tài khoản? Đăng ký ngay</u></html>");
         linkRegister.setForeground(new Color(70, 130, 180));
         linkRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
