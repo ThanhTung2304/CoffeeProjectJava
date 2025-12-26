@@ -64,6 +64,11 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
     }
 
+    public Account findById(Long id) {
+        return accountRepository.findById(id).orElse(null);
+    }
+
+
 
 
     /**
@@ -99,4 +104,5 @@ public class AccountServiceImpl implements AccountService {
         System.out.println("Check exists username"+ username);
         return accountRepository.existsByUsername(username);
     }
+
 }
