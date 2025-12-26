@@ -17,3 +17,23 @@ SELECT 'admin', '123456789', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM account WHERE username = 'admin'
 );
+
+CREATE TABLE IF NOT EXISTS reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    table_number INT NOT NULL,
+    time DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES account(id)
+    );
+
+DROP TABLE IF EXISTS reservations;
+
+CREATE TABLE reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    table_number INT NOT NULL,
+    time DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    note VARCHAR(255) NULL
+);
