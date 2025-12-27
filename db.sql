@@ -41,7 +41,15 @@ VALUES
     ('Trần Thị B', '0912345678', 'Staff', NULL);
 select *from employee;
 
-=======
+CREATE TABLE IF NOT EXISTS product (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedTime TIMESTAMP NULL DEFAULT NULL
+        ON UPDATE CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS reservations (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,4 +70,4 @@ CREATE TABLE reservations (
     status VARCHAR(50) NOT NULL,
     note VARCHAR(255) NULL
 );
->>>>>>> origin/main
+
