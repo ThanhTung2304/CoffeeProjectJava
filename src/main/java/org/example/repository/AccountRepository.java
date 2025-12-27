@@ -3,6 +3,7 @@ package org.example.repository;
 import org.example.entity.Account;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AccountRepository {
 
@@ -31,6 +32,10 @@ public interface AccountRepository {
      */
     void updated(Account account);
 
+
+    Optional<Account> findById(Long id);
+
+
     /**
      * xóa tài khoản.
      * @param id tài khoản cần cập nhật
@@ -45,4 +50,5 @@ public interface AccountRepository {
     boolean existsByUsername(String username);
 
 
+    Account findByUsername(int username);
 }
