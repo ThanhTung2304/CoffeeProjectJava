@@ -78,7 +78,7 @@ public class MainFrame extends JFrame {
     private void initScreens() {
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSOMERS);
-        contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOEES);
+        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOEES);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
 //        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
