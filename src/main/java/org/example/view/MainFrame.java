@@ -77,13 +77,13 @@ public class MainFrame extends JFrame {
     // ===== Tạo các màn hình mock =====
     private void initScreens() {
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
-<<<<<<< HEAD
-        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSOMERS);
-        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOEES);
-=======
+
+        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
+        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
->>>>>>> origin/main
+
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
 //        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
