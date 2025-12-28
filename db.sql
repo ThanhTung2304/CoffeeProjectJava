@@ -17,7 +17,7 @@ SELECT 'admin', '123456789', 1
     WHERE NOT EXISTS (
     SELECT 1 FROM account WHERE username = 'admin'
 );
-<<<<<<< HEAD
+
 CREATE TABLE IF NOT EXISTS employee (
                                         id INT AUTO_INCREMENT PRIMARY KEY,
                                         name VARCHAR(100) NOT NULL,
@@ -42,14 +42,24 @@ VALUES
 select *from employee;
 
 CREATE TABLE IF NOT EXISTS product (
+
                                        id INT AUTO_INCREMENT PRIMARY KEY,
                                        name VARCHAR(100) NOT NULL,
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+
     price DECIMAL(12,2) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedTime TIMESTAMP NULL DEFAULT NULL
+
     ON UPDATE CURRENT_TIMESTAMP
     );
+
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
 
 CREATE TABLE IF NOT EXISTS reservations (
                                             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,6 +73,7 @@ CREATE TABLE IF NOT EXISTS reservations (
 DROP TABLE IF EXISTS reservations;
 
 CREATE TABLE reservations (
+
                               id INT AUTO_INCREMENT PRIMARY KEY,
                               customer_name VARCHAR(100) NOT NULL,
                               table_number INT NOT NULL,
@@ -70,3 +81,13 @@ CREATE TABLE reservations (
                               status VARCHAR(50) NOT NULL,
                               note VARCHAR(255) NULL
 );
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    table_number INT NOT NULL,
+    time DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    note VARCHAR(255) NULL
+);
+
+
