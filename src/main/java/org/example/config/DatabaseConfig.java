@@ -7,11 +7,10 @@ public class DatabaseConfig {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/coffee?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String USER = "root";
-<<<<<<< HEAD
-    private static final String PASSWORD = "thu02022005";
-=======
     private static final String PASSWORD = "02022005";
->>>>>>> origin/main
+
+
+
 
     static {
         try {
@@ -29,4 +28,3 @@ public class DatabaseConfig {
         }
     }
 }
-

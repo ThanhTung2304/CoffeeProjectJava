@@ -25,7 +25,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_EMPLOYEES = "employees";
     private static final String SCREEN_PRODUCTS = "products";
     private static final String SCREEN_BOOKING = "booking";
-//    private static final String SCREEN_REPORTS = "reports";
+    //    private static final String SCREEN_REPORTS = "reports";
     private static final String SCREEN_SETTINGS = "settings";
 
     public MainFrame(String username, String role) {
@@ -77,13 +77,13 @@ public class MainFrame extends JFrame {
     // ===== Tạo các màn hình mock =====
     private void initScreens() {
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
-<<<<<<< HEAD
-        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSOMERS);
-        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOEES);
-=======
+
+        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
+        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
->>>>>>> origin/main
+
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
 //        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
@@ -171,7 +171,6 @@ public class MainFrame extends JFrame {
                         "Action", JOptionPane.INFORMATION_MESSAGE));
 
     }
-
     // ===== Đổi màn hình + cập nhật header + sidebar =====
     private void showScreen(String cardKey, String moduleTitle) {
         currentModuleTitle = moduleTitle;
@@ -221,4 +220,3 @@ public class MainFrame extends JFrame {
         );
     }
 }
-
