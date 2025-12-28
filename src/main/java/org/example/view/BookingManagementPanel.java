@@ -6,6 +6,7 @@ import org.example.entity.Reservation;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -110,7 +111,7 @@ public class BookingManagementPanel extends JPanel {
                         r.getId(),
                         r.getCustomerName(),
                         r.getTableNumber(),
-                        r.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                        r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
                         r.getStatus(),
                         r.getNote()
                 });
@@ -136,7 +137,7 @@ public class BookingManagementPanel extends JPanel {
                     r.getId(),
                     r.getCustomerName(),
                     r.getTableNumber(),
-                    r.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
                     r.getStatus(),
                     r.getNote()
             });
@@ -155,7 +156,7 @@ public class BookingManagementPanel extends JPanel {
         panel.add(customerNameField);
         panel.add(new JLabel("Số bàn:"));
         panel.add(tableNumberField);
-        panel.add(new JLabel("Thời gian (yyyy-MM-dd HH:mm):"));
+        panel.add(new JLabel("Thời gian (dd-MM-yyyy):"));
         panel.add(timeField);
         panel.add(new JLabel("Trạng thái:"));
         panel.add(statusField);
@@ -170,7 +171,7 @@ public class BookingManagementPanel extends JPanel {
                 Reservation r = new Reservation();
                 r.setCustomerName(customerNameField.getText());
                 r.setTableNumber(Integer.parseInt(tableNumberField.getText()));
-                r.setTime(LocalDateTime.parse(timeField.getText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+                r.setTime(LocalDate.parse(timeField.getText(), DateTimeFormatter.ofPattern("dd-MM-yyyy")).atStartOfDay());
                 r.setStatus(statusField.getText());
                 r.setNote(noteField.getText());
                 controller.addReservation(r);
@@ -188,7 +189,7 @@ public class BookingManagementPanel extends JPanel {
 
             JTextField customerNameField = new JTextField(r.getCustomerName());
             JTextField tableNumberField = new JTextField(String.valueOf(r.getTableNumber()));
-            JTextField timeField = new JTextField(r.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            JTextField timeField = new JTextField(r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
             JTextField statusField = new JTextField(r.getStatus());
             JTextField noteField = new JTextField(r.getNote());
 
@@ -197,7 +198,7 @@ public class BookingManagementPanel extends JPanel {
             panel.add(customerNameField);
             panel.add(new JLabel("Số bàn:"));
             panel.add(tableNumberField);
-            panel.add(new JLabel("Thời gian (yyyy-MM-dd HH:mm):"));
+            panel.add(new JLabel("Thời gian (dd-MM-yyyy):"));
             panel.add(timeField);
             panel.add(new JLabel("Trạng thái:"));
             panel.add(statusField);
@@ -211,7 +212,7 @@ public class BookingManagementPanel extends JPanel {
                 try {
                     r.setCustomerName(customerNameField.getText());
                     r.setTableNumber(Integer.parseInt(tableNumberField.getText()));
-                    r.setTime(LocalDateTime.parse(timeField.getText(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+                    r.setTime(LocalDate.parse(timeField.getText(), DateTimeFormatter.ofPattern("dd-MM-yyyy")).atStartOfDay());
                     r.setStatus(statusField.getText());
                     r.setNote(noteField.getText());
                     controller.updateReservation(r);
@@ -232,7 +233,7 @@ public class BookingManagementPanel extends JPanel {
             controller.deleteReservation(r.getId());
             loadData();
         } else {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để xóa!");
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để xoá!");
         }
     }
 }

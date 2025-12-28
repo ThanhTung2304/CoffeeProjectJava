@@ -41,7 +41,18 @@ VALUES
     ('Trần Thị B', '0912345678', 'Staff', NULL);
 select *from employee;
 
+SELECT id, name, account_id FROM employee;
+UPDATE employee SET account_id = 2 WHERE id = 1;
+UPDATE employee SET account_id = 1 WHERE id = 2;
+
+SELECT 
+    e.name,
+    a.username
+FROM employee e
+LEFT JOIN account a ON e.account_id = a.id;
+
 CREATE TABLE IF NOT EXISTS product (
+
                                        id INT AUTO_INCREMENT PRIMARY KEY,
                                        name VARCHAR(100) NOT NULL,
     price DECIMAL(12,2) NOT NULL,
@@ -50,6 +61,24 @@ CREATE TABLE IF NOT EXISTS product (
     updatedTime TIMESTAMP NULL DEFAULT NULL
     ON UPDATE CURRENT_TIMESTAMP
     );
+
+                                       id INT AUTO_INCREMENT PRIMARY KEY,
+                                       name VARCHAR(100) NOT NULL,
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+
+    price DECIMAL(12,2) NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedTime TIMESTAMP NULL DEFAULT NULL
+
+    ON UPDATE CURRENT_TIMESTAMP
+    );
+
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
 
 CREATE TABLE IF NOT EXISTS reservations (
                                             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,10 +92,24 @@ CREATE TABLE IF NOT EXISTS reservations (
 DROP TABLE IF EXISTS reservations;
 
 CREATE TABLE reservations (
+
                               id INT AUTO_INCREMENT PRIMARY KEY,
                               customer_name VARCHAR(100) NOT NULL,
                               table_number INT NOT NULL,
                               time DATETIME NOT NULL,
                               status VARCHAR(50) NOT NULL,
                               note VARCHAR(255) NULL
+
 );
+
+);
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    table_number INT NOT NULL,
+    time DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    note VARCHAR(255) NULL
+);
+
+
