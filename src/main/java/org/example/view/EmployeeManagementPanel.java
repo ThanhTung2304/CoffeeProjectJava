@@ -39,7 +39,7 @@ public class EmployeeManagementPanel extends JPanel {
         JButton btnSearch = new JButton("🔍 Tìm");
 
         cbPosition = new JComboBox<>(new String[]{
-                "Tất cả", "Admin", "Staff"
+                "Tất cả", "Staff"
         });
 
         filterPanel.add(new JLabel("Tìm:"));
@@ -74,8 +74,9 @@ public class EmployeeManagementPanel extends JPanel {
         model = new DefaultTableModel(
                 new Object[]{
                         "STT", "Tên", "SĐT", "Vai trò",
-                        "Account ID", "Ngày tạo", "Cập nhật"
-                }, 0
+                        "Username", "Ngày tạo", "Cập nhật"
+                },
+                0
         );
 
         table = new JTable(model);
@@ -91,8 +92,7 @@ public class EmployeeManagementPanel extends JPanel {
             loadData();
         });
 
-        btnAdd.addActionListener(e ->
-                new EmployeeForm(null, this::loadData).setVisible(true)
+        btnAdd.addActionListener(e ->new EmployeeForm(null, this::loadData).setVisible(true)
         );
 
         btnEdit.addActionListener(e -> editEmployee());
@@ -101,44 +101,45 @@ public class EmployeeManagementPanel extends JPanel {
 
     /* ===== LOAD DATA ===== */
     private void loadData() {
-        model.setRowCount(0);
+            model.setRowCount(0);
 
-        String keyword = txtSearch.getText().toLowerCase();
-        String positionFilter = cbPosition.getSelectedItem().toString();
+            String keyword = txtSearch.getText().toLowerCase();
+            String positionFilter = cbPosition.getSelectedItem().toString();
 
-        List<Employee> list = controller.getAll();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            List<Employee> list = controller.getAll();
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        int stt = 1;
-        for (Employee e : list) {
+            int stt = 1;
+            for (Employee e : list) {
 
-            boolean matchName =
-                    keyword.isBlank() ||
-                            e.getName().toLowerCase().contains(keyword);
+                boolean matchName =
+                        keyword.isBlank() ||
+                                e.getName().toLowerCase().contains(keyword);
 
-            boolean matchPosition =
-                    positionFilter.equals("Tất cả") ||
-                            positionFilter.equalsIgnoreCase(e.getPosition());
+                boolean matchPosition =
+                        positionFilter.equals("Tất cả") ||
+                                e.getPosition().toLowerCase().startsWith(positionFilter.toLowerCase());
 
-            if (matchName && matchPosition) {
-                model.addRow(new Object[]{
-                        stt++,
-                        e.getName(),
-                        e.getPhone(),
-                        e.getPosition(),
-                        e.getAccountId(),
-                        e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
-                        e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
-                });
+                if (matchName && matchPosition) {
+                    model.addRow(new Object[]{
+                            stt++,
+                            e.getName(),
+                            e.getPhone(),
+                            e.getPosition(),// đã chứa username
+                            e.getUsername(),
+                            e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
+                            e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
+                    });
+                }
             }
         }
-    }
 
-    private void editEmployee() {
+
+        private void editEmployee() {
         int row = table.getSelectedRow();
         if (row == -1) return;
 
-        int id = (int) model.getValueAt(row, 0);
+
         Employee emp = controller.getAll().get(row);
 
         new EmployeeForm(emp, this::loadData).setVisible(true);

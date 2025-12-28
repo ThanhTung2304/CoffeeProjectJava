@@ -1,5 +1,6 @@
 package org.example.entity;
 
+
 import java.time.LocalDateTime;
 
 public class Employee {
@@ -9,9 +10,11 @@ public class Employee {
     private String phone;
     private String position;
     private Integer accountId; // CÓ THỂ NULL
+    private String username;
 
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
+
 
     public Employee() {}
 
@@ -38,9 +41,27 @@ public class Employee {
     public Integer getAccountId() { return accountId; }
     public void setAccountId(Integer accountId) { this.accountId = accountId; }
 
-    public LocalDateTime getCreatedTime() { return createdTime; }
-    public void setCreatedTime(LocalDateTime createdTime) { this.createdTime = createdTime; }
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
 
-    public LocalDateTime getUpdateTime() { return updateTime; }
-    public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
