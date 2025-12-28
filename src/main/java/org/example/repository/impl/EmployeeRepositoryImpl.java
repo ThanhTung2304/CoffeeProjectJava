@@ -14,50 +14,57 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public List<Employee> findAll() {
         List<Employee> list = new ArrayList<>();
-        String sql = "SELECT * FROM employee";
+
+        String sql = """
+    SELECT 
+        e.id,
+        e.name,
+        e.phone,
+        e.position,
+         e.account_id,
+        a.username,
+        e.createdTime,
+        e.updateTime
+    FROM employee e
+    LEFT JOIN account a ON e.account_id = a.id
+""";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                list.add(mapRow(rs));
+                Employee e = mapRow(rs);
+
+                // 👉 GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
+                String username = rs.getString("username");
+                e.setUsername(rs.getString("username"));
+
+
+                list.add(e);
             }
 
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi lấy danh sách employee", e);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Lỗi lấy danh sách employee", ex);
         }
+
         return list;
     }
 
     @Override
     public Employee findById(int id) {
-        String sql = "SELECT * FROM employee WHERE id = ?";
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapRow(rs);
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi tìm employee", e);
-        }
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void save(Employee emp) {
         String sql = """
-            INSERT INTO employee (name, phone, position, account_id, createdTime)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO employee (name, phone, position, account_id)
+            VALUES (?, ?, ?, ?)
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getPhone());
@@ -68,12 +75,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             else
                 ps.setNull(4, Types.INTEGER);
 
-            ps.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
             ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) emp.setId(rs.getInt(1));
-            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi lưu employee", e);
@@ -84,7 +86,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     public void update(Employee emp) {
         String sql = """
             UPDATE employee
-            SET name=?, phone=?, position=?, account_id=?, updateTime=?
+            SET name=?, phone=?, position=?, account_id=?, updateTime=NOW()
             WHERE id=?
         """;
 
@@ -100,9 +102,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             else
                 ps.setNull(4, Types.INTEGER);
 
-            ps.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
-            ps.setInt(6, emp.getId());
-
+            ps.setInt(5, emp.getId());
             ps.executeUpdate();
 
         } catch (SQLException e) {

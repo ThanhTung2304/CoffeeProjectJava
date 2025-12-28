@@ -1,6 +1,8 @@
 package org.example.view;
 
+import org.example.controller.AccountController;
 import org.example.controller.EmployeeController;
+import org.example.entity.Account;
 import org.example.entity.Employee;
 
 import javax.swing.*;
@@ -8,8 +10,9 @@ import java.awt.*;
 
 public class EmployeeForm extends JDialog {
 
-    private JTextField txtName, txtPhone, txtAccountId;
+    private JTextField txtName, txtPhone;
     private JComboBox<String> cbPosition;
+    private JComboBox<Account> cbAccount;
 
     private final EmployeeController controller = new EmployeeController();
     private final Employee employee;
@@ -33,21 +36,27 @@ public class EmployeeForm extends JDialog {
 
         txtName = new JTextField();
         txtPhone = new JTextField();
-        txtAccountId = new JTextField();
 
-        cbPosition = new JComboBox<>(new String[]{"Admin", "Staff"});
+        cbPosition = new JComboBox<>(new String[]{"Staff"});
+
+        cbAccount = new JComboBox<>();
+        loadAccount();
 
         JButton btnSave = new JButton("Save");
         JButton btnCancel = new JButton("Cancel");
 
         add(new JLabel("Name"));
         add(txtName);
+
         add(new JLabel("Phone"));
         add(txtPhone);
+
         add(new JLabel("Position"));
         add(cbPosition);
-        add(new JLabel("Account ID"));
-        add(txtAccountId);
+
+        add(new JLabel("Account"));
+        add(cbAccount);
+
         add(btnSave);
         add(btnCancel);
 
@@ -59,17 +68,26 @@ public class EmployeeForm extends JDialog {
         txtName.setText(employee.getName());
         txtPhone.setText(employee.getPhone());
         cbPosition.setSelectedItem(employee.getPosition());
-        txtAccountId.setText(
-                employee.getAccountId() == null ? "" : employee.getAccountId().toString()
-        );
+
+        if (employee.getAccountId() != null) {
+            for (int i = 0; i < cbAccount.getItemCount(); i++) {
+                Account acc = cbAccount.getItemAt(i);
+                if (acc != null && employee.getAccountId().equals(acc.getId())) {
+                    cbAccount.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
+
     private void save() {
-        String name = txtName.getText();
-        String phone = txtPhone.getText();
+        String name = txtName.getText().trim();
+        String phone = txtPhone.getText().trim();
         String position = cbPosition.getSelectedItem().toString();
-        Integer accountId = txtAccountId.getText().isBlank()
-                ? null : Integer.parseInt(txtAccountId.getText());
+
+        Account acc = (Account) cbAccount.getSelectedItem();
+        Integer accountId = (acc == null) ? null : acc.getId();
 
         if (employee == null) {
             controller.create(name, phone, position, accountId);
@@ -83,5 +101,32 @@ public class EmployeeForm extends JDialog {
 
         callback.run();
         dispose();
+    }
+
+    private void loadAccount() {
+        AccountController accController = new AccountController();
+
+        cbAccount.addItem(null); // Không gán account
+
+        accController.loadAccounts().forEach(cbAccount::addItem);
+
+        cbAccount.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+
+                super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                if (value == null) {
+                    setText("-- Không gán --");
+                } else {
+                    Account acc = (Account) value;
+                    setText(acc.getUsername());
+                }
+                return this;
+            }
+        });
     }
 }
