@@ -25,7 +25,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_EMPLOYEES = "employees";
     private static final String SCREEN_PRODUCTS = "products";
     private static final String SCREEN_BOOKING = "booking";
-//    private static final String SCREEN_REPORTS = "reports";
+    //    private static final String SCREEN_REPORTS = "reports";
     private static final String SCREEN_SETTINGS = "settings";
 
     public MainFrame(String username, String role) {
@@ -171,7 +171,6 @@ public class MainFrame extends JFrame {
                         "Action", JOptionPane.INFORMATION_MESSAGE));
 
     }
-
     // ===== Đổi màn hình + cập nhật header + sidebar =====
     private void showScreen(String cardKey, String moduleTitle) {
         currentModuleTitle = moduleTitle;
@@ -221,4 +220,3 @@ public class MainFrame extends JFrame {
         );
     }
 }
-
