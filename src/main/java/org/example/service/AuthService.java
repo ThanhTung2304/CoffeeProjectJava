@@ -16,7 +16,6 @@ public interface AuthService {
      * Đăng ký tài khoản mới.
      *
      * @param request thông tin đăng ký
-     * @return
      */
     boolean register(RegisterRequest request);
 

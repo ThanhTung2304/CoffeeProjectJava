@@ -1,8 +1,7 @@
 package org.example.view;
 
+import org.example.controller.AccountController;
 import org.example.entity.Account;
-import org.example.service.AccountService;
-import org.example.service.impl.AccountServiceImpl;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,13 +12,14 @@ import java.util.Objects;
 
 public class AccountManagementPanel extends JPanel {
 
+    private final AccountController controller = new AccountController();
+
     private final DefaultTableModel tableModel;
     private final JTable table;
 
-    private final AccountService accountService = new AccountServiceImpl();
-
-    private final JTextField txtSearch;
-    private final JComboBox<String> cbStatus;
+    private final JTextField txtSearch = new JTextField(22);
+    private final JComboBox<String> cbStatus =
+            new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
 
     public AccountManagementPanel() {
         setLayout(new BorderLayout());
@@ -30,17 +30,14 @@ public class AccountManagementPanel extends JPanel {
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
         /* ===== SEARCH ===== */
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        txtSearch = new JTextField(22);
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnSearch = new JButton("🔍 Tìm");
 
-        cbStatus = new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
-
-        topPanel.add(new JLabel("Tìm:"));
-        topPanel.add(txtSearch);
-        topPanel.add(btnSearch);
-        topPanel.add(new JLabel("Trạng thái:"));
-        topPanel.add(cbStatus);
+        searchPanel.add(new JLabel("Tìm:"));
+        searchPanel.add(txtSearch);
+        searchPanel.add(btnSearch);
+        searchPanel.add(new JLabel("Trạng thái:"));
+        searchPanel.add(cbStatus);
 
         /* ===== ACTION ===== */
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -56,9 +53,8 @@ public class AccountManagementPanel extends JPanel {
 
         /* ===== TABLE ===== */
         tableModel = new DefaultTableModel(
-                new String[]{"ID", "STT", "Username", "Role", "Trạng thái"}, 0
+                new String[]{"ID", "STT", "Username", "Password", "Role", "Trạng thái"}, 0
         ) {
-            @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
@@ -66,24 +62,22 @@ public class AccountManagementPanel extends JPanel {
 
         table = new JTable(tableModel);
         table.setRowHeight(28);
-
-        // Ẩn cột ID
-        table.removeColumn(table.getColumnModel().getColumn(0));
+        table.removeColumn(table.getColumnModel().getColumn(0)); // hide ID
 
         JScrollPane scroll = new JScrollPane(table);
 
-        /* ===== LAYOUT ===== */
+        /* ===== NORTH ===== */
         JPanel north = new JPanel(new BorderLayout());
         north.add(title, BorderLayout.NORTH);
-        north.add(topPanel, BorderLayout.CENTER);
+        north.add(searchPanel, BorderLayout.CENTER);
         north.add(actionPanel, BorderLayout.SOUTH);
 
         add(north, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
 
         /* ===== EVENTS ===== */
-        btnRefresh.addActionListener(e -> loadData());
         btnSearch.addActionListener(e -> loadData());
+        btnRefresh.addActionListener(e -> loadData());
         btnAdd.addActionListener(e -> openAddDialog());
         btnEdit.addActionListener(e -> openEditDialog());
         btnDelete.addActionListener(e -> deleteAccount());
@@ -95,28 +89,20 @@ public class AccountManagementPanel extends JPanel {
     private void loadData() {
         tableModel.setRowCount(0);
 
-        String keyword = txtSearch.getText().trim().toLowerCase();
-        String status = cbStatus.getSelectedItem().toString();
+        List<Account> list = controller.search(
+                txtSearch.getText(),
+                Objects.requireNonNull(cbStatus.getSelectedItem()).toString()
+        );
 
-        List<Account> list = accountService.findAll();
         int stt = 1;
-
         for (Account a : list) {
-
-            if (!keyword.isEmpty()
-                    && !a.getUsername().toLowerCase().contains(keyword)) {
-                continue;
-            }
-
-            String st = a.isActive() ? "Hoạt động" : "Khóa";
-            if (!status.equals("Tất cả") && !status.equals(st)) continue;
-
             tableModel.addRow(new Object[]{
                     a.getId(),
                     stt++,
                     a.getUsername(),
+                    a.getPassword(),
                     a.getRole(),
-                    st
+                    a.isActive() ? "Hoạt động" : "Khóa"
             });
         }
     }
@@ -138,28 +124,18 @@ public class AccountManagementPanel extends JPanel {
 
         JButton btnSave = new JButton("Lưu");
         btnSave.addActionListener(e -> {
-            String username = txtUser.getText().trim();
-            String password = new String(txtPass.getPassword());
-
-            if (username.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(d, "Không được để trống");
-                return;
+            try {
+                controller.add(
+                        txtUser.getText(),
+                        new String(txtPass.getPassword()),
+                        Objects.requireNonNull(Objects.requireNonNull(cbRole.getSelectedItem())).toString(),
+                        chkActive.isSelected()
+                );
+                d.dispose();
+                loadData();
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(d, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
-
-            if (accountService.existsByUsername(username)) {
-                JOptionPane.showMessageDialog(d, "Username đã tồn tại");
-                return;
-            }
-
-            accountService.create(new Account(
-                    username,
-                    password,
-                    Objects.requireNonNull(cbRole.getSelectedItem()).toString(),
-                    chkActive.isSelected()
-            ));
-
-            d.dispose();
-            loadData();
         });
 
         d.add(form, BorderLayout.CENTER);
@@ -172,59 +148,67 @@ public class AccountManagementPanel extends JPanel {
 
         int viewRow = table.getSelectedRow();
         if (viewRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn tài khoản cần sửa",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Chọn tài khoản cần sửa");
             return;
         }
 
-        // CHUYỂN VIEW → MODEL (BẮT BUỘC)
         int modelRow = table.convertRowIndexToModel(viewRow);
+        int id = (int) tableModel.getValueAt(modelRow, 0);
+        String username = tableModel.getValueAt(modelRow, 2).toString();
 
-        // Username nằm ở cột index = 2 trong MODEL
-        String username = tableModel.getValueAt(modelRow, 2).toString().trim();
-
-        System.out.println("DEBUG username = [" + username + "]");
-
-        Account acc = accountService.findByUsername(username);
-
-        if (acc == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Không tìm thấy tài khoản trong DB!",
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        Account acc = controller.findByUsername(username);
 
         JDialog d = createDialog("Sửa tài khoản");
 
         JTextField txtUser = new JTextField(acc.getUsername());
-        JComboBox<String> cbRole = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
+        txtUser.setEditable(true);
+
+        JPasswordField txtPass = new JPasswordField(acc.getPassword());
+        JPasswordField txtConfirm = new JPasswordField(acc.getPassword());
+
+        JComboBox<String> cbRole =
+                new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
         cbRole.setSelectedItem(acc.getRole());
+
         JCheckBox chkActive = new JCheckBox("Hoạt động", acc.isActive());
 
         JPanel form = createForm();
         addField(form, "Username:", txtUser);
+        addField(form, "Password:", txtPass);
+        addField(form, "Confirm:", txtConfirm);
         addField(form, "Role:", cbRole);
         addField(form, "Trạng thái:", chkActive);
 
         JButton btnSave = new JButton("Cập nhật");
         btnSave.addActionListener(e -> {
-            acc.setUsername(txtUser.getText().trim());
-            acc.setRole(cbRole.getSelectedItem().toString());
-            acc.setActive(chkActive.isSelected());
+            String pass = new String(txtPass.getPassword());
+            String confirm = new String(txtConfirm.getPassword());
 
-            accountService.update(acc);
-            d.dispose();
-            loadData();
+            if (!pass.equals(confirm)) {
+                JOptionPane.showMessageDialog(d, "Mật khẩu không khớp!");
+                return;
+            }
+
+            try {
+                controller.update(
+                        id,
+                        acc.getUsername(),
+                        pass,              // cập nhật mật khẩu
+                        Objects.requireNonNull(Objects.requireNonNull(cbRole.getSelectedItem())).toString(),
+                        chkActive.isSelected()
+                );
+                d.dispose();
+                loadData();
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(d, ex.getMessage(),
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         d.add(form, BorderLayout.CENTER);
         d.add(btnSave, BorderLayout.SOUTH);
         d.setVisible(true);
     }
-
 
 
     /* ================= DELETE ================= */
@@ -235,15 +219,11 @@ public class AccountManagementPanel extends JPanel {
         int modelRow = table.convertRowIndexToModel(viewRow);
         int id = (int) tableModel.getValueAt(modelRow, 0);
 
-        int c = JOptionPane.showConfirmDialog(
-                this,
-                "Xóa tài khoản này ?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
+        if (JOptionPane.showConfirmDialog(
+                this, "Xóa tài khoản này?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-        if (c == JOptionPane.YES_OPTION) {
-            accountService.deleteById(id);
+            controller.delete(id);
             loadData();
         }
     }

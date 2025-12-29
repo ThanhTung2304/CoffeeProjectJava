@@ -7,6 +7,7 @@ import org.example.entity.Employee;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class EmployeeForm extends JDialog {
 
@@ -84,7 +85,7 @@ public class EmployeeForm extends JDialog {
     private void save() {
         String name = txtName.getText().trim();
         String phone = txtPhone.getText().trim();
-        String position = cbPosition.getSelectedItem().toString();
+        String position = Objects.requireNonNull(cbPosition.getSelectedItem()).toString();
 
         Account acc = (Account) cbAccount.getSelectedItem();
         Integer accountId = (acc == null) ? null : acc.getId();
@@ -108,7 +109,7 @@ public class EmployeeForm extends JDialog {
 
         cbAccount.addItem(null); // Không gán account
 
-        accController.loadAccounts().forEach(cbAccount::addItem);
+        accController.loadAll().forEach(cbAccount::addItem);
 
         cbAccount.setRenderer(new DefaultListCellRenderer() {
             @Override
