@@ -19,8 +19,8 @@ SELECT 'admin', '123456789', 1
 );
 
 CREATE TABLE IF NOT EXISTS employee (
-                                        id INT AUTO_INCREMENT PRIMARY KEY,
-                                        name VARCHAR(100) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     position VARCHAR(50),
 
@@ -45,11 +45,11 @@ SELECT id, name, account_id FROM employee;
 UPDATE employee SET account_id = 2 WHERE id = 1;
 UPDATE employee SET account_id = 1 WHERE id = 2;
 
-SELECT 
+SELECT
     e.name,
     a.username
 FROM employee e
-LEFT JOIN account a ON e.account_id = a.id;
+         LEFT JOIN account a ON e.account_id = a.id;
 
 CREATE TABLE IF NOT EXISTS product (
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS product (
     ON UPDATE CURRENT_TIMESTAMP
     );
 
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
+id INT AUTO_INCREMENT PRIMARY KEY,
                                        name VARCHAR(100) NOT NULL,
 
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -74,10 +74,10 @@ CREATE TABLE IF NOT EXISTS product (
     updatedTime TIMESTAMP NULL DEFAULT NULL
 
     ON UPDATE CURRENT_TIMESTAMP
-    );
+              );
 
-        ON UPDATE CURRENT_TIMESTAMP
-);
+ON UPDATE CURRENT_TIMESTAMP
+       );
 
 
 CREATE TABLE IF NOT EXISTS reservations (
@@ -92,13 +92,12 @@ CREATE TABLE IF NOT EXISTS reservations (
 DROP TABLE IF EXISTS reservations;
 
 CREATE TABLE reservations (
-
-                              id INT AUTO_INCREMENT PRIMARY KEY,
-                              customer_name VARCHAR(100) NOT NULL,
-                              table_number INT NOT NULL,
-                              time DATETIME NOT NULL,
-                              status VARCHAR(50) NOT NULL,
-                              note VARCHAR(255) NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    table_number INT NOT NULL,
+    time DATETIME NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    note VARCHAR(255) NULL
 
 );
 
@@ -111,5 +110,3 @@ CREATE TABLE reservations (
     status VARCHAR(50) NOT NULL,
     note VARCHAR(255) NULL
 );
-
-
