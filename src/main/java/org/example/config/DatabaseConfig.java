@@ -10,7 +10,6 @@ public class DatabaseConfig {
     private static final String PASSWORD = "123456";
 
 
-
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
