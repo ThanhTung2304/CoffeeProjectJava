@@ -125,6 +125,27 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         }
     }
 
+    public void insert(Employee emp) {
+        String sql = """
+        INSERT INTO employee(name, phone, position, account_id)
+        VALUES (?, ?, ?, ?)
+    """;
+
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, emp.getName());
+            ps.setString(2, emp.getPhone());
+            ps.setString(3, emp.getPosition());
+            ps.setInt(4, emp.getAccountId());
+
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi");
+        }
+    }
+
+
     private Employee mapRow(ResultSet rs) throws SQLException {
         Employee e = new Employee();
         e.setId(rs.getInt("id"));
