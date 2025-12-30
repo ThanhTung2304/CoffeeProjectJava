@@ -1,8 +1,11 @@
 package org.example.service.impl;
 
 import org.example.entity.Account;
+import org.example.entity.Employee;
 import org.example.repository.AccountRepository;
+import org.example.repository.EmployeeRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
+import org.example.repository.impl.EmployeeRepositoryImpl;
 import org.example.service.AccountService;
 
 
@@ -11,6 +14,10 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
+
+
+    private final AccountRepository accountRepo = new AccountRepositoryImpl();
+    private final EmployeeRepository employeeRepo = new EmployeeRepositoryImpl();
 
     public AccountServiceImpl() {
         this.accountRepository = new AccountRepositoryImpl();
@@ -41,32 +48,57 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
+    @Override
+    public Account findById(Long id) {
+        if (id == null || id <= 0) {
+            return null;
+        }
+        return accountRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public void create(Account account) {
+
+        // 1. Lưu account
+        accountRepo.save(account);
+
+        // 2. Nếu là STAFF → tạo employee
+        if ("STAFF".equalsIgnoreCase(account.getRole())) {
+
+            Employee emp = new Employee();
+            emp.setName(account.getUsername());      // tên mặc định
+            emp.setPosition("Staff");
+            emp.setAccountId(account.getId());       // LINK ACCOUNT
+
+            employeeRepo.save(emp);
+        }
+    }
 
 
     /**
      * Tạo tài khoản mới.
      * @param account tài khoản cần cập nhật
      */
-    @Override
-    public void create(Account account) {
-        if (account == null) {
-            throw new IllegalArgumentException("Account không được null");
-        }
-
-        if (account.getUsername() == null || account.getUsername().isBlank()) {
-            throw new IllegalArgumentException("Username không được để trống");
-        }
-
-        if (existsByUsername(account.getUsername())) {
-            throw new IllegalArgumentException("Username đã tồn tại");
-        }
-
-        accountRepository.save(account);
-    }
-
-    public Account findById(Long id) {
-        return accountRepository.findById(id).orElse(null);
-    }
+//    @Override
+//    public void create(Account account) {
+//        if (account == null) {
+//            throw new IllegalArgumentException("Account không được null");
+//        }
+//
+//        if (account.getUsername() == null || account.getUsername().isBlank()) {
+//            throw new IllegalArgumentException("Username không được để trống");
+//        }
+//
+//        if (existsByUsername(account.getUsername())) {
+//            throw new IllegalArgumentException("Username đã tồn tại");
+//        }
+//
+//        accountRepository.save(account);
+//    }
+//
+//    public Account findById(Long id) {
+//        return accountRepository.findById(id).orElse(null);
+//    }
 
 
 
