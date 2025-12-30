@@ -5,7 +5,6 @@ import org.example.entity.Employee;
 import org.example.repository.EmployeeRepository;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,18 +15,18 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         List<Employee> list = new ArrayList<>();
 
         String sql = """
-    SELECT 
-        e.id,
-        e.name,
-        e.phone,
-        e.position,
-         e.account_id,
-        a.username,
-        e.createdTime,
-        e.updateTime
-    FROM employee e
-    LEFT JOIN account a ON e.account_id = a.id
-""";
+            SELECT
+                e.id,
+                e.name,
+                e.phone,
+                e.position,
+                e.account_id,
+                a.username,
+                e.createdTime,
+                e.updateTime
+            FROM employee e
+            LEFT JOIN account a ON e.account_id = a.id
+        """;
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -36,7 +35,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             while (rs.next()) {
                 Employee e = mapRow(rs);
 
-                // 👉 GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
+                // GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
                 String username = rs.getString("username");
                 e.setUsername(rs.getString("username"));
 

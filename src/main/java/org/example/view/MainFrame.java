@@ -1,10 +1,8 @@
 package org.example.view;
 
-
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.Sidebar;
-
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,16 +15,18 @@ public class MainFrame extends JFrame {
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
 
-    private String currentModuleTitle = "Quản Lý Bán Cà Phê";
 
-    // Card keys
-    private static final String SCREEN_ACCOUNTS = "accounts";
+
+    /* ===== CARD KEYS ===== */
+    private static final String SCREEN_STATISTIC = "statistic";
+    private static final String SCREEN_ACCOUNTS  = "accounts";
     private static final String SCREEN_CUSTOMERS = "customers";
     private static final String SCREEN_EMPLOYEES = "employees";
-    private static final String SCREEN_PRODUCTS = "products";
-    private static final String SCREEN_BOOKING = "booking";
-    //    private static final String SCREEN_REPORTS = "reports";
-    private static final String SCREEN_SETTINGS = "settings";
+    private static final String SCREEN_PRODUCTS  = "products";
+    private static final String SCREEN_BOOKING   = "booking";
+    private static final String SCREEN_SETTINGS  = "settings";
+
+    private String currentModuleTitle = "Thống Kê Tổng Quan";
 
     public MainFrame(String username, String role) {
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
@@ -37,11 +37,11 @@ public class MainFrame extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
 
-        // Header & Sidebar
+        /* ===== HEADER + SIDEBAR ===== */
         header = new Header(username, role);
         sideBar = new Sidebar(role);
 
-        // Background content
+        /* ===== CONTENT ===== */
         JPanel bgContent = new JPanel(new BorderLayout());
         bgContent.setBackground(new Color(237, 239, 252));
         bgContent.setBorder(new EmptyBorder(18, 24, 18, 24));
@@ -64,36 +64,26 @@ public class MainFrame extends JFrame {
         initHeaderActions();
     }
 
-    public MainFrame( Header header, Sidebar sideBar, JPanel contentPanel, CardLayout cardLayout) {
-        this.header = header;
-        this.sideBar = sideBar;
-        this.contentPanel = contentPanel;
-        this.cardLayout = cardLayout;
-    }
-
-
-
-
-    // ===== Tạo các màn hình mock =====
+    /* INIT SCREENS */
     private void initScreens() {
+
+        /* ===== PANELS ===== */
+        StatisticPanel statisticPanel = new StatisticPanel();
+
+
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
-
-        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
-        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOYEES);
-
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
-
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
-//        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
-        contentPanel.add(createModuleScreen(), SCREEN_SETTINGS);
+        contentPanel.add(statisticPanel, SCREEN_STATISTIC);
+        contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
 
-        // Default
-        showScreen(SCREEN_CUSTOMERS, "Quản lí bán cà phê");
+        // Mặc định mở thống kê
+        showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
     }
 
-    private JPanel createModuleScreen() {
+    private JPanel createSettingScreen() {
         RoundedPanel card = new RoundedPanel(20, Color.WHITE);
         card.setLayout(new BorderLayout());
         card.setBorder(new EmptyBorder(18, 22, 22, 22));
@@ -106,13 +96,19 @@ public class MainFrame extends JFrame {
         return card;
     }
 
-    // ===== Gán action cho sidebar =====
+    /* SIDEBAR ACTIONS*/
     private void initMenuActions() {
 
         JButton btn;
 
+        btn = sideBar.getMenu("Thống Kê");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan"));
+        }
+
         btn = sideBar.getMenu("Quản Lý Tài Khoản");
-        if(btn != null){
+        if (btn != null) {
             btn.addActionListener(e ->
                     showScreen(SCREEN_ACCOUNTS, "Quản Lý Tài Khoản"));
         }
@@ -141,14 +137,12 @@ public class MainFrame extends JFrame {
                     showScreen(SCREEN_BOOKING, "Đặt Bàn"));
         }
 
-
         btn = sideBar.getMenu("Cài Đặt");
         if (btn != null) {
             btn.addActionListener(e ->
                     showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
         }
 
-        // Logout
         btn = sideBar.getMenu("Đăng xuất");
         if (btn != null) {
             btn.addActionListener(e -> {
@@ -158,62 +152,59 @@ public class MainFrame extends JFrame {
         }
     }
 
-    // ===== Hành vi nút Thêm/Sửa/Export trên header =====
+    /*HEADER ACTIONS*/
     private void initHeaderActions() {
+
         header.getBtnAdd().addActionListener(e ->
                 JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
+                        "Thêm tại: " + currentModuleTitle));
 
         header.getBtnEdit().addActionListener(e ->
                 JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Sửa] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-
+                        "Sửa tại: " + currentModuleTitle));
     }
-    // ===== Đổi màn hình + cập nhật header + sidebar =====
+
+    /*SHOW SCREEN*/
     private void showScreen(String cardKey, String moduleTitle) {
+
         currentModuleTitle = moduleTitle;
         header.setModuleTitle(moduleTitle);
         sideBar.setActiveMenu(moduleTitle);
         cardLayout.show(contentPanel, cardKey);
+
+        // Ẩn nút Add/Edit ở màn hình thống kê
+        boolean isStatistic = SCREEN_STATISTIC.equals(cardKey);
+        header.getBtnAdd().setVisible(!isStatistic);
+        header.getBtnEdit().setVisible(!isStatistic);
     }
 
-    // Panel bo tròn có bóng nhẹ dùng cho mọi màn hình
+    /*ROUNDED PANEL*/
     static class RoundedPanel extends JPanel {
-        private final int cornerRadius;
-        private final Color backgroundColor;
+        private final int radius;
+        private final Color bg;
 
-        public RoundedPanel(int radius, Color bgColor) {
-            super();
-            this.cornerRadius = radius;
-            this.backgroundColor = bgColor;
+        public RoundedPanel(int radius, Color bg) {
+            this.radius = radius;
+            this.bg = bg;
             setOpaque(false);
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Dimension arcs = new Dimension(cornerRadius, cornerRadius);
-            int width = getWidth();
-            int height = getHeight();
-            Graphics2D graphics = (Graphics2D) g;
-            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // bóng nhẹ
-            graphics.setColor(new Color(0, 0, 0, 18));
-            graphics.fillRoundRect(4, 4, width - 8, height - 8,
-                    arcs.width, arcs.height);
+            g2.setColor(new Color(0, 0, 0, 18));
+            g2.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, radius, radius);
 
-            // thân panel
-            graphics.setColor(backgroundColor);
-            graphics.fillRoundRect(0, 0, width - 8, height - 8,
-                    arcs.width, arcs.height);
+            g2.setColor(bg);
+            g2.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, radius, radius);
         }
     }
 
-    // Test nhanh (chạy riêng, không qua login)
+    /*TEST MAIN*/
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() ->
                 new MainFrame("admin", "ADMIN").setVisible(true)
