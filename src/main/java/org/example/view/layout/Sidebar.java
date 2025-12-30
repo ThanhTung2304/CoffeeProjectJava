@@ -16,12 +16,16 @@ public class Sidebar extends JPanel {
 
         if ("ADMIN".equals(role)) {
             addMenu("Quản Lý Tài Khoản");
+            addMenu("Lịch Sử Đơn Hàng");
+
         }
         addMenu("Quản Lý Nhân Viên");
         addMenu("Quản Lý Khách Hàng");
         addMenu("Quản Lý Sản Phẩm");
         addMenu("Đặt Bàn");
         addMenu("Đăng xuất");
+
+
     }
 
     private void addMenu(String title) {

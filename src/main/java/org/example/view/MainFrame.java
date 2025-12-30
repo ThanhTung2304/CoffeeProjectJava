@@ -9,6 +9,11 @@ import org.example.view.layout.Sidebar;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import org.example.entity.Customer;
+
+import javax.swing.SwingUtilities;
+
+
 
 public class MainFrame extends JFrame {
 
@@ -16,6 +21,15 @@ public class MainFrame extends JFrame {
     private final Sidebar sideBar;
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
+    /*
+    private OrderHistoryPanel orderHistoryPanel;
+    private String role;
+
+    public String getRole() {
+        return role;
+    }*/
+
+
 
     private String currentModuleTitle = "Quản Lý Bán Cà Phê";
 
@@ -27,8 +41,14 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_BOOKING = "booking";
 //    private static final String SCREEN_REPORTS = "reports";
     private static final String SCREEN_SETTINGS = "settings";
+    /*private static final String SCREEN_ORDERS = "orders";
+    private static final String SCREEN_ORDER_HISTORY = "order_history";*/
+
+
 
     public MainFrame(String username, String role) {
+        //this.role = role;
+
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -70,6 +90,16 @@ public class MainFrame extends JFrame {
         this.contentPanel = contentPanel;
         this.cardLayout = cardLayout;
     }
+    /*public void openOrderHistory(Customer customer) {
+        if (orderHistoryPanel == null) {
+            orderHistoryPanel = new OrderHistoryPanel();
+            contentPanel.add(orderHistoryPanel, "order_history");
+        }
+
+        orderHistoryPanel.showHistoryByCustomer(customer);
+        showScreen("order_history", "Lịch Sử Đơn Hàng");
+    }*/
+
 
 
 
@@ -81,8 +111,13 @@ public class MainFrame extends JFrame {
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOEES);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
+        /*contentPanel.add(new OrderManagementPanel(), SCREEN_ORDERS);
+        orderHistoryPanel = new OrderHistoryPanel();
+        contentPanel.add(orderHistoryPanel, SCREEN_ORDER_HISTORY);
+
+
 //        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
-        contentPanel.add(createModuleScreen("Cài Đặt Hệ Thống"), SCREEN_SETTINGS);
+        contentPanel.add(createModuleScreen("Cài Đặt Hệ Thống"), SCREEN_SETTINGS);*/
 
         // Default
         showScreen(SCREEN_CUSOMERS, "Quản lí bán cà phê");
@@ -142,6 +177,22 @@ public class MainFrame extends JFrame {
             btn.addActionListener(e ->
                     showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
         }
+
+        /*btn = sideBar.getMenu("Lịch Sử Đơn Hàng");
+        if (btn != null) {
+            btn.addActionListener(e -> {
+                if (!"ADMIN".equals(role)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Bạn không có quyền xem lịch sử đơn hàng!",
+                            "Từ chối truy cập",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                showScreen(SCREEN_ORDER_HISTORY, "Lịch Sử Đơn Hàng");
+            });
+        }*/
+
+
 
         // Logout
         btn = sideBar.getMenu("Đăng xuất");
