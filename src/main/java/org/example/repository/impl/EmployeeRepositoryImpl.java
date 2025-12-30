@@ -5,7 +5,6 @@ import org.example.entity.Employee;
 import org.example.repository.EmployeeRepository;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,18 +15,18 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         List<Employee> list = new ArrayList<>();
 
         String sql = """
-    SELECT 
-        e.id,
-        e.name,
-        e.phone,
-        e.position,
-         e.account_id,
-        a.username,
-        e.createdTime,
-        e.updateTime
-    FROM employee e
-    LEFT JOIN account a ON e.account_id = a.id
-""";
+            SELECT
+                e.id,
+                e.name,
+                e.phone,
+                e.position,
+                e.account_id,
+                a.username,
+                e.createdTime,
+                e.updateTime
+            FROM employee e
+            LEFT JOIN account a ON e.account_id = a.id
+        """;
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -36,7 +35,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             while (rs.next()) {
                 Employee e = mapRow(rs);
 
-                // 👉 GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
+                // GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
                 String username = rs.getString("username");
                 e.setUsername(rs.getString("username"));
 
@@ -124,6 +123,27 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             throw new RuntimeException("Lỗi xóa employee", e);
         }
     }
+
+    public void insert(Employee emp) {
+        String sql = """
+        INSERT INTO employee(name, phone, position, account_id)
+        VALUES (?, ?, ?, ?)
+    """;
+
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, emp.getName());
+            ps.setString(2, emp.getPhone());
+            ps.setString(3, emp.getPosition());
+            ps.setInt(4, emp.getAccountId());
+
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi");
+        }
+    }
+
 
     private Employee mapRow(ResultSet rs) throws SQLException {
         Employee e = new Employee();

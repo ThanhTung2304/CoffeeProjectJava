@@ -14,6 +14,7 @@ public class Sidebar extends JPanel {
         setPreferredSize(new Dimension(220, 0));
         setBackground(new Color(45, 52, 70));
 
+        addMenu("Thống Kê");
         if ("ADMIN".equals(role)) {
             addMenu("Quản Lý Tài Khoản");
         }

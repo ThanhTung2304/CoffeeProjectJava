@@ -2,13 +2,14 @@ package org.example.view;
 
 import org.example.controller.EmployeeController;
 import org.example.entity.Employee;
-import org.example.view.EmployeeForm;
+
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 public class EmployeeManagementPanel extends JPanel {
 
@@ -101,41 +102,41 @@ public class EmployeeManagementPanel extends JPanel {
 
     /* ===== LOAD DATA ===== */
     private void loadData() {
-            model.setRowCount(0);
+        model.setRowCount(0);
 
-            String keyword = txtSearch.getText().toLowerCase();
-            String positionFilter = cbPosition.getSelectedItem().toString();
+        String keyword = txtSearch.getText().toLowerCase();
+        String positionFilter = Objects.requireNonNull(cbPosition.getSelectedItem()).toString();
 
-            List<Employee> list = controller.getAll();
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<Employee> list = controller.getAll();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-            int stt = 1;
-            for (Employee e : list) {
+        int stt = 1;
+        for (Employee e : list) {
 
-                boolean matchName =
-                        keyword.isBlank() ||
-                                e.getName().toLowerCase().contains(keyword);
+            boolean matchName =
+                    keyword.isBlank() ||
+                            e.getName().toLowerCase().contains(keyword);
 
-                boolean matchPosition =
-                        positionFilter.equals("Tất cả") ||
-                                e.getPosition().toLowerCase().startsWith(positionFilter.toLowerCase());
+            boolean matchPosition =
+                    positionFilter.equals("Tất cả") ||
+                            e.getPosition().toLowerCase().startsWith(positionFilter.toLowerCase());
 
-                if (matchName && matchPosition) {
-                    model.addRow(new Object[]{
-                            stt++,
-                            e.getName(),
-                            e.getPhone(),
-                            e.getPosition(),// đã chứa username
-                            e.getUsername(),
-                            e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
-                            e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
-                    });
-                }
+            if (matchName && matchPosition) {
+                model.addRow(new Object[]{
+                        stt++,
+                        e.getName(),
+                        e.getPhone(),
+                        e.getPosition(),// đã chứa username
+                        e.getUsername(),
+                        e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
+                        e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
+                });
             }
         }
+    }
 
 
-        private void editEmployee() {
+    private void editEmployee() {
         int row = table.getSelectedRow();
         if (row == -1) return;
 
