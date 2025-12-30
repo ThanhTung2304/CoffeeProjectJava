@@ -64,6 +64,11 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
     }
 
+    public Account findById(Long id) {
+        return accountRepository.findById(id).orElse(null);
+    }
+
+
 
 
     /**
@@ -73,8 +78,16 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void update(Account account) {
-        System.out.println("Cập nhật tài khoản" + account.getUsername());
-        accountRepository.updated(account);
+
+        if (account.getUsername() == null || account.getUsername().isBlank()) {
+            throw new RuntimeException("ID không hợp lệ");
+        }
+
+        if (account.getPassword() == null || account.getPassword().isBlank()) {
+            throw new RuntimeException("Password không được trống");
+        }
+
+        accountRepository.update(account);
     }
 
     /**
@@ -99,4 +112,8 @@ public class AccountServiceImpl implements AccountService {
         System.out.println("Check exists username"+ username);
         return accountRepository.existsByUsername(username);
     }
+
+
+
+
 }

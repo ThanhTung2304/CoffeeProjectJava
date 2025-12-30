@@ -1,48 +1,43 @@
 package org.example.repository;
 
 import org.example.entity.Account;
-
 import java.util.List;
+import java.util.Optional;
 
 public interface AccountRepository {
 
     /**
-     * Lấy tất cả tài khoản.
-     * @return danh sách tài khoản
+     * Lấy tất cả tài khoản
      */
     List<Account> findAll();
 
     /**
-     * Tìm tài khoản theo tên đăng nhập.
-     * @param username tên đăng nhập
-     * @return tài khoản hoặc null nếu không tìm thấy
+     * Tìm tài khoản theo username
      */
     Account findByUsername(String username);
 
     /**
-     * Lưu tài khoản mới.
-     * @param account tài khoản cần lưu
+     * Tìm tài khoản theo id
+     */
+    Optional<Account> findById(Long id);
+
+    /**
+     * Thêm tài khoản mới
      */
     void save(Account account);
 
     /**
-     * Cập nhật tài khoản.
-     * @param account tài khoản cần cập nhật
+     * Cập nhật tài khoản
      */
-    void updated(Account account);
+    void update(Account account);
 
     /**
-     * xóa tài khoản.
-     * @param id tài khoản cần cập nhật
+     * Xóa tài khoản theo id
      */
     void deleteById(int id);
 
     /**
-     * Kiểm tra tài khoản tồn tại theo tên đăng nhập.
-     * @param username tên đăng nhập
-     * @return true nếu tồn tại, false nếu không
+     * Kiểm tra username đã tồn tại chưa
      */
     boolean existsByUsername(String username);
-
-
 }

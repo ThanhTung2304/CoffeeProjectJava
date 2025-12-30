@@ -21,12 +21,19 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.0.0</version>
         </dependency>
+<<<<<<< HEAD
         <!-- MySQL Connector/J (ổn định, khuyên dùng) -->
         <dependency>
             <groupId>com.mysql</groupId>
+=======
+
+        <dependency>
+            <groupId>mysql</groupId>
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
             <artifactId>mysql-connector-j</artifactId>
             <version>8.0.33</version>
         </dependency>
     </dependencies>
+
 
 </project>

@@ -1,13 +1,16 @@
 package org.example.config;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class DatabaseConfig {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/coffee?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String USER = "root";
+<<<<<<< HEAD
     private static final String PASSWORD = "123456@";
+=======
+    private static final String PASSWORD = "02022005";
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
 
     static {
         try {
@@ -25,4 +28,3 @@ public class DatabaseConfig {
         }
     }
 }
-

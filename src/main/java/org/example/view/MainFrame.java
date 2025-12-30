@@ -1,6 +1,6 @@
 package org.example.view;
 
-import org.example.entity.Account;
+
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.Sidebar;
@@ -35,11 +35,11 @@ public class MainFrame extends JFrame {
 
     // Card keys
     private static final String SCREEN_ACCOUNTS = "accounts";
-    private static final String SCREEN_CUSOMERS = "customers";
-    private static final String SCREEN_EMPLOEES = "employees";
+    private static final String SCREEN_CUSTOMERS = "customers";
+    private static final String SCREEN_EMPLOYEES = "employees";
     private static final String SCREEN_PRODUCTS = "products";
     private static final String SCREEN_BOOKING = "booking";
-//    private static final String SCREEN_REPORTS = "reports";
+    //    private static final String SCREEN_REPORTS = "reports";
     private static final String SCREEN_SETTINGS = "settings";
     /*private static final String SCREEN_ORDERS = "orders";
     private static final String SCREEN_ORDER_HISTORY = "order_history";*/
@@ -107,8 +107,13 @@ public class MainFrame extends JFrame {
     // ===== Tạo các màn hình mock =====
     private void initScreens() {
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
-        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSOMERS);
-        contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOEES);
+
+        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
+        contentPanel.add(new org.example.view.EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+
+        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
+        contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
         /*contentPanel.add(new OrderManagementPanel(), SCREEN_ORDERS);
@@ -117,18 +122,22 @@ public class MainFrame extends JFrame {
 
 
 //        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
+<<<<<<< HEAD
         contentPanel.add(createModuleScreen("Cài Đặt Hệ Thống"), SCREEN_SETTINGS);*/
+=======
+        contentPanel.add(createModuleScreen(), SCREEN_SETTINGS);
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
 
         // Default
-        showScreen(SCREEN_CUSOMERS, "Quản lí bán cà phê");
+        showScreen(SCREEN_CUSTOMERS, "Quản lí bán cà phê");
     }
 
-    private JPanel createModuleScreen(String title) {
+    private JPanel createModuleScreen() {
         RoundedPanel card = new RoundedPanel(20, Color.WHITE);
         card.setLayout(new BorderLayout());
         card.setBorder(new EmptyBorder(18, 22, 22, 22));
 
-        JLabel lbl = new JLabel(title, SwingConstants.CENTER);
+        JLabel lbl = new JLabel("Cài Đặt Hệ Thống", SwingConstants.CENTER);
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         lbl.setForeground(new Color(120, 120, 160));
 
@@ -150,13 +159,13 @@ public class MainFrame extends JFrame {
         btn = sideBar.getMenu("Quản Lý Khách Hàng");
         if (btn != null) {
             btn.addActionListener(e ->
-                    showScreen(SCREEN_CUSOMERS, "Quản Lý Khách Hàng"));
+                    showScreen(SCREEN_CUSTOMERS, "Quản Lý Khách Hàng"));
         }
 
         btn = sideBar.getMenu("Quản Lý Nhân Viên");
         if (btn != null) {
             btn.addActionListener(e ->
-                    showScreen(SCREEN_EMPLOEES, "Quản Lý Nhân Viên"));
+                    showScreen(SCREEN_EMPLOYEES, "Quản Lý Nhân Viên"));
         }
 
         btn = sideBar.getMenu("Quản Lý Sản Phẩm");
@@ -217,7 +226,6 @@ public class MainFrame extends JFrame {
                         "Action", JOptionPane.INFORMATION_MESSAGE));
 
     }
-
     // ===== Đổi màn hình + cập nhật header + sidebar =====
     private void showScreen(String cardKey, String moduleTitle) {
         currentModuleTitle = moduleTitle;
@@ -267,4 +275,3 @@ public class MainFrame extends JFrame {
         );
     }
 }
-
