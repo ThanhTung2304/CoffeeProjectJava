@@ -14,10 +14,14 @@ public class Sidebar extends JPanel {
         setPreferredSize(new Dimension(220, 0));
         setBackground(new Color(45, 52, 70));
 
+        addMenu("Thống Kê");
         if ("ADMIN".equals(role)) {
             addMenu("Quản Lý Tài Khoản");
         }
         addMenu("Quản Lý Nhân Viên");
+        // thêm qly ca làm và lịch làm
+        addMenu("Quản Lý Ca Làm");
+        addMenu("Quản Lý Lịch Làm");
         addMenu("Quản Lý Khách Hàng");
         addMenu("Quản Lý Sản Phẩm");
         addMenu("Đặt Bàn");

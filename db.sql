@@ -51,6 +51,40 @@ SELECT
 FROM employee e
          LEFT JOIN account a ON e.account_id = a.id;
 
+CREATE TABLE shift (
+                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       name VARCHAR(50) NOT NULL,
+                       start_time TIME NOT NULL,
+                       end_time TIME NOT NULL,
+                       createdTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                       updateTime DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE employee_shift (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+
+                                employee_id INT NOT NULL,
+                                shift_id INT NOT NULL,
+                                work_date DATE NOT NULL,
+
+                                register_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                CONSTRAINT uk_employee_shift
+                                    UNIQUE (employee_id, shift_id, work_date),
+
+                                CONSTRAINT fk_es_employee
+                                    FOREIGN KEY (employee_id)
+                                        REFERENCES employee(id)
+                                        ON DELETE CASCADE,
+
+                                CONSTRAINT fk_es_shift
+                                    FOREIGN KEY (shift_id)
+                                        REFERENCES shift(id)
+                                        ON DELETE CASCADE
+);
+
+
 CREATE TABLE IF NOT EXISTS product (
 
                                        id INT AUTO_INCREMENT PRIMARY KEY,
