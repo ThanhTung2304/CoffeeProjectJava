@@ -22,6 +22,8 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_ACCOUNTS  = "accounts";
     private static final String SCREEN_CUSTOMERS = "customers";
     private static final String SCREEN_EMPLOYEES = "employees";
+    private static final String SCREEN_SHIFTS         = "shifts";
+    private static final String SCREEN_WORK_SCHEDULE  = "work_schedule";
     private static final String SCREEN_PRODUCTS  = "products";
     private static final String SCREEN_BOOKING   = "booking";
     private static final String SCREEN_SETTINGS  = "settings";
@@ -75,6 +77,8 @@ public class MainFrame extends JFrame {
         contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+        contentPanel.add(new ShiftManagementPanel(), SCREEN_SHIFTS);
+        contentPanel.add(new WorkSchedulePanel(), SCREEN_WORK_SCHEDULE);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
         contentPanel.add(statisticPanel, SCREEN_STATISTIC);
@@ -126,6 +130,19 @@ public class MainFrame extends JFrame {
             btn.addActionListener(e ->
                     showScreen(SCREEN_EMPLOYEES, "Quản Lý Nhân Viên"));
         }
+
+        btn = sideBar.getMenu("Quản Lý Ca Làm");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_SHIFTS, "Quản Lý Ca Làm"));
+        }
+
+        btn = sideBar.getMenu("Quản Lý Lịch Làm");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_WORK_SCHEDULE, "Quản Lý Lịch Làm"));
+        }
+
 
         btn = sideBar.getMenu("Quản Lý Sản Phẩm");
         if (btn != null) {
