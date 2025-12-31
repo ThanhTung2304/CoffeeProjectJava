@@ -33,9 +33,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("Tên nhân viên không được để trống");
         }
 
-        if (employee.getAccountId() <= 0) {
-            throw new IllegalArgumentException("Employee phải gắn với account hợp lệ");
-        }
 
         employeeRepository.save(employee);
     }
