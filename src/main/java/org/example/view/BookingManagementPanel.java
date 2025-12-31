@@ -7,7 +7,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -87,37 +86,12 @@ public class BookingManagementPanel extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
 
         // ===== Xử lý tìm kiếm =====
-        btnSearch.addActionListener(e -> {
-            String keyword = searchField.getText().trim();
-            String status = (String) statusFilter.getSelectedItem();
+        btnSearch.addActionListener(e -> applyFilters());
 
-            List<Reservation> filtered = controller.getAllReservations();
+        // ===== Xử lý chọn trạng thái =====
+        statusFilter.addActionListener(e -> applyFilters());
 
-            if (!keyword.isEmpty()) {
-                filtered = filtered.stream()
-                        .filter(r -> r.getCustomerName().toLowerCase().contains(keyword.toLowerCase()))
-                        .toList();
-            }
-
-            if (!status.equals("Tất cả")) {
-                filtered = filtered.stream()
-                        .filter(r -> r.getStatus().equalsIgnoreCase(status))
-                        .toList();
-            }
-
-            tableModel.setRowCount(0);
-            for (Reservation r : filtered) {
-                tableModel.addRow(new Object[]{
-                        r.getId(),
-                        r.getCustomerName(),
-                        r.getTableNumber(),
-                        r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                        r.getStatus(),
-                        r.getNote()
-                });
-            }
-        });
-
+        // Load dữ liệu ban đầu
         loadData();
     }
 
@@ -133,6 +107,38 @@ public class BookingManagementPanel extends JPanel {
         tableModel.setRowCount(0);
         List<Reservation> reservations = controller.getAllReservations();
         for (Reservation r : reservations) {
+            tableModel.addRow(new Object[]{
+                    r.getId(),
+                    r.getCustomerName(),
+                    r.getTableNumber(),
+                    r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
+                    r.getStatus(),
+                    r.getNote()
+            });
+        }
+    }
+
+    // Gom logic lọc vào một hàm chung
+    private void applyFilters() {
+        String keyword = searchField.getText().trim();
+        String status = (String) statusFilter.getSelectedItem();
+
+        List<Reservation> filtered = controller.getAllReservations();
+
+        if (!keyword.isEmpty()) {
+            filtered = filtered.stream()
+                    .filter(r -> r.getCustomerName().toLowerCase().contains(keyword.toLowerCase()))
+                    .toList();
+        }
+
+        if (!status.equals("Tất cả")) {
+            filtered = filtered.stream()
+                    .filter(r -> r.getStatus().equalsIgnoreCase(status))
+                    .toList();
+        }
+
+        tableModel.setRowCount(0);
+        for (Reservation r : filtered) {
             tableModel.addRow(new Object[]{
                     r.getId(),
                     r.getCustomerName(),

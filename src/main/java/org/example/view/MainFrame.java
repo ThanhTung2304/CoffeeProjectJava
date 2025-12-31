@@ -15,18 +15,18 @@ public class MainFrame extends JFrame {
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
 
-
+    private String currentModuleTitle = "Thống Kê Tổng Quan";
 
     /* ===== CARD KEYS ===== */
-    private static final String SCREEN_STATISTIC = "statistic";
-    private static final String SCREEN_ACCOUNTS  = "accounts";
-    private static final String SCREEN_CUSTOMERS = "customers";
-    private static final String SCREEN_EMPLOYEES = "employees";
-    private static final String SCREEN_PRODUCTS  = "products";
-    private static final String SCREEN_BOOKING   = "booking";
-    private static final String SCREEN_SETTINGS  = "settings";
-
-    private String currentModuleTitle = "Thống Kê Tổng Quan";
+    private static final String SCREEN_STATISTIC      = "statistic";
+    private static final String SCREEN_ACCOUNTS       = "accounts";
+    private static final String SCREEN_CUSTOMERS      = "customers";
+    private static final String SCREEN_EMPLOYEES      = "employees";
+    private static final String SCREEN_SHIFTS         = "shifts";
+    private static final String SCREEN_WORK_SCHEDULE  = "work_schedule";
+    private static final String SCREEN_PRODUCTS       = "products";
+    private static final String SCREEN_BOOKING        = "booking";
+    private static final String SCREEN_SETTINGS       = "settings";
 
     public MainFrame(String username, String role) {
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
@@ -37,11 +37,9 @@ public class MainFrame extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
 
-        /* ===== HEADER + SIDEBAR ===== */
         header = new Header(username, role);
         sideBar = new Sidebar(role);
 
-        /* ===== CONTENT ===== */
         JPanel bgContent = new JPanel(new BorderLayout());
         bgContent.setBackground(new Color(237, 239, 252));
         bgContent.setBorder(new EmptyBorder(18, 24, 18, 24));
@@ -53,158 +51,86 @@ public class MainFrame extends JFrame {
         initScreens();
         bgContent.add(contentPanel, BorderLayout.CENTER);
 
-        Footer footer = new Footer();
-
         add(sideBar, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
         add(bgContent, BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
+        add(new Footer(), BorderLayout.SOUTH);
 
         initMenuActions();
         initHeaderActions();
-    }
 
-    /* INIT SCREENS */
-    private void initScreens() {
-
-        /* ===== PANELS ===== */
-        StatisticPanel statisticPanel = new StatisticPanel();
-
-
-        contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
-        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
-        contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
-        contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
-        contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
-        contentPanel.add(statisticPanel, SCREEN_STATISTIC);
-        contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
-
-        // Mặc định mở thống kê
         showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
     }
 
-    private JPanel createSettingScreen() {
-        RoundedPanel card = new RoundedPanel(20, Color.WHITE);
-        card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(18, 22, 22, 22));
-
-        JLabel lbl = new JLabel("Cài Đặt Hệ Thống", SwingConstants.CENTER);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        lbl.setForeground(new Color(120, 120, 160));
-
-        card.add(lbl, BorderLayout.CENTER);
-        return card;
+    /* ===== INIT SCREENS ===== */
+    private void initScreens() {
+        contentPanel.add(new StatisticPanel(), SCREEN_STATISTIC);
+        contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
+        contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
+        contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
+        contentPanel.add(new ShiftManagementPanel(), SCREEN_SHIFTS);
+        contentPanel.add(new WorkSchedulePanel(), SCREEN_WORK_SCHEDULE);
+        contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
+        contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
+        contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
     }
 
-    /* SIDEBAR ACTIONS*/
+    private JPanel createSettingScreen() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JLabel("Cài Đặt Hệ Thống", SwingConstants.CENTER), BorderLayout.CENTER);
+        return p;
+    }
+
+    /* ===== SIDEBAR ACTIONS ===== */
     private void initMenuActions() {
 
-        JButton btn;
+        bindMenu("Thống Kê", SCREEN_STATISTIC, "Thống Kê Tổng Quan");
+        bindMenu("Quản Lý Tài Khoản", SCREEN_ACCOUNTS, "Quản Lý Tài Khoản");
+        bindMenu("Quản Lý Khách Hàng", SCREEN_CUSTOMERS, "Quản Lý Khách Hàng");
+        bindMenu("Quản Lý Nhân Viên", SCREEN_EMPLOYEES, "Quản Lý Nhân Viên");
+        bindMenu("Quản Lý Ca Làm", SCREEN_SHIFTS, "Quản Lý Ca Làm");
+        bindMenu("Quản Lý Lịch Làm", SCREEN_WORK_SCHEDULE, "Quản Lý Lịch Làm Việc");
+        bindMenu("Quản Lý Sản Phẩm", SCREEN_PRODUCTS, "Quản Lý Sản Phẩm");
+        bindMenu("Đặt Bàn", SCREEN_BOOKING, "Đặt Bàn");
+        bindMenu("Cài Đặt", SCREEN_SETTINGS, "Cài Đặt Hệ Thống");
 
-        btn = sideBar.getMenu("Thống Kê");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan"));
-        }
-
-        btn = sideBar.getMenu("Quản Lý Tài Khoản");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_ACCOUNTS, "Quản Lý Tài Khoản"));
-        }
-
-        btn = sideBar.getMenu("Quản Lý Khách Hàng");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_CUSTOMERS, "Quản Lý Khách Hàng"));
-        }
-
-        btn = sideBar.getMenu("Quản Lý Nhân Viên");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_EMPLOYEES, "Quản Lý Nhân Viên"));
-        }
-
-        btn = sideBar.getMenu("Quản Lý Sản Phẩm");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_PRODUCTS, "Quản Lý Sản Phẩm"));
-        }
-
-        btn = sideBar.getMenu("Đặt Bàn");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_BOOKING, "Đặt Bàn"));
-        }
-
-        btn = sideBar.getMenu("Cài Đặt");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
-        }
-
-        btn = sideBar.getMenu("Đăng xuất");
-        if (btn != null) {
-            btn.addActionListener(e -> {
+        JButton logout = sideBar.getMenu("Đăng xuất");
+        if (logout != null) {
+            logout.addActionListener(e -> {
                 new LoginForm().setVisible(true);
                 dispose();
             });
         }
     }
 
-    /*HEADER ACTIONS*/
-    private void initHeaderActions() {
-
-        header.getBtnAdd().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thêm tại: " + currentModuleTitle));
-
-        header.getBtnEdit().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Sửa tại: " + currentModuleTitle));
+    private void bindMenu(String menuText, String screenKey, String title) {
+        JButton btn = sideBar.getMenu(menuText);
+        if (btn != null) {
+            btn.addActionListener(e -> showScreen(screenKey, title));
+        }
     }
 
-    /*SHOW SCREEN*/
-    private void showScreen(String cardKey, String moduleTitle) {
+    /* ===== HEADER ACTIONS ===== */
+    private void initHeaderActions() {
+        header.getBtnAdd().addActionListener(e ->
+                JOptionPane.showMessageDialog(this, "Thêm tại: " + currentModuleTitle));
 
+        header.getBtnEdit().addActionListener(e ->
+                JOptionPane.showMessageDialog(this, "Sửa tại: " + currentModuleTitle));
+    }
+
+    /* ===== SHOW SCREEN ===== */
+    private void showScreen(String cardKey, String moduleTitle) {
         currentModuleTitle = moduleTitle;
         header.setModuleTitle(moduleTitle);
         sideBar.setActiveMenu(moduleTitle);
         cardLayout.show(contentPanel, cardKey);
 
-        // Ẩn nút Add/Edit ở màn hình thống kê
         boolean isStatistic = SCREEN_STATISTIC.equals(cardKey);
         header.getBtnAdd().setVisible(!isStatistic);
         header.getBtnEdit().setVisible(!isStatistic);
     }
 
-    /*ROUNDED PANEL*/
-    static class RoundedPanel extends JPanel {
-        private final int radius;
-        private final Color bg;
-
-        public RoundedPanel(int radius, Color bg) {
-            this.radius = radius;
-            this.bg = bg;
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(new Color(0, 0, 0, 18));
-            g2.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, radius, radius);
-
-            g2.setColor(bg);
-            g2.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, radius, radius);
-        }
-    }
-
-    /*TEST MAIN*/
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() ->
                 new MainFrame("admin", "ADMIN").setVisible(true)

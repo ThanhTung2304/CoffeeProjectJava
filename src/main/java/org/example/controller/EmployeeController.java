@@ -15,7 +15,7 @@ public class EmployeeController {
     }
 
     public void create(String name, String phone, String position, Integer accountId) {
-        Employee emp = new Employee(name, phone, position, accountId);
+        Employee emp = new Employee(name, phone, position, null);
         service.create(emp);
     }
 
