@@ -25,6 +25,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_PRODUCTS  = "products";
     private static final String SCREEN_BOOKING   = "booking";
     private static final String SCREEN_SETTINGS  = "settings";
+    private static final String SCREEN_INVENTORY = "inventory";
 
     private String currentModuleTitle = "Thống Kê Tổng Quan";
 
@@ -78,6 +79,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
         contentPanel.add(statisticPanel, SCREEN_STATISTIC);
         contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
+        contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
 
         // Mặc định mở thống kê
         showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
@@ -141,6 +143,12 @@ public class MainFrame extends JFrame {
         if (btn != null) {
             btn.addActionListener(e ->
                     showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
+        }
+
+        btn = sideBar.getMenu("Quản Lý Tồn Kho");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_INVENTORY, "Quản Lý Tồn Kho"));
         }
 
         btn = sideBar.getMenu("Đăng xuất");

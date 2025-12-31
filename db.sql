@@ -113,3 +113,37 @@ CREATE TABLE reservations (
 );
 
 
+CREATE TABLE inventory (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+
+                           product_id INT NOT NULL UNIQUE,
+                           quantity INT NOT NULL DEFAULT 0,
+
+                           createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           updatedTime TIMESTAMP NULL DEFAULT NULL
+        ON UPDATE CURRENT_TIMESTAMP,
+
+                           CONSTRAINT fk_inventory_product
+                               FOREIGN KEY (product_id)
+                                   REFERENCES product(id)
+                                   ON DELETE CASCADE
+);
+CREATE TABLE inventory_history (
+                                   id INT AUTO_INCREMENT PRIMARY KEY,
+
+                                   product_id INT NOT NULL,
+                                   quantity_change INT NOT NULL, -- + nhập | - xuất
+                                   action ENUM('IMPORT', 'EXPORT') NOT NULL,
+                                   note VARCHAR(255),
+
+                                   createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_history_product
+                                       FOREIGN KEY (product_id)
+                                           REFERENCES product(id)
+                                           ON DELETE CASCADE
+);
+
+
+select * from inventory;
+select* from inventory_history;
