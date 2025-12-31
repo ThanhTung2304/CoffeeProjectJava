@@ -19,8 +19,8 @@ SELECT 'admin', '123456789', 1
 );
 
 CREATE TABLE IF NOT EXISTS employee (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     position VARCHAR(50),
 
@@ -35,12 +35,6 @@ CREATE TABLE IF NOT EXISTS employee (
                                            ON DELETE SET NULL
                                            ON UPDATE CASCADE
     );
-// mọi người nhớ thêm phần này nhé
-ALTER TABLE employee
-DROP FOREIGN KEY fk_employee_account;
-ALTER TABLE employee
-DROP COLUMN account_id;
-
 INSERT INTO employee (name, phone, position, account_id)
 VALUES
     ('Nguyễn Văn A', '0901234567', 'Admin', 1),
@@ -51,45 +45,11 @@ SELECT id, name, account_id FROM employee;
 UPDATE employee SET account_id = 2 WHERE id = 1;
 UPDATE employee SET account_id = 1 WHERE id = 2;
 
-SELECT
+SELECT 
     e.name,
     a.username
 FROM employee e
-         LEFT JOIN account a ON e.account_id = a.id;
-
-CREATE TABLE shift (
-                       id INT AUTO_INCREMENT PRIMARY KEY,
-                       name VARCHAR(50) NOT NULL,
-                       start_time TIME NOT NULL,
-                       end_time TIME NOT NULL,
-                       createdTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                       updateTime DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE employee_shift (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-
-                                employee_id INT NOT NULL,
-                                shift_id INT NOT NULL,
-                                work_date DATE NOT NULL,
-
-                                register_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-                                CONSTRAINT uk_employee_shift
-                                    UNIQUE (employee_id, shift_id, work_date),
-
-                                CONSTRAINT fk_es_employee
-                                    FOREIGN KEY (employee_id)
-                                        REFERENCES employee(id)
-                                        ON DELETE CASCADE,
-
-                                CONSTRAINT fk_es_shift
-                                    FOREIGN KEY (shift_id)
-                                        REFERENCES shift(id)
-                                        ON DELETE CASCADE
-);
-
+LEFT JOIN account a ON e.account_id = a.id;
 
 CREATE TABLE IF NOT EXISTS product (
 
@@ -102,7 +62,7 @@ CREATE TABLE IF NOT EXISTS product (
     ON UPDATE CURRENT_TIMESTAMP
     );
 
-id INT AUTO_INCREMENT PRIMARY KEY,
+                                       id INT AUTO_INCREMENT PRIMARY KEY,
                                        name VARCHAR(100) NOT NULL,
 
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -114,10 +74,10 @@ id INT AUTO_INCREMENT PRIMARY KEY,
     updatedTime TIMESTAMP NULL DEFAULT NULL
 
     ON UPDATE CURRENT_TIMESTAMP
-              );
+    );
 
-ON UPDATE CURRENT_TIMESTAMP
-       );
+        ON UPDATE CURRENT_TIMESTAMP
+);
 
 
 CREATE TABLE IF NOT EXISTS reservations (
@@ -132,12 +92,13 @@ CREATE TABLE IF NOT EXISTS reservations (
 DROP TABLE IF EXISTS reservations;
 
 CREATE TABLE reservations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_name VARCHAR(100) NOT NULL,
-    table_number INT NOT NULL,
-    time DATETIME NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    note VARCHAR(255) NULL
+
+                              id INT AUTO_INCREMENT PRIMARY KEY,
+                              customer_name VARCHAR(100) NOT NULL,
+                              table_number INT NOT NULL,
+                              time DATETIME NOT NULL,
+                              status VARCHAR(50) NOT NULL,
+                              note VARCHAR(255) NULL
 
 );
 
@@ -150,3 +111,39 @@ CREATE TABLE reservations (
     status VARCHAR(50) NOT NULL,
     note VARCHAR(255) NULL
 );
+
+
+CREATE TABLE inventory (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+
+                           product_id INT NOT NULL UNIQUE,
+                           quantity INT NOT NULL DEFAULT 0,
+
+                           createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           updatedTime TIMESTAMP NULL DEFAULT NULL
+        ON UPDATE CURRENT_TIMESTAMP,
+
+                           CONSTRAINT fk_inventory_product
+                               FOREIGN KEY (product_id)
+                                   REFERENCES product(id)
+                                   ON DELETE CASCADE
+);
+CREATE TABLE inventory_history (
+                                   id INT AUTO_INCREMENT PRIMARY KEY,
+
+                                   product_id INT NOT NULL,
+                                   quantity_change INT NOT NULL, -- + nhập | - xuất
+                                   action ENUM('IMPORT', 'EXPORT') NOT NULL,
+                                   note VARCHAR(255),
+
+                                   createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_history_product
+                                       FOREIGN KEY (product_id)
+                                           REFERENCES product(id)
+                                           ON DELETE CASCADE
+);
+
+
+select * from inventory;
+select* from inventory_history;
