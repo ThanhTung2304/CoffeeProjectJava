@@ -14,6 +14,10 @@ public class WorkScheduleController {
         return service.findAll();
     }
 
+    public void update(int employeeId, int oldShiftId, int newShiftId, String workDate) {
+        service.update(employeeId, oldShiftId, newShiftId, workDate);
+    }
+
     public void delete(int empId, int shiftId, String workDate) {
         service.delete(empId, shiftId, workDate);
     }

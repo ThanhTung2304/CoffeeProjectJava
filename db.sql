@@ -35,6 +35,12 @@ CREATE TABLE IF NOT EXISTS employee (
                                            ON DELETE SET NULL
                                            ON UPDATE CASCADE
     );
+// mọi người nhớ thêm phần này nhé
+ALTER TABLE employee
+DROP FOREIGN KEY fk_employee_account;
+ALTER TABLE employee
+DROP COLUMN account_id;
+
 INSERT INTO employee (name, phone, position, account_id)
 VALUES
     ('Nguyễn Văn A', '0901234567', 'Admin', 1),

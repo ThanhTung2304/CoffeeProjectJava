@@ -24,4 +24,9 @@ public class EmployeeShiftServiceImpl implements EmployeeShiftService {
 
         repo.assign(empId, shiftId, date);
     }
+    @Override
+    public void update(int empId, int oldShiftId, int newShiftId, String workDate) {
+        repo.update(empId, oldShiftId, newShiftId, workDate);
+    }
+
 }

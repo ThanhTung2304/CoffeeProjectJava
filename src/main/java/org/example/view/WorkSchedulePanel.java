@@ -37,6 +37,9 @@ public class WorkSchedulePanel extends JPanel {
         btnAdd.addActionListener(e ->
                         new EmployeeShiftForm(this::loadData).setVisible(true)
         );
+
+        btnEdit.addActionListener(e -> edit());
+
         btnRefresh.addActionListener(e -> loadData());
         btnDelete.addActionListener(e -> delete());
 
@@ -120,4 +123,16 @@ public class WorkSchedulePanel extends JPanel {
         btn.setFocusPainted(false);
         return btn;
     }
+    private void edit() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng để sửa");
+            return;
+        }
+
+        WorkSchedule ws = controller.getAll().get(row);
+
+        new EmployeeShiftEditForm(ws, this::loadData).setVisible(true);
+    }
+
 }

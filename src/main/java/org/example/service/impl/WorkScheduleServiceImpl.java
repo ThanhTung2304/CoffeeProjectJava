@@ -17,6 +17,11 @@ public class WorkScheduleServiceImpl implements WorkScheduleService {
     }
 
     @Override
+    public void update(int employeeId, int oldShiftId, int newShiftId, String workDate) {
+        repo.update(employeeId, oldShiftId, newShiftId, workDate);
+    }
+
+    @Override
     public void delete(int empId, int shiftId, String workDate) {
         repo.delete(empId, shiftId, workDate);
     }

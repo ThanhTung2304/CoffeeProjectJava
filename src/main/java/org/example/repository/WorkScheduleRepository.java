@@ -7,5 +7,8 @@ public interface WorkScheduleRepository {
 
     List<WorkSchedule> findAll();
 
+    void update(int employeeId, int oldShiftId, int newShiftId, String workDate);
+
     void delete(int employeeId, int shiftId, String workDate);
+
 }

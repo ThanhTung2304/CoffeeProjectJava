@@ -16,16 +16,13 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
         String sql = """
             SELECT
-                e.id,
-                e.name,
-                e.phone,
-                e.position,
-                e.account_id,
-                a.username,
-                e.createdTime,
-                e.updateTime
-            FROM employee e
-            LEFT JOIN account a ON e.account_id = a.id
+                id,
+                name,
+                phone,
+                position,
+                createdTime,
+                updateTime
+            FROM employee
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -33,14 +30,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Employee e = mapRow(rs);
-
-                // GẮN TẠM username VÀO position để hiển thị (KHÔNG sửa entity)
-                String username = rs.getString("username");
-                e.setUsername(rs.getString("username"));
-
-
-                list.add(e);
+                list.add(mapRow(rs));
             }
 
         } catch (SQLException ex) {
@@ -52,14 +42,40 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public Employee findById(int id) {
-        throw new UnsupportedOperationException();
+        String sql = """
+            SELECT
+                id,
+                name,
+                phone,
+                position,
+                createdTime,
+                updateTime
+            FROM employee
+            WHERE id = ?
+        """;
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi tìm employee theo id", e);
+        }
+
+        return null;
     }
 
     @Override
     public void save(Employee emp) {
         String sql = """
-            INSERT INTO employee (name, phone, position, account_id)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO employee (name, phone, position)
+            VALUES (?, ?, ?)
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -68,11 +84,6 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getPhone());
             ps.setString(3, emp.getPosition());
-
-            if (emp.getAccountId() != null)
-                ps.setInt(4, emp.getAccountId());
-            else
-                ps.setNull(4, Types.INTEGER);
 
             ps.executeUpdate();
 
@@ -85,8 +96,8 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     public void update(Employee emp) {
         String sql = """
             UPDATE employee
-            SET name=?, phone=?, position=?, account_id=?, updateTime=NOW()
-            WHERE id=?
+            SET name = ?, phone = ?, position = ?, updateTime = NOW()
+            WHERE id = ?
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -95,13 +106,8 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getPhone());
             ps.setString(3, emp.getPosition());
+            ps.setInt(4, emp.getId());
 
-            if (emp.getAccountId() != null)
-                ps.setInt(4, emp.getAccountId());
-            else
-                ps.setNull(4, Types.INTEGER);
-
-            ps.setInt(5, emp.getId());
             ps.executeUpdate();
 
         } catch (SQLException e) {
@@ -111,7 +117,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public void deleteById(int id) {
-        String sql = "DELETE FROM employee WHERE id=?";
+        String sql = "DELETE FROM employee WHERE id = ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -124,36 +130,16 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         }
     }
 
-    public void insert(Employee emp) {
-        String sql = """
-        INSERT INTO employee(name, phone, position, account_id)
-        VALUES (?, ?, ?, ?)
-    """;
-
-        try (Connection con = DatabaseConfig.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, emp.getName());
-            ps.setString(2, emp.getPhone());
-            ps.setString(3, emp.getPosition());
-            ps.setInt(4, emp.getAccountId());
-
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi");
-        }
-    }
-
-
+    // =======================
+    // MAP ROW
+    // =======================
     private Employee mapRow(ResultSet rs) throws SQLException {
         Employee e = new Employee();
+
         e.setId(rs.getInt("id"));
         e.setName(rs.getString("name"));
         e.setPhone(rs.getString("phone"));
         e.setPosition(rs.getString("position"));
-
-        int accId = rs.getInt("account_id");
-        e.setAccountId(rs.wasNull() ? null : accId);
 
         Timestamp created = rs.getTimestamp("createdTime");
         Timestamp updated = rs.getTimestamp("updateTime");

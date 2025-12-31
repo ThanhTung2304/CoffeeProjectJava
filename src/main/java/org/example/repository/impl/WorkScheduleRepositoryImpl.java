@@ -62,6 +62,32 @@ public class WorkScheduleRepositoryImpl implements WorkScheduleRepository {
 
         return list;
     }
+    @Override
+    public void update(int employeeId, int oldShiftId, int newShiftId, String workDate) {
+
+        String sql = """
+        UPDATE employee_shift
+        SET shift_id = ?
+        WHERE employee_id = ?
+          AND shift_id = ?
+          AND work_date = ?
+    """;
+
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, newShiftId);
+            ps.setInt(2, employeeId);
+            ps.setInt(3, oldShiftId);
+            ps.setDate(4, Date.valueOf(workDate));
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi cập nhật lịch làm việc", e);
+        }
+    }
+
 
     @Override
     public void delete(int employeeId, int shiftId, String workDate) {
