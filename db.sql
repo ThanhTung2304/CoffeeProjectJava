@@ -101,3 +101,32 @@ ALTER TABLE vouchers
     NOT NULL DEFAULT 'Còn hiệu lực';
 ALTER TABLE vouchers
     MODIFY discount_type ENUM('Phần trăm','Số tiền') NOT NULL;
+
+CREATE TABLE tables (
+    table_number INT AUTO_INCREMENT PRIMARY KEY,   -- số bàn, PK
+    name VARCHAR(100) NOT NULL,                    -- tên bàn hiển thị
+    capacity INT NOT NULL DEFAULT 2,               -- sức chứa
+    status ENUM('Trống','Đang sử dụng','Đặt trước') NOT NULL DEFAULT 'Trống',
+    note VARCHAR(255) NULL
+);
+INSERT INTO tables (table_number, name, capacity, status, note) VALUES
+                                                                    (1, 'Bàn 1', 2, 'Trống', 'Khu ngoài trời'),
+                                                                    (2, 'Bàn 2', 4, 'Đang sử dụng', 'Gần quầy bar'),
+                                                                    (3, 'Bàn 3', 2, 'Đặt trước', 'Khách VIP'),
+                                                                    (4, 'Bàn 4', 6, 'Trống', 'Phòng riêng'),
+                                                                    (5, 'Bàn 5', 2, 'Trống', NULL),
+                                                                    (6, 'Bàn 6', 4, 'Đang sử dụng', 'Có ổ cắm điện'),
+                                                                    (7, 'Bàn 7', 2, 'Trống', NULL),
+                                                                    (8, 'Bàn 8', 4, 'Đặt trước', 'Sinh nhật'),
+                                                                    (9, 'Bàn 9', 2, 'Trống', NULL),
+                                                                    (10, 'Bàn 10', 6, 'Đang sử dụng', 'Gia đình'),
+                                                                    (11, 'Bàn 11', 2, 'Trống', NULL),
+                                                                    (12, 'Bàn 12', 4, 'Đang sử dụng', NULL),
+                                                                    (13, 'Bàn 13', 2, 'Trống', NULL),
+                                                                    (14, 'Bàn 14', 4, 'Đặt trước', 'Khách công ty'),
+                                                                    (15, 'Bàn 15', 2, 'Trống', NULL),
+                                                                    (16, 'Bàn 16', 4, 'Đang sử dụng', NULL),
+                                                                    (17, 'Bàn 17', 2, 'Trống', NULL),
+                                                                    (18, 'Bàn 18', 4, 'Đang sử dụng', NULL),
+                                                                    (19, 'Bàn 19', 2, 'Trống', NULL),
+                                                                    (20, 'Bàn 20', 6, 'Đặt trước', 'Tiệc nhỏ');

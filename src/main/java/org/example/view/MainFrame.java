@@ -24,6 +24,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_EMPLOYEES      = "employees";
     private static final String SCREEN_PRODUCTS       = "products";
     private static final String SCREEN_BOOKING        = "booking";
+    private static final String SCREEN_TABLES = "tables";
     private static final String SCREEN_VOUCHERS        = "voucher";
     private static final String SCREEN_SETTINGS       = "settings";
 
@@ -69,6 +70,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
+        contentPanel.add(new TableManagementPanel(), SCREEN_TABLES);
         contentPanel.add(new VoucherManagementPanel(), SCREEN_VOUCHERS);
         contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
     }
@@ -88,6 +90,7 @@ public class MainFrame extends JFrame {
         bindMenu("Quản Lý Nhân Viên", SCREEN_EMPLOYEES, "Quản Lý Nhân Viên");
         bindMenu("Quản Lý Sản Phẩm", SCREEN_PRODUCTS, "Quản Lý Sản Phẩm");
         bindMenu("Đặt Bàn", SCREEN_BOOKING, "Đặt Bàn");
+        bindMenu("Quản Lý Bàn", SCREEN_TABLES, "Quản Lý Bàn");
         bindMenu("Quản Lý Voucher", SCREEN_VOUCHERS, "Quản Lý Voucher");
         bindMenu("Cài Đặt", SCREEN_SETTINGS, "Cài Đặt Hệ Thống");
 
