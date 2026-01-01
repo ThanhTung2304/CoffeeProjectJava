@@ -19,8 +19,12 @@ public class Sidebar extends JPanel {
             addMenu("Quản Lý Tài Khoản");
         }
         addMenu("Quản Lý Nhân Viên");
+        // thêm qly ca làm và lịch làm
+        addMenu("Quản Lý Ca Làm");
+        addMenu("Quản Lý Lịch Làm");
         addMenu("Quản Lý Khách Hàng");
         addMenu("Quản Lý Sản Phẩm");
+        addMenu("Quản Lý Tồn Kho");
         addMenu("Đặt Bàn");
         addMenu("Quản Lý Bàn");
         addMenu("Quản Lý Voucher");

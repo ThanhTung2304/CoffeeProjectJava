@@ -19,8 +19,8 @@ SELECT 'admin', '123456789', 1
 );
 
 CREATE TABLE IF NOT EXISTS employee (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     position VARCHAR(50),
 
@@ -45,11 +45,11 @@ SELECT id, name, account_id FROM employee;
 UPDATE employee SET account_id = 2 WHERE id = 1;
 UPDATE employee SET account_id = 1 WHERE id = 2;
 
-SELECT
+SELECT 
     e.name,
     a.username
 FROM employee e
-         LEFT JOIN account a ON e.account_id = a.id;
+LEFT JOIN account a ON e.account_id = a.id;
 
 CREATE TABLE IF NOT EXISTS product (
 
@@ -61,6 +61,25 @@ CREATE TABLE IF NOT EXISTS product (
     updatedTime TIMESTAMP NULL DEFAULT NULL
     ON UPDATE CURRENT_TIMESTAMP
     );
+
+                             id INT AUTO_INCREMENT PRIMARY KEY,
+                                       name VARCHAR(100) NOT NULL,
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+
+    price DECIMAL(12,2) NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedTime TIMESTAMP NULL DEFAULT NULL
+
+    ON UPDATE CURRENT_TIMESTAMP
+    );
+
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
+
 
 CREATE TABLE IF NOT EXISTS reservations (
                                             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -74,12 +93,13 @@ CREATE TABLE IF NOT EXISTS reservations (
 DROP TABLE IF EXISTS reservations;
 
 CREATE TABLE reservations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_name VARCHAR(100) NOT NULL,
-    table_number INT NOT NULL,
-    time DATETIME NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    note VARCHAR(255) NULL
+
+                              id INT AUTO_INCREMENT PRIMARY KEY,
+                              customer_name VARCHAR(100) NOT NULL,
+                              table_number INT NOT NULL,
+                              time DATETIME NOT NULL,
+                              status VARCHAR(50) NOT NULL,
+                              note VARCHAR(255) NULL
 
 );
 
@@ -109,6 +129,7 @@ CREATE TABLE tables (
     status ENUM('Trống','Đang sử dụng','Đặt trước') NOT NULL DEFAULT 'Trống',
     note VARCHAR(255) NULL
 );
+
 INSERT INTO tables (table_number, name, capacity, status, note) VALUES
                                                                     (1, 'Bàn 1', 2, 'Trống', 'Khu ngoài trời'),
                                                                     (2, 'Bàn 2', 4, 'Đang sử dụng', 'Gần quầy bar'),
@@ -130,3 +151,41 @@ INSERT INTO tables (table_number, name, capacity, status, note) VALUES
                                                                     (18, 'Bàn 18', 4, 'Đang sử dụng', NULL),
                                                                     (19, 'Bàn 19', 2, 'Trống', NULL),
                                                                     (20, 'Bàn 20', 6, 'Đặt trước', 'Tiệc nhỏ');
+
+
+
+CREATE TABLE inventory (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+
+                           product_id INT NOT NULL UNIQUE,
+                           quantity INT NOT NULL DEFAULT 0,
+
+                           createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           updatedTime TIMESTAMP NULL DEFAULT NULL
+        ON UPDATE CURRENT_TIMESTAMP,
+
+                           CONSTRAINT fk_inventory_product
+                               FOREIGN KEY (product_id)
+                                   REFERENCES product(id)
+                                   ON DELETE CASCADE
+);
+CREATE TABLE inventory_history (
+                                   id INT AUTO_INCREMENT PRIMARY KEY,
+
+                                   product_id INT NOT NULL,
+                                   quantity_change INT NOT NULL, -- + nhập | - xuất
+                                   action ENUM('IMPORT', 'EXPORT') NOT NULL,
+                                   note VARCHAR(255),
+
+                                   createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_history_product
+                                       FOREIGN KEY (product_id)
+                                           REFERENCES product(id)
+                                           ON DELETE CASCADE
+);
+
+
+select * from inventory;
+select* from inventory_history;
+
