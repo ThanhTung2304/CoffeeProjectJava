@@ -29,7 +29,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             SELECT COALESCE(SUM(total_amount), 0)
             FROM orders
             WHERE MONTH(created_time) = MONTH(CURRENT_DATE())
-              AND YEAR(created_time) = YEAR(CURRENT_DATE())
+            AND YEAR(created_time) = YEAR(CURRENT_DATE())
         """;
 
             try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -78,7 +78,23 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             return "Chưa có";
         }
 
-        private int getCount(String sql) {
+    @Override
+    public int getTotalStock() {
+        String sql = "SELECT IFNULL(SUM(quantity),0) FROM inventory";
+        return getCount(sql);
+    }
+
+    @Override
+    public int getTotalExported() {
+        String sql = """
+                SELECT IFNULL (SUM(ABS(quantity_change)),0)
+                FROM inventory_history
+                WHERE action = 'EXPORT'
+                """;
+        return getCount(sql);
+    }
+
+    private int getCount(String sql) {
             try (PreparedStatement ps = conn.prepareStatement(sql);
                  ResultSet rs = ps.executeQuery()) {
 

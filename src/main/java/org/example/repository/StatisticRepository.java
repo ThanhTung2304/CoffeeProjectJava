@@ -6,4 +6,6 @@ public interface StatisticRepository {
     double getMonthlyRevenue();
     int countMonthlyReservations();
     String getBestSellingProduct();
+    int getTotalStock();
+    int getTotalExported();
 }
