@@ -5,7 +5,11 @@ public interface StatisticRepository {
     int countEmployees();
     double getMonthlyRevenue();
     int countMonthlyReservations();
-    String getBestSellingProduct();
-    int getTotalStock();
+
+    int getTotalInventory();
+
     int getTotalExported();
+
+    int countMonthlyReservedTables();
+
 }

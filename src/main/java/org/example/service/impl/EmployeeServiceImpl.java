@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import org.example.entity.Employee;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.EmployeeRepository;
 import org.example.repository.impl.EmployeeRepositoryImpl;
 import org.example.service.EmployeeService;
@@ -35,6 +36,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
         employeeRepository.save(employee);
+
+        DataChangeEventBus.notifyChange();
     }
 
     /* ================= UPDATE ================= */
@@ -46,6 +49,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         employeeRepository.update(employee);
+
+        DataChangeEventBus.notifyChange();
     }
 
     /* ================= DELETE ================= */
@@ -57,5 +62,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         employeeRepository.deleteById(id);
+
+        DataChangeEventBus.notifyChange();
     }
 }

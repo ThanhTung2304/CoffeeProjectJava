@@ -27,18 +27,19 @@ public class StatisticServiceImpl implements StatisticService {
         return reportRepository.countMonthlyReservations();
     }
 
+//    @Override
+//    public String getBestSellingProduct() {
+//        return reportRepository.getBestSellingProduct();
+//    }
+
     @Override
-    public String getBestSellingProduct() {
-        return reportRepository.getBestSellingProduct();
+    public int getTotalInventory() {
+        return reportRepository.getTotalInventory();
     }
 
     @Override
-    public int getTotalStock() {
-        return reportRepository.getTotalStock();
-    }
-
-    @Override
-    public int getTotalExported() {
+    public int getExportedTotal() {
         return reportRepository.getTotalExported();
     }
+
 }
