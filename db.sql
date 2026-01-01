@@ -2,8 +2,8 @@ CREATE DATABASE IF NOT EXISTS coffee;
 USE coffee;
 
 CREATE TABLE IF NOT EXISTS account (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
-                                       username VARCHAR(50) NOT NULL UNIQUE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updateTime TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -53,8 +53,8 @@ LEFT JOIN account a ON e.account_id = a.id;
 
 CREATE TABLE IF NOT EXISTS product (
 
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
-                                       name VARCHAR(100) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     price DECIMAL(12,2) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     createdTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS product (
     ON UPDATE CURRENT_TIMESTAMP
     );
 
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
+                             id INT AUTO_INCREMENT PRIMARY KEY,
                                        name VARCHAR(100) NOT NULL,
 
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS product (
 
         ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 
 CREATE TABLE IF NOT EXISTS reservations (
@@ -102,15 +103,55 @@ CREATE TABLE reservations (
 
 );
 
+CREATE TABLE vouchers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(50) UNIQUE NOT NULL,          -- Mã voucher
+    discount_type ENUM('PERCENT','AMOUNT') NOT NULL, -- Loại giảm: % hoặc số tiền
+    discount_value DECIMAL(10,2) NOT NULL,     -- Giá trị giảm
+    start_date DATE NOT NULL,                  -- Ngày bắt đầu
+    end_date DATE NOT NULL,                    -- Ngày kết thúc
+    status ENUM('ACTIVE','EXPIRED','USED') NOT NULL DEFAULT 'ACTIVE', -- Trạng thái
+    usage_limit INT DEFAULT 0,                 -- Giới hạn số lượt (0 = không giới hạn)
+    used_count INT DEFAULT 0,                  -- Số lượt đã dùng
+    note VARCHAR(255)                          -- Ghi chú
 );
 
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_name VARCHAR(100) NOT NULL,
-    table_number INT NOT NULL,
-    time DATETIME NOT NULL,
-    status VARCHAR(50) NOT NULL,
+ALTER TABLE vouchers
+    MODIFY status ENUM('Còn hiệu lực','Hết hạn','Đã sử dụng')
+    NOT NULL DEFAULT 'Còn hiệu lực';
+ALTER TABLE vouchers
+    MODIFY discount_type ENUM('Phần trăm','Số tiền') NOT NULL;
+
+CREATE TABLE tables (
+    table_number INT AUTO_INCREMENT PRIMARY KEY,   -- số bàn, PK
+    name VARCHAR(100) NOT NULL,                    -- tên bàn hiển thị
+    capacity INT NOT NULL DEFAULT 2,               -- sức chứa
+    status ENUM('Trống','Đang sử dụng','Đặt trước') NOT NULL DEFAULT 'Trống',
     note VARCHAR(255) NULL
 );
+
+INSERT INTO tables (table_number, name, capacity, status, note) VALUES
+                                                                    (1, 'Bàn 1', 2, 'Trống', 'Khu ngoài trời'),
+                                                                    (2, 'Bàn 2', 4, 'Đang sử dụng', 'Gần quầy bar'),
+                                                                    (3, 'Bàn 3', 2, 'Đặt trước', 'Khách VIP'),
+                                                                    (4, 'Bàn 4', 6, 'Trống', 'Phòng riêng'),
+                                                                    (5, 'Bàn 5', 2, 'Trống', NULL),
+                                                                    (6, 'Bàn 6', 4, 'Đang sử dụng', 'Có ổ cắm điện'),
+                                                                    (7, 'Bàn 7', 2, 'Trống', NULL),
+                                                                    (8, 'Bàn 8', 4, 'Đặt trước', 'Sinh nhật'),
+                                                                    (9, 'Bàn 9', 2, 'Trống', NULL),
+                                                                    (10, 'Bàn 10', 6, 'Đang sử dụng', 'Gia đình'),
+                                                                    (11, 'Bàn 11', 2, 'Trống', NULL),
+                                                                    (12, 'Bàn 12', 4, 'Đang sử dụng', NULL),
+                                                                    (13, 'Bàn 13', 2, 'Trống', NULL),
+                                                                    (14, 'Bàn 14', 4, 'Đặt trước', 'Khách công ty'),
+                                                                    (15, 'Bàn 15', 2, 'Trống', NULL),
+                                                                    (16, 'Bàn 16', 4, 'Đang sử dụng', NULL),
+                                                                    (17, 'Bàn 17', 2, 'Trống', NULL),
+                                                                    (18, 'Bàn 18', 4, 'Đang sử dụng', NULL),
+                                                                    (19, 'Bàn 19', 2, 'Trống', NULL),
+                                                                    (20, 'Bàn 20', 6, 'Đặt trước', 'Tiệc nhỏ');
+
 
 
 CREATE TABLE inventory (
@@ -147,3 +188,4 @@ CREATE TABLE inventory_history (
 
 select * from inventory;
 select* from inventory_history;
+

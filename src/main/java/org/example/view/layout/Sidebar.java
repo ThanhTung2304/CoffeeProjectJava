@@ -26,6 +26,8 @@ public class Sidebar extends JPanel {
         addMenu("Quản Lý Sản Phẩm");
         addMenu("Quản Lý Tồn Kho");
         addMenu("Đặt Bàn");
+        addMenu("Quản Lý Bàn");
+        addMenu("Quản Lý Voucher");
         addMenu("Đăng xuất");
     }
 
