@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 
 public class StatisticRepositoryImpl implements StatisticRepository {
 
-        private final Connection conn = DatabaseConfig.getConnection();
+        private Connection conn = DatabaseConfig.getConnection();
 
         @Override
         public int countCustomers() {
@@ -39,7 +39,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return rs.getDouble(1);
                 }
             } catch (Exception e) {
-                throw new RuntimeException("lỗi", e);
+                e.printStackTrace();
             }
             return 0;
         }
@@ -73,7 +73,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return rs.getString("name");
                 }
             } catch (Exception e) {
-                throw new RuntimeException("lỗi", e);
+                e.printStackTrace();
             }
             return "Chưa có";
         }
@@ -100,7 +100,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
                 if (rs.next()) return rs.getInt(1);
             } catch (Exception e) {
-                throw new RuntimeException("lỗi", e);
+                e.printStackTrace();
             }
             return 0;
         }

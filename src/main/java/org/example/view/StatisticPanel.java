@@ -23,6 +23,8 @@ public class StatisticPanel extends JPanel {
         setBackground(new Color(245, 247, 255));
         initUI();
         loadData();
+
+
     }
 
     /* ================= UI ================= */
@@ -110,5 +112,9 @@ public class StatisticPanel extends JPanel {
         lbl.setForeground(Color.WHITE);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
         return lbl;
+    }
+
+    public void reload(){
+        loadData();
     }
 }
