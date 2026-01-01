@@ -31,4 +31,14 @@ public class StatisticServiceImpl implements StatisticService {
     public String getBestSellingProduct() {
         return reportRepository.getBestSellingProduct();
     }
+
+    @Override
+    public int getTotalStock() {
+        return 0;
+    }
+
+    @Override
+    public int getTotalExported() {
+        return 0;
+    }
 }

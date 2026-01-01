@@ -27,9 +27,9 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         public double getMonthlyRevenue() {
             String sql = """
             SELECT COALESCE(SUM(total_amount), 0)
-            FROM orders
+            FROM orders 
             WHERE MONTH(created_time) = MONTH(CURRENT_DATE())
-              AND YEAR(created_time) = YEAR(CURRENT_DATE())
+            AND YEAR(created_time) = YEAR(CURRENT_DATE())
         """;
 
             try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -59,7 +59,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         public String getBestSellingProduct() {
             String sql = """
             SELECT p.name
-            FROM order_detail od
+            FROM order_detail od  
             JOIN product p ON od.product_id = p.id
             GROUP BY p.name
             ORDER BY SUM(od.quantity) DESC

@@ -6,4 +6,7 @@ public interface StatisticService {
     double getMonthlyRevenue();
     int getReservationCount();
     String getBestSellingProduct();
+
+    int getTotalStock();
+    int getTotalExported();
 }
