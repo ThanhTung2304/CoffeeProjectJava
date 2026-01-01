@@ -26,6 +26,8 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_WORK_SCHEDULE  = "work_schedule";
     private static final String SCREEN_PRODUCTS  = "products";
     private static final String SCREEN_BOOKING   = "booking";
+    private static final String SCREEN_TABLES   = "tables";
+    private static final String SCREEN_VOUCHERS   = "vouches";
     private static final String SCREEN_SETTINGS  = "settings";
     private static final String SCREEN_INVENTORY = "inventory";
 
@@ -81,6 +83,8 @@ public class MainFrame extends JFrame {
         contentPanel.add(new WorkSchedulePanel(), SCREEN_WORK_SCHEDULE);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
+        contentPanel.add(new TableManagementPanel(), SCREEN_TABLES);
+        contentPanel.add(new VoucherManagementPanel(), SCREEN_VOUCHERS);
         contentPanel.add(statisticPanel, SCREEN_STATISTIC);
         contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
         contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
@@ -156,6 +160,18 @@ public class MainFrame extends JFrame {
                     showScreen(SCREEN_BOOKING, "Đặt Bàn"));
         }
 
+        btn = sideBar.getMenu("Quản Lý Bàn");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_TABLES, "Quản Lý Bàn"));
+        }
+
+        btn = sideBar.getMenu("Quản Lý Voucher");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_VOUCHERS, "Quản Lý Voucher"));
+        }
+
         btn = sideBar.getMenu("Cài Đặt");
         if (btn != null) {
             btn.addActionListener(e ->
@@ -167,7 +183,6 @@ public class MainFrame extends JFrame {
             btn.addActionListener(e ->
                     showScreen(SCREEN_INVENTORY, "Quản Lý Tồn Kho"));
         }
-
         btn = sideBar.getMenu("Đăng xuất");
         if (btn != null) {
             btn.addActionListener(e -> {
