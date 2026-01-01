@@ -23,28 +23,62 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             return getCount(sql);
         }
 
-        @Override
-        public double getMonthlyRevenue() {
-            String sql = """
-            SELECT COALESCE(SUM(total_amount), 0)
-            FROM orders
-            WHERE MONTH(created_time) = MONTH(CURRENT_DATE())
-              AND YEAR(created_time) = YEAR(CURRENT_DATE())
-        """;
+    @Override
+    public double getMonthlyRevenue() {
 
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
+        String sql = """
+        SELECT IFNULL(SUM(ABS(h.quantity_change) * p.price), 0)
+        FROM inventory_history h
+        JOIN product p ON h.product_id = p.id
+        WHERE h.action = 'EXPORT'
+          AND MONTH(h.createdTime) = MONTH(CURRENT_DATE())
+          AND YEAR(h.createdTime) = YEAR(CURRENT_DATE())
+    """;
 
-                if (rs.next()) {
-                    return rs.getDouble(1);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getDouble(1);
             }
-            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        @Override
+        return 0;
+    }
+
+
+    @Override
+    public int getTotalInventory() {
+        String sql = "SELECT IFNULL(SUM(quantity),0) FROM inventory";
+        return getCount(sql);
+    }
+
+    @Override
+    public int getTotalExported() {
+        String sql = """
+            SELECT IFNULL(SUM(ABS(quantity_change)),0)
+            FROM inventory_history
+            WHERE action = 'EXPORT'
+        """;
+        return getCount(sql);
+    }
+
+    @Override
+    public int countMonthlyReservedTables() {
+        String sql = """
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE MONTH(time) = MONTH(CURRENT_DATE())
+          AND YEAR(time) = YEAR(CURRENT_DATE())
+    """;
+
+        return getCount(sql);
+    }
+
+
+    @Override
         public int countMonthlyReservations() {
             String sql = """
             SELECT COUNT(*)
@@ -53,29 +87,6 @@ public class StatisticRepositoryImpl implements StatisticRepository {
               AND YEAR(time) = YEAR(CURRENT_DATE())
         """;
             return getCount(sql);
-        }
-
-        @Override
-        public String getBestSellingProduct() {
-            String sql = """
-            SELECT p.name
-            FROM order_detail od
-            JOIN product p ON od.product_id = p.id
-            GROUP BY p.name
-            ORDER BY SUM(od.quantity) DESC
-            LIMIT 1
-        """;
-
-            try (PreparedStatement ps = conn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-
-                if (rs.next()) {
-                    return rs.getString("name");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return "Chưa có";
         }
 
         private int getCount(String sql) {

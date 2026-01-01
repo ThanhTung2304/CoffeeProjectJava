@@ -22,7 +22,12 @@ public class StatisticController {
         return statisticService.getReservationCount();
     }
 
-    public String getBestSellingProduct() {
-        return statisticService.getBestSellingProduct();
+    public int getTotalInventory() {
+        return statisticService.getTotalInventory();
     }
+
+    public int getExportedTotal() {
+        return statisticService.getExportedTotal();
+    }
+
 }

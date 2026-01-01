@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import org.example.entity.Inventory;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.InventoryRepository;
 import org.example.repository.impl.InventoryRepositoryImpl;
 import org.example.service.InventoryService;
@@ -22,6 +23,8 @@ public class InventoryServiceImpl implements InventoryService {
             throw new IllegalArgumentException("Số lượng nhập phải > 0");
         }
         repo.importInventory(productId, quantity, note);
+
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
@@ -30,6 +33,8 @@ public class InventoryServiceImpl implements InventoryService {
             throw new IllegalArgumentException("Số lượng xuất phải > 0");
         }
         repo.exportInventory(productId, quantity, note);
+
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
