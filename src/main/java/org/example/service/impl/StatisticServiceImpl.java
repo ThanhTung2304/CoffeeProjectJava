@@ -41,4 +41,5 @@ public class StatisticServiceImpl implements StatisticService {
     public int getExportedTotal() {
         return reportRepository.getTotalExported();
     }
+
 }

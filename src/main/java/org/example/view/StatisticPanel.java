@@ -9,6 +9,7 @@ import java.awt.*;
 
 public class StatisticPanel extends JPanel implements DataChangeEventBus.DataChangeListener {
 
+    // Label hiển thị số liệu
     private JLabel lblCustomer;
     private JLabel lblEmployee;
     private JLabel lblRevenue;
@@ -23,19 +24,19 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(new Color(245, 247, 255));
         initUI();
-        loadData();
-
-        DataChangeEventBus.register(this);
+        loadData(); // ⭐ TỰ ĐỘNG LOAD DỮ LIỆU
     }
 
     /* ================= UI ================= */
     private void initUI() {
 
+        /* ===== TITLE ===== */
         JLabel title = new JLabel("THỐNG KÊ TỔNG QUAN");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(new Color(60, 60, 90));
         add(title, BorderLayout.NORTH);
 
+        /* ===== MAIN GRID ===== */
         JPanel grid = new JPanel(new GridLayout(2, 3, 16, 16));
         grid.setOpaque(false);
 
@@ -75,13 +76,6 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
                     reportController.getReservationCount()
             ));
 
-            lblStock.setText(String.valueOf(
-                    reportController.getTotalInventory()
-            ));
-
-            lblExported.setText(String.valueOf(
-                    reportController.getExportedTotal()
-            ));
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
@@ -94,6 +88,7 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
 
     /* ================= CARD ================= */
     private JPanel createCard(String title, JLabel value, Color color) {
+
         JPanel card = new JPanel(new BorderLayout(8, 8));
         card.setBackground(color);
         card.setBorder(new EmptyBorder(18, 18, 18, 18));
