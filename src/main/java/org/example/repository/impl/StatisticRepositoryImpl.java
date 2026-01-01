@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 
 public class StatisticRepositoryImpl implements StatisticRepository {
 
-        private Connection conn = DatabaseConfig.getConnection();
+        private final Connection conn = DatabaseConfig.getConnection();
 
         @Override
         public int countCustomers() {
@@ -27,7 +27,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         public double getMonthlyRevenue() {
             String sql = """
             SELECT COALESCE(SUM(total_amount), 0)
-            FROM orders 
+            FROM orders
             WHERE MONTH(created_time) = MONTH(CURRENT_DATE())
             AND YEAR(created_time) = YEAR(CURRENT_DATE())
         """;
@@ -39,7 +39,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return rs.getDouble(1);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("lỗi", e);
             }
             return 0;
         }
@@ -59,7 +59,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         public String getBestSellingProduct() {
             String sql = """
             SELECT p.name
-            FROM order_detail od  
+            FROM order_detail od
             JOIN product p ON od.product_id = p.id
             GROUP BY p.name
             ORDER BY SUM(od.quantity) DESC
@@ -73,18 +73,34 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return rs.getString("name");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("lỗi", e);
             }
             return "Chưa có";
         }
 
-        private int getCount(String sql) {
+    @Override
+    public int getTotalStock() {
+        String sql = "SELECT IFNULL(SUM(quantity),0) FROM inventory";
+        return getCount(sql);
+    }
+
+    @Override
+    public int getTotalExported() {
+        String sql = """
+                SELECT IFNULL (SUM(ABS(quantity_change)),0)
+                FROM inventory_history
+                WHERE action = 'EXPORT'
+                """;
+        return getCount(sql);
+    }
+
+    private int getCount(String sql) {
             try (PreparedStatement ps = conn.prepareStatement(sql);
                  ResultSet rs = ps.executeQuery()) {
 
                 if (rs.next()) return rs.getInt(1);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("lỗi", e);
             }
             return 0;
         }

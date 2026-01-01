@@ -34,11 +34,11 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public int getTotalStock() {
-        return 0;
+        return reportRepository.getTotalStock();
     }
 
     @Override
     public int getTotalExported() {
-        return 0;
+        return reportRepository.getTotalExported();
     }
 }
