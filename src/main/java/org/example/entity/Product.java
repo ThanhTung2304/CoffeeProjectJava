@@ -84,4 +84,10 @@ public class Product {
     public void setUpdatedTime(LocalDateTime updatedTime) {
         this.updatedTime = updatedTime;
     }
+
+    @Override
+    public String toString() {
+        return this.name; // hoặc this.getName()
+    }
+
 }
