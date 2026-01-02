@@ -1,13 +1,15 @@
 package org.example.view;
 
 import org.example.controller.StatisticController;
+import org.example.event.DataChangeEventBus;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class StatisticPanel extends JPanel {
+public class StatisticPanel extends JPanel implements DataChangeEventBus.DataChangeListener {
 
+    // Label hiển thị số liệu
     private JLabel lblCustomer;
     private JLabel lblEmployee;
     private JLabel lblRevenue;
@@ -22,19 +24,19 @@ public class StatisticPanel extends JPanel {
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(new Color(245, 247, 255));
         initUI();
-        loadData();
-
-
+        loadData(); // ⭐ TỰ ĐỘNG LOAD DỮ LIỆU
     }
 
     /* ================= UI ================= */
     private void initUI() {
 
+        /* ===== TITLE ===== */
         JLabel title = new JLabel("THỐNG KÊ TỔNG QUAN");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(new Color(60, 60, 90));
         add(title, BorderLayout.NORTH);
 
+        /* ===== MAIN GRID ===== */
         JPanel grid = new JPanel(new GridLayout(2, 3, 16, 16));
         grid.setOpaque(false);
 
@@ -74,13 +76,6 @@ public class StatisticPanel extends JPanel {
                     reportController.getReservationCount()
             ));
 
-            lblStock.setText(String.valueOf(
-                    reportController.getTotalStock()
-            ));
-
-            lblExported.setText(String.valueOf(
-                    reportController.getTotalExported()
-            ));
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
@@ -93,6 +88,7 @@ public class StatisticPanel extends JPanel {
 
     /* ================= CARD ================= */
     private JPanel createCard(String title, JLabel value, Color color) {
+
         JPanel card = new JPanel(new BorderLayout(8, 8));
         card.setBackground(color);
         card.setBorder(new EmptyBorder(18, 18, 18, 18));
@@ -114,7 +110,9 @@ public class StatisticPanel extends JPanel {
         return lbl;
     }
 
-    public void reload(){
+    //xử lý dữ liệu khi thêm sửa xóa
+    @Override
+    public void onDataChanged() {
         loadData();
     }
 }

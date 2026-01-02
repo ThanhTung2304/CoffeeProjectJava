@@ -2,6 +2,7 @@ package org.example.repository.impl;
 
 import org.example.config.DatabaseConfig;
 import org.example.entity.Reservation;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.ReservationRepository;
 
 import java.sql.*;
@@ -33,6 +34,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             ps.setString(5, reservation.getNote());
             ps.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
+
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
@@ -47,6 +50,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             ps.setInt(6, reservation.getId());
             ps.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
+
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
@@ -56,6 +61,8 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
+
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
