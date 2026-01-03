@@ -31,6 +31,10 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_SETTINGS  = "settings";
     private static final String SCREEN_INVENTORY = "inventory";
     private static final String SCREEN_RECIPE = "recipe";
+    private static final String SCREEN_ORDERS = "orders";
+    private static final String SCREEN_ORDER_DETAIL = "order_detail";
+
+
 
 
     private String currentModuleTitle = "Thống Kê Tổng Quan";
@@ -92,6 +96,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
         contentPanel.add(new RecipeManagementPanel(), SCREEN_RECIPE);
 
+        contentPanel.add(new OrderManagementPanel(), SCREEN_ORDERS);
 
         // Mặc định mở thống kê
         showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
@@ -192,6 +197,12 @@ public class MainFrame extends JFrame {
             btn.addActionListener(e ->
                     showScreen(SCREEN_RECIPE, "Công Thức Pha Chế"));
         }
+        btn = sideBar.getMenu("Quản Lý Đơn Hàng");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_ORDERS, "Quản Lý Đơn Hàng"));
+        }
+
 
         btn = sideBar.getMenu("Đăng xuất");
         if (btn != null) {
@@ -227,6 +238,18 @@ public class MainFrame extends JFrame {
         header.getBtnAdd().setVisible(!isStatistic);
         header.getBtnEdit().setVisible(!isStatistic);
     }
+    // ================= ORDER DETAIL =================
+    public void showOrderDetail(org.example.entity.Order order) {
+
+        // Thêm màn hình chi tiết đơn hàng
+        contentPanel.add(
+                new OrderDetailPanel(order),
+                SCREEN_ORDER_DETAIL
+        );
+
+        // Chuyển sang màn hình chi tiết
+        showScreen(SCREEN_ORDER_DETAIL, "Chi Tiết Đơn Hàng");
+    }
 
     /*ROUNDED PANEL*/
     static class RoundedPanel extends JPanel {
@@ -253,6 +276,7 @@ public class MainFrame extends JFrame {
             g2.fillRoundRect(0, 0, getWidth() - 8, getHeight() - 8, radius, radius);
         }
     }
+
 
     /*TEST MAIN*/
     public static void main(String[] args) {
