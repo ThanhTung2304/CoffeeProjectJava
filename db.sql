@@ -17,6 +17,27 @@ SELECT 'admin', '123456789', 1
     WHERE NOT EXISTS (
     SELECT 1 FROM account WHERE username = 'admin'
 );
+<<<<<<< HEAD
+CREATE TABLE IF NOT EXISTS customers (
+                                         id INT AUTO_INCREMENT PRIMARY KEY,
+                                         name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    email VARCHAR(100),
+    total_point INT DEFAULT 0,
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+    );
+    CREATE TABLE orders (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            customer_id INT,
+                            total_amount DECIMAL(12,2),
+                            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+    UPDATE customers
+    SET total_point = total_point + 23
+    WHERE id = 5;
+=======
 
 CREATE TABLE IF NOT EXISTS employee (
                                         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,6 +150,7 @@ CREATE TABLE tables (
     status ENUM('Trống','Đang sử dụng','Đặt trước') NOT NULL DEFAULT 'Trống',
     note VARCHAR(255) NULL
 );
+<<<<<<< HEAD
 
 INSERT INTO tables (table_number, name, capacity, status, note) VALUES
                                                                     (1, 'Bàn 1', 2, 'Trống', 'Khu ngoài trời'),
@@ -201,3 +223,6 @@ CREATE TABLE recipe (
                             ON DELETE CASCADE
 );
 
+=======
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
