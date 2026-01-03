@@ -11,7 +11,7 @@ public class DataChangeEventBus {
 
     private static final List<DataChangeListener> listeners = new ArrayList<>();
 
-    public static void register(DataChangeListener listener) {
+    public static void onRegister(DataChangeListener listener) {
         listeners.add(listener);
     }
 

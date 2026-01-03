@@ -41,6 +41,7 @@ public class Sidebar extends JScrollPane {
         addMenu("Quản Lý Khách Hàng");
         addMenu("Quản Lý Sản Phẩm");
         addMenu("Quản Lý Tồn Kho");
+        addMenu("Công Thức Pha Chế");
         addMenu("Đặt Bàn");
         addMenu("Quản Lý Bàn");
         addMenu("Quản Lý Voucher");

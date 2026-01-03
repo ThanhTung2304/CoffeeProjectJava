@@ -122,34 +122,6 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
 
-
-//    @Override
-//    public void updated(Account account) {
-//
-//        String sql = """
-//        UPDATE account
-//        SET username = ?,  password = ?,  role = ?, is_active = ?, updateTime = ?
-//        WHERE id = ?
-//    """;
-//
-//        try (Connection conn = DatabaseConfig.getConnection();
-//             PreparedStatement ps = conn.prepareStatement(sql)) {
-//
-//            ps.setString(1, account.getUsername());
-//            ps.setString(2, account.getPassword());
-//            ps.setString(3, account.getRole());
-//            ps.setBoolean(4, account.isActive());
-//            ps.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
-//            ps.setInt(6, account.getId());
-//
-//            ps.executeUpdate();
-//
-//        } catch (SQLException e) {
-//            throw new RuntimeException("Lỗi khi cập nhật account", e);
-//        }
-//    }
-
-
     @Override
     public Optional<Account> findById(Long id) {
 
@@ -209,34 +181,6 @@ public class AccountRepositoryImpl implements AccountRepository {
         }
     }
 
-
-
-//    @Override
-//    public Account findByUsername(int username) {
-//
-//            String sql = "SELECT * FROM accounts WHERE username = ?";
-//
-//            try (Connection conn = DatabaseConfig.getConnection();
-//                 PreparedStatement ps = conn.prepareStatement(sql)) {
-//
-//                ps.setInt(1, username);
-//                ResultSet rs = ps.executeQuery();
-//
-//                if (rs.next()) {
-//                    Account acc = new Account();
-////                    acc.setId(rs.getInt("id"));
-//                    acc.setUsername(rs.getString("username"));
-//                    acc.setPassword(rs.getString("password"));
-//                    acc.setRole(rs.getString("role"));
-//                    acc.setActive(rs.getBoolean("active"));
-//                    return acc;
-//                }
-//
-//            } catch (Exception e) {
-//                throw new RuntimeException("Lỗi tìm Username");
-//            }
-//            return null;
-//        }
 
 
     /* ================== UPDATE ================== */

@@ -1,15 +1,16 @@
 package org.example.repository;
 
 public interface StatisticRepository {
+
     int countCustomers();
     int countEmployees();
-    double getMonthlyRevenue();
+
+//    int countMonthlyReservedTables();
+
+    int getExportedTotal();
+
     int countMonthlyReservations();
-
+    double getMonthlyRevenue();
     int getTotalInventory();
-
     int getTotalExported();
-
-    int countMonthlyReservedTables();
-
 }

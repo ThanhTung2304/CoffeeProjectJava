@@ -27,10 +27,6 @@ public class StatisticServiceImpl implements StatisticService {
         return reportRepository.countMonthlyReservations();
     }
 
-//    @Override
-//    public String getBestSellingProduct() {
-//        return reportRepository.getBestSellingProduct();
-//    }
 
     @Override
     public int getTotalInventory() {

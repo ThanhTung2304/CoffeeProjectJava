@@ -1,8 +1,6 @@
 package org.example.view;
 
-import org.example.dto.RegisterRequest;
-import org.example.service.AuthService;
-import org.example.service.impl.AuthServiceImpl;
+import org.example.controller.AuthController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,14 +13,13 @@ public class RegisterForm extends JFrame {
     private JPasswordField txtConfirm;
     private JComboBox<String> cbRole;
 
-    private final AuthService authService = new AuthServiceImpl();
+    private final AuthController authController = new AuthController();
 
     public RegisterForm() {
         setTitle("Đăng ký");
         setSize(420, 520);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
         initUI();
     }
 
@@ -63,24 +60,20 @@ public class RegisterForm extends JFrame {
         txtConfirm  = new JPasswordField();
 
         cbRole = new JComboBox<>(new String[]{"USER", "STAFF"});
-        cbRole.setMaximumSize(new Dimension(200, 30));
-        cbRole.setPreferredSize(new Dimension(200, 30));
 
         form.add(createRow("Username", txtUsername));
         form.add(Box.createVerticalStrut(12));
-
         form.add(createRow("Password", txtPassword));
         form.add(Box.createVerticalStrut(12));
-
-        form.add(createRow("ConfirmPassword", txtConfirm));
+        form.add(createRow("Confirm", txtConfirm));
         form.add(Box.createVerticalStrut(12));
-
         form.add(createRow("Role", cbRole));
         form.add(Box.createVerticalStrut(25));
 
-        JButton btnRegister = createRegisterButton();
+        JButton btnRegister = new JButton("ĐĂNG KÝ");
         form.add(btnRegister);
-        form.add(Box.createVerticalStrut(18));
+        btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnRegister.addActionListener(e -> handleRegister());
 
         JLabel linkLogin = new JLabel("Đã có tài khoản? Đăng nhập");
         linkLogin.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -94,61 +87,43 @@ public class RegisterForm extends JFrame {
             }
         });
 
+
         form.add(linkLogin);
         main.add(form, BorderLayout.CENTER);
     }
 
-    /* ===== BUTTON ===== */
-    private JButton createRegisterButton() {
-        JButton btn = new JButton("ĐĂNG KÝ");
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setPreferredSize(new Dimension(160, 40));
-        btn.setMaximumSize(new Dimension(160, 40));
-        btn.setBackground(new Color(70, 130, 180));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.addActionListener(e -> onRegister());
-        return btn;
-    }
-
-    /* ===== ROW ===== */
     private JPanel createRow(String labelText, JComponent field) {
         JPanel row = new JPanel();
         row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-        row.setBackground(Color.WHITE);
         row.setMaximumSize(new Dimension(360, 35));
-        row.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel label = new JLabel(labelText);
         label.setPreferredSize(new Dimension(140, 30));
-        label.setMaximumSize(new Dimension(140, 30));
 
         field.setPreferredSize(new Dimension(200, 30));
-        field.setMaximumSize(new Dimension(200, 30));
 
         row.add(label);
         row.add(Box.createHorizontalStrut(10));
         row.add(field);
-
         return row;
     }
 
-    /* ===== REGISTER ACTION ===== */
-    private void onRegister() {
-        RegisterRequest req = new RegisterRequest();
-        req.setUsername(txtUsername.getText().trim());
-        req.setPassword(new String(txtPassword.getPassword()));
-        req.setConfirmPassword(new String(txtConfirm.getPassword()));
-        req.setRole(Objects.requireNonNull(cbRole.getSelectedItem()).toString());
-
+    // ===== VIEW chỉ bắt sự kiện =====
+    private void handleRegister() {
         try {
-            authService.register(req);
-            JOptionPane.showMessageDialog(this, "Đăng ký thành công!");
+            authController.onRegister(
+                    txtUsername.getText(),
+                    new String(txtPassword.getPassword()),
+                    new String(txtConfirm.getPassword()),
+                    cbRole.getSelectedItem().toString()
+            );
+
+            JOptionPane.showMessageDialog(this, "Đăng ký thành công");
             dispose();
             new LoginForm().setVisible(true);
-        } catch (RuntimeException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
