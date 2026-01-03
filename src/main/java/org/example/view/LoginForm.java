@@ -1,9 +1,7 @@
 package org.example.view;
 
-import org.example.dto.LoginRequest;
+import org.example.controller.AuthController;
 import org.example.entity.Account;
-import org.example.service.AuthService;
-import org.example.service.impl.AuthServiceImpl;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,10 +16,10 @@ public class LoginForm extends JFrame {
     private JPasswordField password;
     private JButton btnLogin;
 
-    private final AuthService authService;
+    private final AuthController authController = new AuthController();
 
     public LoginForm() {
-        this.authService = new AuthServiceImpl();
+//        AuthService authService = new AuthServiceImpl();
 
         setTitle("Đăng nhập hệ thống");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -136,20 +134,12 @@ public class LoginForm extends JFrame {
     }
 
     private void onLogin() {
-        String user = username.getText().trim();
-        String pass = new String(password.getPassword()).trim();
+        try {
+            Account account = authController.onLogin(
+                    username.getText().trim(),
+                    new String(password.getPassword()).trim()
+            );
 
-        if (user.isEmpty() || pass.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng nhập đầy đủ username và password!",
-                    "Thiếu thông tin",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Account account = authService.login(new LoginRequest(user, pass));
-
-        if (account != null) {
             JOptionPane.showMessageDialog(this,
                     "Đăng nhập thành công!",
                     "Thông báo",
@@ -159,14 +149,23 @@ public class LoginForm extends JFrame {
                     account.getUsername(),
                     account.getRole()
             ).setVisible(true);
+
             dispose();
 
-        } else {
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this,
+                    e.getMessage(),
+                    "Thiếu thông tin",
+                    JOptionPane.WARNING_MESSAGE);
+
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Sai tài khoản hoặc mật khẩu!",
                     "Lỗi đăng nhập",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 }
 
