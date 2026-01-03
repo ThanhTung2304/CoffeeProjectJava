@@ -2,11 +2,12 @@ package org.example.controller;
 
 import org.example.entity.TableSeat;
 import org.example.service.TableService;
+import org.example.service.impl.TableServiceImpl;
 
 import java.util.List;
 
 public class TableController {
-    private final TableService service = new TableService();
+    private final TableService service = new TableServiceImpl();
 
     public List<TableSeat> getAllTables() {
         return service.getAllTables();
