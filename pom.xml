@@ -24,13 +24,30 @@
             <version>9.0.0</version>
         </dependency>
 
+<<<<<<< HEAD
+
+=======
         <!-- Apache POI để xuất Excel -->
+>>>>>>> 4c1175b5139c3cdd2bb6cb5b4a88ae51cbebbeb3
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
 
+<<<<<<< HEAD
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.22.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.22.1</version>
+        </dependency>
+=======
         <!-- Log4j2 để POI log không lỗi -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -42,6 +59,7 @@
 <!--            <artifactId>log4j-core</artifactId>-->
 <!--            <version>2.19.1</version>-->
 <!--        </dependency>-->
+>>>>>>> 4c1175b5139c3cdd2bb6cb5b4a88ae51cbebbeb3
 
     </dependencies>
 
