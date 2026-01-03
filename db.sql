@@ -186,6 +186,18 @@ CREATE TABLE inventory_history (
 );
 
 
-select * from inventory;
-select* from inventory_history;
+CREATE TABLE recipe (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        product_id INT NOT NULL,
+                        ingredient_name VARCHAR(100) NOT NULL,
+                        amount DOUBLE NOT NULL,
+                        unit VARCHAR(20) NOT NULL,
+                        createdTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updatedTime DATETIME DEFAULT CURRENT_TIMESTAMP
+                            ON UPDATE CURRENT_TIMESTAMP,
+
+                        FOREIGN KEY (product_id)
+                            REFERENCES product(id)
+                            ON DELETE CASCADE
+);
 

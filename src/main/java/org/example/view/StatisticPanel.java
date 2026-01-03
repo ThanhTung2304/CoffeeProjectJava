@@ -7,9 +7,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class StatisticPanel extends JPanel implements DataChangeEventBus.DataChangeListener {
+public class StatisticPanel extends JPanel
+        implements DataChangeEventBus.DataChangeListener {
 
-    // Label hiển thị số liệu
     private JLabel lblCustomer;
     private JLabel lblEmployee;
     private JLabel lblRevenue;
@@ -23,20 +23,22 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
         setLayout(new BorderLayout(16, 16));
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(new Color(245, 247, 255));
+
         initUI();
-        loadData(); // ⭐ TỰ ĐỘNG LOAD DỮ LIỆU
+        loadData(); // load lần đầu
+
+        // ✅ ĐÚNG method
+        DataChangeEventBus.onRegister(this);
     }
 
     /* ================= UI ================= */
     private void initUI() {
 
-        /* ===== TITLE ===== */
         JLabel title = new JLabel("THỐNG KÊ TỔNG QUAN");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(new Color(60, 60, 90));
         add(title, BorderLayout.NORTH);
 
-        /* ===== MAIN GRID ===== */
         JPanel grid = new JPanel(new GridLayout(2, 3, 16, 16));
         grid.setOpaque(false);
 
@@ -77,6 +79,14 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
             ));
 
 
+            lblStock.setText(String.valueOf(
+                    reportController.getTotalInventory()
+            ));
+
+            lblExported.setText(String.valueOf(
+                    reportController.getExportedTotal()
+            ));
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Không thể tải dữ liệu thống kê",
@@ -86,9 +96,20 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
         }
     }
 
-    /* ================= CARD ================= */
-    private JPanel createCard(String title, JLabel value, Color color) {
+    /* ================= PUBLIC API ================= */
+    // 👉 Cho MainFrame gọi khi switch màn hình
+    public void reload() {
+        SwingUtilities.invokeLater(this::loadData);
+    }
 
+    /* ================= EVENT ================= */
+    @Override
+    public void onDataChanged() {
+        reload();
+    }
+
+    /* ================= UI HELPER ================= */
+    private JPanel createCard(String title, JLabel value, Color color) {
         JPanel card = new JPanel(new BorderLayout(8, 8));
         card.setBackground(color);
         card.setBorder(new EmptyBorder(18, 18, 18, 18));
@@ -108,11 +129,5 @@ public class StatisticPanel extends JPanel implements DataChangeEventBus.DataCha
         lbl.setForeground(Color.WHITE);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
         return lbl;
-    }
-
-    //xử lý dữ liệu khi thêm sửa xóa
-    @Override
-    public void onDataChanged() {
-        loadData();
     }
 }

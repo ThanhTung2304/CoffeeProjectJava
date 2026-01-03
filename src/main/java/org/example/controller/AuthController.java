@@ -5,6 +5,9 @@ import org.example.dto.RegisterRequest;
 import org.example.entity.Account;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
+import org.example.view.MainFrame;
+
+import javax.swing.*;
 
 public class AuthController {
 
@@ -20,22 +23,33 @@ public class AuthController {
      * @param password
      * @return Account nếu thành công, null nếu sai
      */
-    public Account login(String username, String password) {
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Username không được để trống");
-        }
-        if (password == null || password.isEmpty()) {
-            throw new IllegalArgumentException("Password không được để trống");
+
+    public Account onLogin(String username, String password) {
+
+        if (username == null || username.isBlank()
+                || password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Không được để trống dữ liệu");
         }
 
-        LoginRequest request = new LoginRequest(username, password);
-        return authService.login(request);
+        Account acc = authService.login(
+                new LoginRequest(username, password)
+        );
+
+        if (acc == null) {
+            throw new RuntimeException("Sai tài khoản hoặc mật khẩu");
+        }
+
+        return acc;
     }
+
 
     /**
      * Xử lý đăng ký
      */
-    public boolean register(String username, String password, String confirmPassword) {
+    public void onRegister(String username,
+                           String password,
+                           String confirmPassword,
+                           String role) {
 
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username không được để trống");
@@ -43,16 +57,18 @@ public class AuthController {
         if (password == null || password.trim().isEmpty()) {
             throw new IllegalArgumentException("Password không được để trống");
         }
-        if (!password.equals(confirmPassword)) {
-            throw new IllegalArgumentException("Mật khẩu xác nhận không trùng khớp");
+        if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Confirm password không được để trống");
         }
 
-        RegisterRequest request = new RegisterRequest();
-        request.setUsername(username);
-        request.setPassword(password);
-        return authService.register(request);
-    }
+        RegisterRequest request = new RegisterRequest(
+                username.trim(),
+                password,
+                confirmPassword
+        );
 
+        authService.register(request);
+    }
 
 }
 

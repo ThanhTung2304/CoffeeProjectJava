@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.util.ExportToExcel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -45,11 +46,13 @@ public class AccountManagementPanel extends JPanel {
         JButton btnEdit = createButton("Sửa", new Color(241, 196, 15));
         JButton btnDelete = createButton("Xóa", new Color(231, 76, 60));
         JButton btnRefresh = createButton("Refresh", new Color(149, 165, 166));
+        JButton btnExport = createButton("Xuất Excel", new Color(52, 152, 219));
 
         actionPanel.add(btnAdd);
         actionPanel.add(btnEdit);
         actionPanel.add(btnDelete);
         actionPanel.add(btnRefresh);
+        actionPanel.add(btnExport);
 
         /* ===== TABLE ===== */
         tableModel = new DefaultTableModel(
@@ -81,6 +84,7 @@ public class AccountManagementPanel extends JPanel {
         btnAdd.addActionListener(e -> openAddDialog());
         btnEdit.addActionListener(e -> openEditDialog());
         btnDelete.addActionListener(e -> deleteAccount());
+        btnExport.addActionListener(e -> ExportToExcel.export(table, "DanhSachTaiKhoan.xlsx"));
 
         loadData();
     }
