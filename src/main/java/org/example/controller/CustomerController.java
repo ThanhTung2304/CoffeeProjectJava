@@ -14,6 +14,7 @@ public class CustomerController {
         return service.findAll();
     }
 
+<<<<<<< HEAD
     public void create(String name, String phone, String email) {
         service.create(new Customer(name, phone, email));
     }
@@ -34,3 +35,18 @@ public class CustomerController {
         service.usePoints(customerId, points);
     }
 }
+=======
+    public void add(String name, String phone, String email) {
+        service.create(new Customer(name, phone, email));
+    }
+
+    public void update(Customer c) {
+        service.update(c);
+    }
+
+    public void delete(int id) {
+        service.delete(id);
+    }
+}
+
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8

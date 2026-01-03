@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<<<<<<< HEAD
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+=======
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -22,14 +26,26 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.0.0</version>
         </dependency>
+<<<<<<< HEAD
+        <!-- MySQL Connector/J (ổn định, khuyên dùng) -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+=======
 
 
 <<<<<<< HEAD
         <!-- Apache POI (Xuất Excel) -->
         <dependency>
+<<<<<<< HEAD
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
+=======
+            <groupId>mysql</groupId>
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
         </dependency>
 
         <!-- Log4j2 -->

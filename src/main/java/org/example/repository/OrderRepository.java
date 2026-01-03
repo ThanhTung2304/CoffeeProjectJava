@@ -4,6 +4,7 @@ import org.example.entity.Order;
 import java.util.List;
 
 public interface OrderRepository {
+<<<<<<< HEAD
 
     List<Order> findAll();
 
@@ -14,4 +15,8 @@ public interface OrderRepository {
 
 
     void deleteById(int id);
+=======
+    void save(Order order);
+    List<Order> findByCustomerId(int customerId);
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
 }

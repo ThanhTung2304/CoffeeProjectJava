@@ -7,6 +7,11 @@ import org.example.view.layout.Sidebar;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import org.example.entity.Customer;
+
+import javax.swing.SwingUtilities;
+
+
 
 public class MainFrame extends JFrame {
 
@@ -14,6 +19,15 @@ public class MainFrame extends JFrame {
     private final Sidebar sideBar;
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
+    /*
+    private OrderHistoryPanel orderHistoryPanel;
+    private String role;
+
+    public String getRole() {
+        return role;
+    }*/
+
+
 
 
 
@@ -22,6 +36,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_ACCOUNTS  = "accounts";
     private static final String SCREEN_CUSTOMERS = "customers";
     private static final String SCREEN_EMPLOYEES = "employees";
+<<<<<<< HEAD
     private static final String SCREEN_SHIFTS         = "shifts";
     private static final String SCREEN_WORK_SCHEDULE  = "work_schedule";
     private static final String SCREEN_PRODUCTS  = "products";
@@ -38,8 +53,20 @@ public class MainFrame extends JFrame {
 
 
     private String currentModuleTitle = "Thống Kê Tổng Quan";
+=======
+    private static final String SCREEN_PRODUCTS = "products";
+    private static final String SCREEN_BOOKING = "booking";
+    //    private static final String SCREEN_REPORTS = "reports";
+    private static final String SCREEN_SETTINGS = "settings";
+    /*private static final String SCREEN_ORDERS = "orders";
+    private static final String SCREEN_ORDER_HISTORY = "order_history";*/
+
+
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
 
     public MainFrame(String username, String role) {
+        //this.role = role;
+
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -75,7 +102,31 @@ public class MainFrame extends JFrame {
         initHeaderActions();
     }
 
+<<<<<<< HEAD
     /* INIT SCREENS */
+=======
+    public MainFrame( Header header, Sidebar sideBar, JPanel contentPanel, CardLayout cardLayout) {
+        this.header = header;
+        this.sideBar = sideBar;
+        this.contentPanel = contentPanel;
+        this.cardLayout = cardLayout;
+    }
+    /*public void openOrderHistory(Customer customer) {
+        if (orderHistoryPanel == null) {
+            orderHistoryPanel = new OrderHistoryPanel();
+            contentPanel.add(orderHistoryPanel, "order_history");
+        }
+
+        orderHistoryPanel.showHistoryByCustomer(customer);
+        showScreen("order_history", "Lịch Sử Đơn Hàng");
+    }*/
+
+
+
+
+
+    // ===== Tạo các màn hình mock =====
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
     private void initScreens() {
 
         /* ===== PANELS ===== */
@@ -89,12 +140,26 @@ public class MainFrame extends JFrame {
         contentPanel.add(new WorkSchedulePanel(), SCREEN_WORK_SCHEDULE);
         contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
         contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
+<<<<<<< HEAD
         contentPanel.add(new TableManagementPanel(), SCREEN_TABLES);
         contentPanel.add(new VoucherManagementPanel(), SCREEN_VOUCHERS);
         contentPanel.add(statisticPanel, SCREEN_STATISTIC);
         contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
         contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
         contentPanel.add(new RecipeManagementPanel(), SCREEN_RECIPE);
+=======
+        /*contentPanel.add(new OrderManagementPanel(), SCREEN_ORDERS);
+        orderHistoryPanel = new OrderHistoryPanel();
+        contentPanel.add(orderHistoryPanel, SCREEN_ORDER_HISTORY);
+
+
+//        contentPanel.add(new DashboardPanel(), SCREEN_REPORTS);
+<<<<<<< HEAD
+        contentPanel.add(createModuleScreen("Cài Đặt Hệ Thống"), SCREEN_SETTINGS);*/
+=======
+        contentPanel.add(createModuleScreen(), SCREEN_SETTINGS);
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
 
         contentPanel.add(new OrderManagementPanel(), SCREEN_ORDERS);
 
@@ -187,6 +252,7 @@ public class MainFrame extends JFrame {
                     showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
         }
 
+<<<<<<< HEAD
         btn = sideBar.getMenu("Quản Lý Tồn Kho");
         if (btn != null) {
             btn.addActionListener(e ->
@@ -204,6 +270,25 @@ public class MainFrame extends JFrame {
         }
 
 
+=======
+        /*btn = sideBar.getMenu("Lịch Sử Đơn Hàng");
+        if (btn != null) {
+            btn.addActionListener(e -> {
+                if (!"ADMIN".equals(role)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Bạn không có quyền xem lịch sử đơn hàng!",
+                            "Từ chối truy cập",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                showScreen(SCREEN_ORDER_HISTORY, "Lịch Sử Đơn Hàng");
+            });
+        }*/
+
+
+
+        // Logout
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
         btn = sideBar.getMenu("Đăng xuất");
         if (btn != null) {
             btn.addActionListener(e -> {

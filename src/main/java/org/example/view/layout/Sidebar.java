@@ -33,6 +33,8 @@ public class Sidebar extends JScrollPane {
 
         if ("ADMIN".equals(role)) {
             addMenu("Quản Lý Tài Khoản");
+            addMenu("Lịch Sử Đơn Hàng");
+
         }
 
         addMenu("Quản Lý Nhân Viên");
@@ -50,6 +52,8 @@ public class Sidebar extends JScrollPane {
         add(Box.createVerticalGlue());
 
         addMenu("Đăng xuất");
+
+
     }
 
     /* ================= MENU ITEM ================= */

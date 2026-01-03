@@ -11,9 +11,15 @@ public interface CustomerService {
 
     void update(Customer customer);
 
+<<<<<<< HEAD
     void deleteById(int id);
 
     void addPoints(int customerId, int orderTotal);
 
     void usePoints(int customerId, int points);
 }
+=======
+    void delete(int id);
+}
+
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8

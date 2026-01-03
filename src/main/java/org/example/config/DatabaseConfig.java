@@ -12,6 +12,8 @@ public class DatabaseConfig {
 
 
 
+
+
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

@@ -1,5 +1,6 @@
 package org.example.view;
 
+<<<<<<< HEAD
 import org.example.controller.OrderController;
 import org.example.entity.Order;
 
@@ -183,5 +184,20 @@ public class OrderManagementPanel extends JPanel {
                 (MainFrame) SwingUtilities.getWindowAncestor(this);
 
         frame.showOrderDetail(order);
+=======
+import javax.swing.*;
+import java.awt.*;
+
+public class OrderManagementPanel extends JPanel {
+
+    public OrderManagementPanel() {
+        setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
+
+        JLabel lbl = new JLabel("QUẢN LÝ ĐƠN HÀNG / THANH TOÁN", SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 22));
+
+        add(lbl, BorderLayout.CENTER);
+>>>>>>> 75b2654ef090967cfaa14355968f604362be0df8
     }
 }

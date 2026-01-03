@@ -1,17 +1,63 @@
-package org.example.controller;
+    package org.example.controller;
 
-import org.example.entity.Account;
-import org.example.service.AccountService;
-import org.example.service.impl.AccountServiceImpl;
+    import org.example.entity.Account;
+    import org.example.service.AccountService;
+    import org.example.service.impl.AccountServiceImpl;
 
+<<<<<<< HEAD
+    import java.util.List;
+=======
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
 
-public class AccountController {
+    public class AccountController {
 
-    private final AccountService accountService;
+        private final AccountService accountService;
 
+<<<<<<< HEAD
+
+        public AccountController() {
+            this.accountService = new AccountServiceImpl();
+        }
+
+        /**
+         * Lấy danh sách tất cả account
+         */
+        public List<Account> getAllAccount(){
+            return accountService.findAll();
+        }
+
+        /**
+         * Tạo mới account
+         */
+        public void createAccount(String username, String password, String role, boolean is_active){
+            Account account = new Account(username, password, role, is_active);
+            accountService.create(account);
+        }
+
+
+        /**
+         * Cập nhật account
+         */
+        public void updateAccount(Account account){
+            accountService.update(account);
+        }
+
+        /**
+         * Xóa account theo ID
+         */
+        public void deleteAccount(Account account){
+            accountService.deleteById(account.getId());
+        }
+
+        /**
+         * Tìm account theo username
+         */
+
+    }
+=======
     public AccountController() {
         this.accountService = new AccountServiceImpl();
     }
@@ -112,3 +158,4 @@ public class AccountController {
 
 
 }
+>>>>>>> ecfe38d73e833e2fa2ae5e11b7f6a5a370c88483
