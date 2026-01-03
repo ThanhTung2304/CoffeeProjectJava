@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import org.example.config.DatabaseConfig;
 import org.example.entity.Account;
 import java.util.List;
 import java.util.Optional;
@@ -40,4 +41,5 @@ public interface AccountRepository {
      * Kiểm tra username đã tồn tại chưa
      */
     boolean existsByUsername(String username);
+
 }
