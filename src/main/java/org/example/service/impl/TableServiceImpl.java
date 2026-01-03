@@ -1,43 +1,32 @@
 package org.example.service.impl;
 
 import org.example.entity.TableSeat;
-import org.example.event.DataChangeEventBus;
 import org.example.repository.TableRepository;
+import org.example.repository.impl.TableRepositoryImpl;
 import org.example.service.TableService;
 
 import java.util.List;
 
-public class TableServiceImpl extends TableService {
-    private final TableRepository repo;
-
-    public TableServiceImpl(TableRepository repo) {
-        this.repo = repo;
-    }
+public class TableServiceImpl implements TableService {
+    private final TableRepository repository = new TableRepositoryImpl();
 
     @Override
     public List<TableSeat> getAllTables() {
-        return repo.findAll();
-
+        return repository.findAll();
     }
 
     @Override
     public void addTable(TableSeat table) {
-        repo.add(table);
-
-        DataChangeEventBus.notifyChange();
+        repository.add(table);
     }
 
     @Override
     public void updateTable(TableSeat table) {
-        repo.update(table);
-
-        DataChangeEventBus.notifyChange();
+        repository.update(table);
     }
 
     @Override
     public void deleteTable(int tableNumber) {
-        repo.delete(tableNumber);
-
-        DataChangeEventBus.notifyChange();
+        repository.delete(tableNumber);
     }
 }

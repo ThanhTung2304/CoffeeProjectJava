@@ -5,10 +5,24 @@ import org.example.entity.Voucher;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+// ===== Apache POI (Excel) =====
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class VoucherManagementPanel extends JPanel {
 
@@ -32,6 +46,7 @@ public class VoucherManagementPanel extends JPanel {
         // ===== Thanh tìm kiếm =====
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         topPanel.setBackground(Color.WHITE);
+
         txtSearch = new JTextField(18);
         JButton btnSearch = new JButton("Tìm");
         cbStatus = new JComboBox<>(new String[]{"Tất cả", "Còn hiệu lực", "Hết hạn", "Đã sử dụng"});
@@ -42,47 +57,56 @@ public class VoucherManagementPanel extends JPanel {
         topPanel.add(new JLabel("Trạng thái:"));
         topPanel.add(cbStatus);
 
-        // ===== Thanh nút chức năng (ở trên bảng) =====
+        // ===== Nút chức năng =====
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         actionPanel.setBackground(Color.WHITE);
 
         JButton btnAdd = new JButton("Thêm");
-        btnAdd.setBackground(new Color(46, 204, 113)); // xanh lá
-        btnAdd.setForeground(Color.WHITE);
-
         JButton btnEdit = new JButton("Sửa");
-        btnEdit.setBackground(new Color(241, 196, 15)); // vàng cam
-        btnEdit.setForeground(Color.WHITE);
-
         JButton btnDelete = new JButton("Xóa");
-        btnDelete.setBackground(new Color(231, 76, 60)); // đỏ
-        btnDelete.setForeground(Color.WHITE);
-
         JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.setBackground(new Color(52, 152, 219)); // xanh dương
+        JButton btnExport = new JButton("Xuất Excel");
+
+        btnAdd.setBackground(new Color(46, 204, 113));
+        btnEdit.setBackground(new Color(241, 196, 15));
+        btnDelete.setBackground(new Color(231, 76, 60));
+        btnRefresh.setBackground(new Color(52, 152, 219));
+        btnExport.setBackground(new Color(155, 89, 182));
+
+        btnAdd.setForeground(Color.WHITE);
+        btnEdit.setForeground(Color.WHITE);
+        btnDelete.setForeground(Color.WHITE);
         btnRefresh.setForeground(Color.WHITE);
+        btnExport.setForeground(Color.WHITE);
 
         actionPanel.add(btnAdd);
         actionPanel.add(btnEdit);
         actionPanel.add(btnDelete);
         actionPanel.add(btnRefresh);
+        actionPanel.add(btnExport);
 
-        // Gom thanh tìm kiếm + nút chức năng vào một panel trên cùng
         JPanel northPanel = new JPanel(new BorderLayout());
         northPanel.setBackground(Color.WHITE);
         northPanel.add(topPanel, BorderLayout.NORTH);
         northPanel.add(actionPanel, BorderLayout.SOUTH);
         add(northPanel, BorderLayout.PAGE_START);
 
-        // ===== Bảng dữ liệu =====
-        String[] columns = {"ID", "Mã", "Loại giảm", "Giá trị", "Bắt đầu", "Kết thúc", "Trạng thái", "Giới hạn", "Đã dùng", "Ghi chú"};
-        model = new DefaultTableModel(columns, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+        // ===== Bảng =====
+        String[] columns = {
+                "ID", "Mã", "Loại giảm", "Giá trị",
+                "Bắt đầu", "Kết thúc", "Trạng thái",
+                "Giới hạn", "Đã dùng", "Ghi chú"
         };
+
+        model = new DefaultTableModel(columns, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
         table = new JTable(model);
         table.setRowHeight(26);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         // ===== Sự kiện =====
@@ -97,11 +121,12 @@ public class VoucherManagementPanel extends JPanel {
         btnAdd.addActionListener(e -> showAddDialog());
         btnEdit.addActionListener(e -> showEditDialog());
         btnDelete.addActionListener(e -> deleteSelected());
+        btnExport.addActionListener(e -> exportToExcel());
 
         loadData();
     }
 
-    // ===== Các hàm xử lý CRUD =====
+    // ===== Load data =====
     private void loadData() {
         String keyword = txtSearch.getText().trim();
         String status = (String) cbStatus.getSelectedItem();
@@ -109,6 +134,7 @@ public class VoucherManagementPanel extends JPanel {
 
         model.setRowCount(0);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
         for (Voucher v : list) {
             model.addRow(new Object[]{
                     v.getId(),
@@ -125,7 +151,60 @@ public class VoucherManagementPanel extends JPanel {
         }
     }
 
+    // ===== Xuất Excel =====
+    private void exportToExcel() {
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có dữ liệu để xuất!");
+            return;
+        }
 
+        JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new File("voucher.xlsx"));
+
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Voucher");
+
+            // ===== Style header =====
+            CellStyle headerStyle = wb.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            // Header
+            Row header = sheet.createRow(0);
+            for (int c = 0; c < model.getColumnCount(); c++) {
+                Cell cell = header.createCell(c);
+                cell.setCellValue(model.getColumnName(c));
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Data
+            for (int r = 0; r < model.getRowCount(); r++) {
+                Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < model.getColumnCount(); c++) {
+                    Object val = model.getValueAt(r, c);
+                    row.createCell(c).setCellValue(val == null ? "" : val.toString());
+                }
+            }
+
+            for (int c = 0; c < model.getColumnCount(); c++) {
+                sheet.autoSizeColumn(c);
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(chooser.getSelectedFile())) {
+                wb.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi xuất Excel: " + ex.getMessage());
+        }
+    }
+
+    // ===== CRUD =====
     private void showAddDialog() {
         Voucher v = showVoucherForm(null);
         if (v != null) {
@@ -156,59 +235,54 @@ public class VoucherManagementPanel extends JPanel {
             return;
         }
         int id = (int) model.getValueAt(row, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Xóa voucher này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Xóa voucher này?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             controller.delete(id);
             loadData();
         }
     }
 
+    // ===== Form =====
     private Voucher showVoucherForm(Voucher v0) {
         JTextField tfCode = new JTextField(v0 == null ? "" : v0.getCode());
         JComboBox<String> cbType = new JComboBox<>(new String[]{"Phần trăm", "Số tiền"});
-        if (v0 != null) cbType.setSelectedItem(v0.getDiscountType());
         JTextField tfValue = new JTextField(v0 == null ? "" : String.valueOf(v0.getDiscountValue()));
         JTextField tfStart = new JTextField(v0 == null ? "" : v0.getStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         JTextField tfEnd = new JTextField(v0 == null ? "" : v0.getEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Còn hiệu lực", "Hết hạn", "Đã sử dụng"});
-        if (v0 != null) cbStatus.setSelectedItem(v0.getStatus());
-        JTextField tfLimit = new JTextField(v0 == null || v0.getUsageLimit() == null ? "" : String.valueOf(v0.getUsageLimit()));
-        JTextField tfUsed = new JTextField(v0 == null || v0.getUsedCount() == null ? "0" : String.valueOf(v0.getUsedCount()));
+        JTextField tfLimit = new JTextField(v0 == null || v0.getUsageLimit() == null ? "" : v0.getUsageLimit().toString());
+        JTextField tfUsed = new JTextField(v0 == null ? "0" : String.valueOf(v0.getUsedCount()));
         JTextField tfNote = new JTextField(v0 == null ? "" : v0.getNote());
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 8, 6));
         panel.add(new JLabel("Mã:")); panel.add(tfCode);
         panel.add(new JLabel("Loại giảm:")); panel.add(cbType);
         panel.add(new JLabel("Giá trị:")); panel.add(tfValue);
-        panel.add(new JLabel("Bắt đầu (dd-MM-yyyy):")); panel.add(tfStart);
-        panel.add(new JLabel("Kết thúc (dd-MM-yyyy):")); panel.add(tfEnd);
+        panel.add(new JLabel("Bắt đầu:")); panel.add(tfStart);
+        panel.add(new JLabel("Kết thúc:")); panel.add(tfEnd);
         panel.add(new JLabel("Trạng thái:")); panel.add(cbStatus);
-        panel.add(new JLabel("Giới hạn lượt:")); panel.add(tfLimit);
+        panel.add(new JLabel("Giới hạn:")); panel.add(tfLimit);
         panel.add(new JLabel("Đã dùng:")); panel.add(tfUsed);
         panel.add(new JLabel("Ghi chú:")); panel.add(tfNote);
 
-        int result = JOptionPane.showConfirmDialog(this, panel, v0 == null ? "Thêm Voucher" : "Sửa Voucher",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, panel,
+                v0 == null ? "Thêm Voucher" : "Sửa Voucher",
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             try {
                 Voucher v = new Voucher();
-                v.setCode(tfCode.getText().trim());
-                v.setDiscountType((String) cbType.getSelectedItem());
-                v.setDiscountValue(Double.parseDouble(tfValue.getText().trim()));
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                v.setStartDate(LocalDate.parse(tfStart.getText().trim(), fmt));
-                v.setEndDate(LocalDate.parse(tfEnd.getText().trim(), fmt));
+                v.setCode(tfCode.getText());
+                v.setDiscountType((String) cbType.getSelectedItem());
+                v.setDiscountValue(Double.parseDouble(tfValue.getText()));
+                v.setStartDate(LocalDate.parse(tfStart.getText(), fmt));
+                v.setEndDate(LocalDate.parse(tfEnd.getText(), fmt));
                 v.setStatus((String) cbStatus.getSelectedItem());
-                String limitStr = tfLimit.getText().trim();
-                v.setUsageLimit(limitStr.isBlank() ? null : Integer.parseInt(limitStr));
-                String usedStr = tfUsed.getText().trim();
-                v.setUsedCount(usedStr.isBlank() ? 0 : Integer.parseInt(usedStr));
-                v.setNote(tfNote.getText().trim());
+                v.setUsageLimit(tfLimit.getText().isBlank() ? null : Integer.parseInt(tfLimit.getText()));
+                v.setUsedCount(Integer.parseInt(tfUsed.getText()));
+                v.setNote(tfNote.getText());
                 return v;
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return null;
+                JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ!");
             }
         }
         return null;
@@ -216,19 +290,17 @@ public class VoucherManagementPanel extends JPanel {
 
     private Voucher tableRowToVoucher(int row) {
         Voucher v = new Voucher();
-        v.setId((int) model.getValueAt(row, 0));
-        v.setCode(String.valueOf(model.getValueAt(row, 1)));
-        v.setDiscountType(String.valueOf(model.getValueAt(row, 2)));
-        v.setDiscountValue(Double.parseDouble(String.valueOf(model.getValueAt(row, 3))));
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        v.setStartDate(LocalDate.parse(String.valueOf(model.getValueAt(row, 4)), fmt));
-        v.setEndDate(LocalDate.parse(String.valueOf(model.getValueAt(row, 5)), fmt));
-        v.setStatus(String.valueOf(model.getValueAt(row, 6)));
-        Object limit = model.getValueAt(row, 7);
-        v.setUsageLimit(limit == null ? null : Integer.parseInt(String.valueOf(limit)));
-        Object used = model.getValueAt(row, 8);
-        v.setUsedCount(used == null ? 0 : Integer.parseInt(String.valueOf(used)));
-        v.setNote(String.valueOf(model.getValueAt(row, 9)));
+        v.setId((int) model.getValueAt(row, 0));
+        v.setCode(model.getValueAt(row, 1).toString());
+        v.setDiscountType(model.getValueAt(row, 2).toString());
+        v.setDiscountValue(Double.parseDouble(model.getValueAt(row, 3).toString()));
+        v.setStartDate(LocalDate.parse(model.getValueAt(row, 4).toString(), fmt));
+        v.setEndDate(LocalDate.parse(model.getValueAt(row, 5).toString(), fmt));
+        v.setStatus(model.getValueAt(row, 6).toString());
+        v.setUsageLimit(model.getValueAt(row, 7) == null ? null : Integer.parseInt(model.getValueAt(row, 7).toString()));
+        v.setUsedCount(Integer.parseInt(model.getValueAt(row, 8).toString()));
+        v.setNote(model.getValueAt(row, 9).toString());
         return v;
     }
 }
