@@ -27,7 +27,7 @@ public class StatisticPanel extends JPanel
         initUI();
         loadData(); // load lần đầu
 
-        // ✅ ĐÚNG method
+
         DataChangeEventBus.onRegister(this);
     }
 
