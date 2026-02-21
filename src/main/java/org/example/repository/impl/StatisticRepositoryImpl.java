@@ -11,7 +11,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
     @Override
     public int countCustomers() {
-        String sql = "SELECT COUNT(*) FROM account WHERE role = 'USER'";
+        String sql = "SELECT COUNT(*) FROM customer";
         return getCount(sql);
     }
 
