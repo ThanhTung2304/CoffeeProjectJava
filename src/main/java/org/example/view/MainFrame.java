@@ -31,6 +31,7 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_SETTINGS  = "settings";
     private static final String SCREEN_INVENTORY = "inventory";
     private static final String SCREEN_RECIPE = "recipe";
+    private static final String SCREEN_ORDER = "order";
 
 
     private String currentModuleTitle = "Thống Kê Tổng Quan";
@@ -91,6 +92,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
         contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
         contentPanel.add(new RecipeManagementPanel(), SCREEN_RECIPE);
+        contentPanel.add(new OrderManagementPanel(), SCREEN_ORDER);
 
 
         // Mặc định mở thống kê
@@ -191,6 +193,12 @@ public class MainFrame extends JFrame {
         if (btn != null) {
             btn.addActionListener(e ->
                     showScreen(SCREEN_RECIPE, "Công Thức Pha Chế"));
+        }
+
+        btn = sideBar.getMenu("Đơn Hàng");
+        if (btn != null) {
+            btn.addActionListener(e ->
+                    showScreen(SCREEN_ORDER, "Đơn Hàng"));
         }
 
         btn = sideBar.getMenu("Đăng xuất");

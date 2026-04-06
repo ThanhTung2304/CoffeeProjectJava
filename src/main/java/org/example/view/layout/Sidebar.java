@@ -45,6 +45,8 @@ public class Sidebar extends JScrollPane {
         addMenu("Đặt Bàn");
         addMenu("Quản Lý Bàn");
         addMenu("Quản Lý Voucher");
+        addMenu("Đơn Hàng");
+
 
         add(Box.createVerticalGlue());
 
