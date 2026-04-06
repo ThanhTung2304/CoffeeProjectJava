@@ -281,7 +281,6 @@ public class ProductManagementPanel extends JPanel {
                     && !p.getName().toLowerCase().contains(keyword)) {
                 continue;
             }
-
             // filter status
             String statusText = p.isActive() ? "Đang bán" : "Ngừng bán";
             if (!statusFilter.equals("Tất cả")

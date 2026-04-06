@@ -49,4 +49,7 @@ public class ProductController {
     public List<Product> findProductByName(String name) {
         return productService.findByName(name);
     }
+    public Product findProductById(int id) {
+        return productService.findById(id);
+    }
 }
