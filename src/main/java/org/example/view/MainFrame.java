@@ -1,5 +1,6 @@
 package org.example.view;
 
+import org.example.session.UserSession;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.Sidebar;
@@ -15,28 +16,30 @@ public class MainFrame extends JFrame {
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
 
-
-
     /* ===== CARD KEYS ===== */
-    private static final String SCREEN_STATISTIC = "statistic";
-    private static final String SCREEN_ACCOUNTS  = "accounts";
-    private static final String SCREEN_CUSTOMERS = "customers";
-    private static final String SCREEN_EMPLOYEES = "employees";
-    private static final String SCREEN_SHIFTS         = "shifts";
-    private static final String SCREEN_WORK_SCHEDULE  = "work_schedule";
-    private static final String SCREEN_PRODUCTS  = "products";
-    private static final String SCREEN_BOOKING   = "booking";
-    private static final String SCREEN_TABLES   = "tables";
-    private static final String SCREEN_VOUCHERS   = "vouches";
-    private static final String SCREEN_SETTINGS  = "settings";
-    private static final String SCREEN_INVENTORY = "inventory";
-    private static final String SCREEN_RECIPE = "recipe";
-    private static final String SCREEN_ORDER = "order";
-
+    private static final String SCREEN_STATISTIC    = "statistic";
+    private static final String SCREEN_ACCOUNTS     = "accounts";
+    private static final String SCREEN_CUSTOMERS    = "customers";
+    private static final String SCREEN_EMPLOYEES    = "employees";
+    private static final String SCREEN_SHIFTS       = "shifts";
+    private static final String SCREEN_WORK_SCHEDULE = "work_schedule";
+    private static final String SCREEN_PRODUCTS     = "products";
+    private static final String SCREEN_BOOKING      = "booking";
+    private static final String SCREEN_TABLES       = "tables";
+    private static final String SCREEN_VOUCHERS     = "vouches";
+    private static final String SCREEN_SETTINGS     = "settings";
+    private static final String SCREEN_INVENTORY    = "inventory";
+    private static final String SCREEN_RECIPE       = "recipe";
+    private static final String SCREEN_ORDER        = "order";
 
     private String currentModuleTitle = "Thống Kê Tổng Quan";
 
     public MainFrame(String username, String role) {
+        // ===== LƯU SESSION KHI ĐĂNG NHẬP =====
+        UserSession.getInstance().setUsername(username);
+        UserSession.getInstance().setRole(role);
+        // ======================================
+
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 850);
@@ -74,26 +77,22 @@ public class MainFrame extends JFrame {
 
     /* INIT SCREENS */
     private void initScreens() {
-
-        /* ===== PANELS ===== */
         StatisticPanel statisticPanel = new StatisticPanel();
 
-
-        contentPanel.add(new AccountManagementPanel(), SCREEN_ACCOUNTS);
+        contentPanel.add(new AccountManagementPanel(),  SCREEN_ACCOUNTS);
         contentPanel.add(new CustomerManagementPanel(), SCREEN_CUSTOMERS);
         contentPanel.add(new EmployeeManagementPanel(), SCREEN_EMPLOYEES);
-        contentPanel.add(new ShiftManagementPanel(), SCREEN_SHIFTS);
-        contentPanel.add(new WorkSchedulePanel(), SCREEN_WORK_SCHEDULE);
-        contentPanel.add(new ProductManagementPanel(), SCREEN_PRODUCTS);
-        contentPanel.add(new BookingManagementPanel(), SCREEN_BOOKING);
-        contentPanel.add(new TableManagementPanel(), SCREEN_TABLES);
-        contentPanel.add(new VoucherManagementPanel(), SCREEN_VOUCHERS);
-        contentPanel.add(statisticPanel, SCREEN_STATISTIC);
-        contentPanel.add(createSettingScreen(), SCREEN_SETTINGS);
-        contentPanel.add(new InventoryManagementPanel(), SCREEN_INVENTORY);
-        contentPanel.add(new RecipeManagementPanel(), SCREEN_RECIPE);
-        contentPanel.add(new OrderManagementPanel(), SCREEN_ORDER);
-
+        contentPanel.add(new ShiftManagementPanel(),    SCREEN_SHIFTS);
+        contentPanel.add(new WorkSchedulePanel(),       SCREEN_WORK_SCHEDULE);
+        contentPanel.add(new ProductManagementPanel(),  SCREEN_PRODUCTS);  // <-- đã nhận role từ session
+        contentPanel.add(new BookingManagementPanel(),  SCREEN_BOOKING);
+        contentPanel.add(new TableManagementPanel(),    SCREEN_TABLES);
+        contentPanel.add(new VoucherManagementPanel(),  SCREEN_VOUCHERS);
+        contentPanel.add(statisticPanel,                SCREEN_STATISTIC);
+        contentPanel.add(createSettingScreen(),         SCREEN_SETTINGS);
+        contentPanel.add(new InventoryManagementPanel(),SCREEN_INVENTORY);
+        contentPanel.add(new RecipeManagementPanel(),   SCREEN_RECIPE);
+        contentPanel.add(new OrderManagementPanel(),    SCREEN_ORDER);
 
         // Mặc định mở thống kê
         showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
@@ -112,119 +111,73 @@ public class MainFrame extends JFrame {
         return card;
     }
 
-    /* SIDEBAR ACTIONS*/
+    /* SIDEBAR ACTIONS */
     private void initMenuActions() {
-
         JButton btn;
 
         btn = sideBar.getMenu("Thống Kê");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan"));
 
         btn = sideBar.getMenu("Quản Lý Tài Khoản");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_ACCOUNTS, "Quản Lý Tài Khoản"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_ACCOUNTS, "Quản Lý Tài Khoản"));
 
         btn = sideBar.getMenu("Quản Lý Khách Hàng");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_CUSTOMERS, "Quản Lý Khách Hàng"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_CUSTOMERS, "Quản Lý Khách Hàng"));
 
         btn = sideBar.getMenu("Quản Lý Nhân Viên");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_EMPLOYEES, "Quản Lý Nhân Viên"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_EMPLOYEES, "Quản Lý Nhân Viên"));
 
         btn = sideBar.getMenu("Quản Lý Ca Làm");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_SHIFTS, "Quản Lý Ca Làm"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_SHIFTS, "Quản Lý Ca Làm"));
 
         btn = sideBar.getMenu("Quản Lý Lịch Làm");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_WORK_SCHEDULE, "Quản Lý Lịch Làm"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_WORK_SCHEDULE, "Quản Lý Lịch Làm"));
 
-
-        btn = sideBar.getMenu("Quản Lý Sản Phẩm");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_PRODUCTS, "Quản Lý Sản Phẩm"));
-        }
+        btn = sideBar.getMenu("Sản Phẩm");
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_PRODUCTS, "Sản Phẩm"));
 
         btn = sideBar.getMenu("Đặt Bàn");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_BOOKING, "Đặt Bàn"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_BOOKING, "Đặt Bàn"));
 
         btn = sideBar.getMenu("Quản Lý Bàn");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_TABLES, "Quản Lý Bàn"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_TABLES, "Quản Lý Bàn"));
 
-        btn = sideBar.getMenu("Quản Lý Voucher");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_VOUCHERS, "Quản Lý Voucher"));
-        }
+        btn = sideBar.getMenu("Voucher");
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_VOUCHERS, "Voucher"));
 
         btn = sideBar.getMenu("Cài Đặt");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_SETTINGS, "Cài Đặt Hệ Thống"));
 
         btn = sideBar.getMenu("Quản Lý Tồn Kho");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_INVENTORY, "Quản Lý Tồn Kho"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_INVENTORY, "Quản Lý Tồn Kho"));
+
         btn = sideBar.getMenu("Công Thức Pha Chế");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_RECIPE, "Công Thức Pha Chế"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_RECIPE, "Công Thức Pha Chế"));
 
         btn = sideBar.getMenu("Đơn Hàng");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_ORDER, "Đơn Hàng"));
-        }
+        if (btn != null) btn.addActionListener(e -> showScreen(SCREEN_ORDER, "Đơn Hàng"));
 
         btn = sideBar.getMenu("Đăng xuất");
-        if (btn != null) {
-            btn.addActionListener(e -> {
-                new LoginForm().setVisible(true);
-                dispose();
-            });
-        }
+        if (btn != null) btn.addActionListener(e -> {
+            // ===== XÓA SESSION KHI ĐĂNG XUẤT =====
+            UserSession.getInstance().clear();
+            // ======================================
+            new LoginForm().setVisible(true);
+            dispose();
+        });
     }
 
-    /*HEADER ACTIONS*/
+    /* HEADER ACTIONS */
     private void initHeaderActions() {
-
         header.getBtnAdd().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thêm tại: " + currentModuleTitle));
+                JOptionPane.showMessageDialog(this, "Thêm tại: " + currentModuleTitle));
 
         header.getBtnEdit().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Sửa tại: " + currentModuleTitle));
+                JOptionPane.showMessageDialog(this, "Sửa tại: " + currentModuleTitle));
     }
 
-    /*SHOW SCREEN*/
+    /* SHOW SCREEN */
     private void showScreen(String cardKey, String moduleTitle) {
-
         currentModuleTitle = moduleTitle;
         header.setModuleTitle(moduleTitle);
         sideBar.setActiveMenu(moduleTitle);
@@ -236,7 +189,7 @@ public class MainFrame extends JFrame {
         header.getBtnEdit().setVisible(!isStatistic);
     }
 
-    /*ROUNDED PANEL*/
+    /* ROUNDED PANEL */
     static class RoundedPanel extends JPanel {
         private final int radius;
         private final Color bg;
@@ -251,8 +204,7 @@ public class MainFrame extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             g2.setColor(new Color(0, 0, 0, 18));
             g2.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, radius, radius);
@@ -262,7 +214,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    /*TEST MAIN*/
+    /* TEST MAIN */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() ->
                 new MainFrame("admin", "ADMIN").setVisible(true)
