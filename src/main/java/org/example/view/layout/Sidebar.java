@@ -2,13 +2,14 @@ package org.example.view.layout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 public class Sidebar extends JScrollPane {
 
     private final JPanel menuPanel = new JPanel();
     private final Map<String, JButton> menuMap = new LinkedHashMap<>();
+    private final Map<String, List<String>> rolePermissions = new HashMap<>();
 
     private static final Color BG = new Color(45, 52, 70);
     private static final Color BG_ACTIVE = new Color(70, 90, 160);
@@ -16,41 +17,64 @@ public class Sidebar extends JScrollPane {
 
     public Sidebar(String role) {
 
-        /* ===== MENU PANEL ===== */
+        /* ===== INIT UI ===== */
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBackground(BG);
         menuPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
         setViewportView(menuPanel);
-
         setPreferredSize(new Dimension(230, 0));
         setBorder(null);
         setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        /* ===== MENU ===== */
-        addMenu("Thống Kê");
+        /* ===== INIT PERMISSION ===== */
+        initPermissions();
 
-        if ("ADMIN".equals(role)) {
-            addMenu("Quản Lý Tài Khoản");
+        /* ===== LOAD MENU THEO ROLE ===== */
+        List<String> menus = rolePermissions.getOrDefault(role, new ArrayList<>());
+
+        for (String menu : menus) {
+            addMenu(menu);
         }
 
-        addMenu("Quản Lý Nhân Viên");
-        addMenu("Quản Lý Ca Làm");
-        addMenu("Quản Lý Lịch Làm");
-        addMenu("Quản Lý Khách Hàng");
-        addMenu("Quản Lý Sản Phẩm");
-        addMenu("Quản Lý Tồn Kho");
-        addMenu("Công Thức Pha Chế");
-        addMenu("Đặt Bàn");
-        addMenu("Quản Lý Bàn");
-        addMenu("Quản Lý Voucher");
-        addMenu("Đơn Hàng");
+        /* ===== ĐẨY ĐĂNG XUẤT XUỐNG CUỐI ===== */
+//        menuPanel.add(Box.createVerticalGlue());
+//        addMenu("Đăng xuất");
+    }
 
+    /* ================= PERMISSION ================= */
+    private void initPermissions() {
 
-        add(Box.createVerticalGlue());
+        rolePermissions.put("ADMIN", Arrays.asList(
+                "Thống Kê",
+                "Quản Lý Tài Khoản",
+                "Quản Lý Nhân Viên",
+                "Quản Lý Ca Làm",
+                "Quản Lý Lịch Làm",
+                "Quản Lý Khách Hàng",
+                "Sản Phẩm",
+                "Quản Lý Tồn Kho",
+                "Công Thức Pha Chế",
+                "Đặt Bàn",
+                "Quản Lý Bàn",
+                "Voucher",
+                "Đơn Hàng"
+        ));
 
-        addMenu("Đăng xuất");
+        rolePermissions.put("STAFF", Arrays.asList(
+                "Sản Phẩm",
+                "Đặt Bàn",
+                "Đơn Hàng",
+                "Quản Lý Khách Hàng",
+                "Quản Lý Bàn"
+        ));
+
+        rolePermissions.put("USER", Arrays.asList(
+                "Sản Phẩm",
+                "Đặt Bàn",
+                "Voucher"
+        ));
     }
 
     /* ================= MENU ITEM ================= */
@@ -64,10 +88,9 @@ public class Sidebar extends JScrollPane {
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         btn.setBorder(BorderFactory.createEmptyBorder(10, 24, 10, 10));
 
-        /* ===== HOVER EFFECT ===== */
+        /* ===== HOVER ===== */
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
@@ -89,7 +112,8 @@ public class Sidebar extends JScrollPane {
         menuPanel.add(Box.createVerticalStrut(4));
     }
 
-    /* ================= API CŨ ================= */
+    /* ================= API ================= */
+
     public JButton getMenu(String title) {
         return menuMap.get(title);
     }
@@ -99,5 +123,9 @@ public class Sidebar extends JScrollPane {
             boolean active = k.equals(title);
             v.setBackground(active ? BG_ACTIVE : BG);
         });
+    }
+
+    public Set<String> getAvailableMenus() {
+        return menuMap.keySet();
     }
 }
