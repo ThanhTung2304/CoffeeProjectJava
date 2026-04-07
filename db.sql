@@ -18,8 +18,6 @@ WHERE NOT EXISTS (
     SELECT 1 FROM account WHERE username = 'admin'
 );
 
-select * from account;
-
 
 CREATE TABLE IF NOT EXISTS employee (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +40,7 @@ INSERT INTO employee (name, phone, position, account_id)
 VALUES
 ('Nguyễn Văn A', '0901234567', 'Admin', 1),
 ('Trần Thị B', '0912345678', 'Staff', NULL);
-select *from employee;
+
 SELECT id, name, account_id FROM employee;
 UPDATE employee SET account_id = 2 WHERE id = 1;
 UPDATE employee SET account_id = 1 WHERE id = 2;
@@ -52,6 +50,7 @@ SELECT
     a.username
 FROM employee e
 LEFT JOIN account a ON e.account_id = a.id;
+
 
 CREATE TABLE IF NOT EXISTS product (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,6 +62,7 @@ CREATE TABLE IF NOT EXISTS product (
         ON UPDATE CURRENT_TIMESTAMP
 );
 select * from product where id = 1;
+
 
 CREATE TABLE inventory (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,7 +79,7 @@ CREATE TABLE inventory (
         REFERENCES product(id)
         ON DELETE CASCADE
 );
-select * from inventory;
+
 
 CREATE TABLE inventory_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -98,9 +98,6 @@ CREATE TABLE inventory_history (
 );
 
 
-select * from inventory;
-select* from inventory_history;
-
 CREATE TABLE recipe (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -115,8 +112,6 @@ CREATE TABLE recipe (
         REFERENCES product(id)
         ON DELETE CASCADE
 );
-
-select * from recipe;
 
 
 CREATE TABLE reservations (
@@ -133,7 +128,6 @@ VALUES
 ('Black Coffee', 20000, 1),
 ('Milk Coffee', 25000, 1);
 
-Select * from product;
 
 CREATE TABLE shift (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -183,7 +177,8 @@ CREATE TABLE vouchers (
     used_count INT DEFAULT 0,                  -- Số lượt đã dùng
     note VARCHAR(255)                          -- Ghi chú
 );
-select * from vouchers;
+
+
 ALTER TABLE vouchers
     MODIFY status ENUM('Còn hiệu lực','Hết hạn','Đã sử dụng')
     NOT NULL DEFAULT 'Còn hiệu lực';
@@ -208,7 +203,6 @@ CREATE TABLE customer (
     status TINYINT
 );
 
-select * from customer;
 
 INSERT INTO tables (table_number, name, capacity, status, note) VALUES
                                                                     (1, 'Bàn 1', 2, 'Trống', 'Khu ngoài trời'),
@@ -244,7 +238,6 @@ CREATE TABLE IF NOT EXISTS customer (
     updatedTime TIMESTAMP NULL DEFAULT NULL
         ON UPDATE CURRENT_TIMESTAMP
 );
-select * from customer;
 
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,

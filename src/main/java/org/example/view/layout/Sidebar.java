@@ -63,6 +63,7 @@ public class Sidebar extends JScrollPane {
         ));
 
         rolePermissions.put("STAFF", Arrays.asList(
+                "Sản Phẩm",
                 "Đặt Bàn",
                 "Đơn Hàng",
                 "Quản Lý Khách Hàng",
@@ -70,8 +71,8 @@ public class Sidebar extends JScrollPane {
         ));
 
         rolePermissions.put("USER", Arrays.asList(
-                "Đặt Bàn",
                 "Sản Phẩm",
+                "Đặt Bàn",
                 "Voucher"
         ));
     }

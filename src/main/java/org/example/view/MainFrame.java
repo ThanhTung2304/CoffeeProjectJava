@@ -94,8 +94,12 @@ public class MainFrame extends JFrame {
         contentPanel.add(new RecipeManagementPanel(),   SCREEN_RECIPE);
         contentPanel.add(new OrderManagementPanel(),    SCREEN_ORDER);
 
-        // Mặc định mở thống kê
-        showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
+        // SAU - phân quyền màn hình mặc định
+        if (UserSession.getInstance().isAdmin()) {
+            showScreen(SCREEN_STATISTIC, "Thống Kê Tổng Quan");
+        } else {
+            showScreen(SCREEN_PRODUCTS, "Sản Phẩm");
+        }
     }
 
     private JPanel createSettingScreen() {
