@@ -2,10 +2,12 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.event.DataChangeEventBus;
 import org.example.util.ExportToExcel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -15,68 +17,114 @@ public class AccountManagementPanel extends JPanel {
 
     private final AccountController controller = new AccountController();
 
-    private final DefaultTableModel tableModel;
-    private final JTable table;
+    private JTable table;
+    private DefaultTableModel tableModel;
 
-    private final JTextField txtSearch = new JTextField(22);
-    private final JComboBox<String> cbStatus =
-            new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
+    private JTextField txtSearch;
+    private JComboBox<String> cbStatus;
 
     public AccountManagementPanel() {
         setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(16, 16, 16, 16));
+        setBackground(new Color(240, 242, 245));
 
-        /* ===== TITLE ===== */
-        JLabel title = new JLabel("QUẢN LÝ TÀI KHOẢN");
+        initUI();
+        loadData();
+
+        // FIX: lắng nghe event khi có data thay đổi (đăng ký, thêm, sửa, xóa)
+        DataChangeEventBus.onRegister(this::loadData);
+    }
+
+    private void initUI() {
+
+        /* ===== HEADER ===== */
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(new EmptyBorder(10, 15, 10, 15));
+
+        JLabel title = new JLabel("Quản lý tài khoản");
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
-        /* ===== SEARCH ===== */
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnSearch = new JButton("🔍 Tìm");
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        right.setOpaque(false);
 
-        searchPanel.add(new JLabel("Tìm:"));
-        searchPanel.add(txtSearch);
-        searchPanel.add(btnSearch);
-        searchPanel.add(new JLabel("Trạng thái:"));
-        searchPanel.add(cbStatus);
+        txtSearch = new JTextField();
+        txtSearch.setPreferredSize(new Dimension(200, 30));
+
+        cbStatus = new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
+
+        JButton btnSearch = createButton("🔍", new Color(52, 152, 219));
+
+        right.add(txtSearch);
+        right.add(cbStatus);
+        right.add(btnSearch);
+
+        header.add(title, BorderLayout.WEST);
+        header.add(right, BorderLayout.EAST);
 
         /* ===== ACTION ===== */
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnAdd = createButton("Thêm", new Color(46, 204, 113));
-        JButton btnEdit = createButton("Sửa", new Color(241, 196, 15));
-        JButton btnDelete = createButton("Xóa", new Color(231, 76, 60));
-        JButton btnRefresh = createButton("Refresh", new Color(149, 165, 166));
-        JButton btnExport = createButton("Xuất Excel", new Color(52, 152, 219));
+        JPanel action = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        action.setBackground(new Color(240, 242, 245));
 
-        actionPanel.add(btnAdd);
-        actionPanel.add(btnEdit);
-        actionPanel.add(btnDelete);
-        actionPanel.add(btnRefresh);
-        actionPanel.add(btnExport);
+        JButton btnAdd     = createButton("Thêm",    new Color(46, 204, 113));
+        JButton btnEdit    = createButton("Sửa",     new Color(241, 196, 15));
+        JButton btnDelete  = createButton("Xóa",     new Color(231, 76, 60));
+        JButton btnRefresh = createButton("Refresh", new Color(149, 165, 166));
+        JButton btnExport  = createButton("Excel",   new Color(52, 152, 219));
+
+        action.add(btnAdd);
+        action.add(btnEdit);
+        action.add(btnDelete);
+        action.add(btnRefresh);
+        action.add(btnExport);
 
         /* ===== TABLE ===== */
         tableModel = new DefaultTableModel(
                 new String[]{"ID", "STT", "Username", "Password", "Role", "Trạng thái"}, 0
         ) {
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
+            public boolean isCellEditable(int r, int c) { return false; }
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(28);
-        table.removeColumn(table.getColumnModel().getColumn(0)); // hide ID
+        table.setRowHeight(35);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(52, 73, 94));
+        table.getTableHeader().setForeground(Color.WHITE);
+
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean s, boolean f, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, s, f, r, c);
+                if (s) {
+                    comp.setBackground(new Color(189, 215, 238));
+                } else {
+                    comp.setBackground(r % 2 == 0 ? Color.WHITE : new Color(245, 245, 245));
+                }
+                return comp;
+            }
+        });
+
+        table.removeColumn(table.getColumnModel().getColumn(0));
 
         JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(null);
 
-        /* ===== NORTH ===== */
-        JPanel north = new JPanel(new BorderLayout());
-        north.add(title, BorderLayout.NORTH);
-        north.add(searchPanel, BorderLayout.CENTER);
-        north.add(actionPanel, BorderLayout.SOUTH);
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(new EmptyBorder(10, 10, 10, 10));
+        card.add(scroll);
 
-        add(north, BorderLayout.NORTH);
-        add(scroll, BorderLayout.CENTER);
+        /* ===== MAIN ===== */
+        JPanel main = new JPanel(new BorderLayout(10, 10));
+        main.setBackground(new Color(240, 242, 245));
+        main.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        main.add(action, BorderLayout.NORTH);
+        main.add(card,   BorderLayout.CENTER);
+
+        add(header, BorderLayout.NORTH);
+        add(main,   BorderLayout.CENTER);
 
         /* ===== EVENTS ===== */
         btnSearch.addActionListener(e -> loadData());
@@ -85,12 +133,16 @@ public class AccountManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> openEditDialog());
         btnDelete.addActionListener(e -> deleteAccount());
         btnExport.addActionListener(e -> ExportToExcel.export(table, "DanhSachTaiKhoan.xlsx"));
-
-        loadData();
     }
 
-    /* ================= LOAD DATA ================= */
+    /* ===== LOAD DATA ===== */
     private void loadData() {
+        // FIX: đảm bảo chạy trên EDT khi được gọi từ event bus
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(this::loadData);
+            return;
+        }
+
         tableModel.setRowCount(0);
 
         List<Account> list = controller.search(
@@ -101,160 +153,102 @@ public class AccountManagementPanel extends JPanel {
         int stt = 1;
         for (Account a : list) {
             tableModel.addRow(new Object[]{
-                    a.getId(),
-                    stt++,
-                    a.getUsername(),
-                    a.getPassword(),
-                    a.getRole(),
+                    a.getId(), stt++, a.getUsername(),
+                    a.getPassword(), a.getRole(),
                     a.isActive() ? "Hoạt động" : "Khóa"
             });
         }
     }
 
-    /* ================= ADD ================= */
     private void openAddDialog() {
-        JDialog d = createDialog("Thêm tài khoản");
+        JTextField user    = new JTextField();
+        JPasswordField pass = new JPasswordField();
 
-        JTextField txtUser = new JTextField();
-        JPasswordField txtPass = new JPasswordField();
-        JComboBox<String> cbRole = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
-        JCheckBox chkActive = new JCheckBox("Hoạt động", true);
+        JComboBox<String> role   = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
+        JCheckBox         active = new JCheckBox("Hoạt động", true);
 
-        JPanel form = createForm();
-        addField(form, "Username:", txtUser);
-        addField(form, "Password:", txtPass);
-        addField(form, "Role:", cbRole);
-        addField(form, "Trạng thái:", chkActive);
+        JPanel p = createForm();
+        addField(p, "Username:",   user);
+        addField(p, "Password:",   pass);
+        addField(p, "Role:",       role);
+        addField(p, "Trạng thái:", active);
 
-        JButton btnSave = new JButton("Lưu");
-        btnSave.addActionListener(e -> {
-            try {
-                controller.add(
-                        txtUser.getText(),
-                        new String(txtPass.getPassword()),
-                        Objects.requireNonNull(Objects.requireNonNull(cbRole.getSelectedItem())).toString(),
-                        chkActive.isSelected()
-                );
-                d.dispose();
-                loadData();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(d, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        d.add(form, BorderLayout.CENTER);
-        d.add(btnSave, BorderLayout.SOUTH);
-        d.setVisible(true);
+        if (JOptionPane.showConfirmDialog(this, p, "Thêm", JOptionPane.OK_CANCEL_OPTION) == 0) {
+            controller.add(
+                    user.getText(),
+                    new String(pass.getPassword()),
+                    Objects.requireNonNull(role.getSelectedItem()).toString(),
+                    active.isSelected()
+            );
+            loadData();
+        }
     }
 
-    /* ================= EDIT ================= */
     private void openEditDialog() {
-
-        int viewRow = table.getSelectedRow();
-        if (viewRow == -1) {
-            JOptionPane.showMessageDialog(this, "Chọn tài khoản cần sửa");
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chọn dòng!");
             return;
         }
 
-        int modelRow = table.convertRowIndexToModel(viewRow);
-        int id = (int) tableModel.getValueAt(modelRow, 0);
-        String username = tableModel.getValueAt(modelRow, 2).toString();
+        int modelRow = table.convertRowIndexToModel(row);
+        int id       = (int) tableModel.getValueAt(modelRow, 0);
 
-        Account acc = controller.findByUsername(username);
+        String  username = tableModel.getValueAt(modelRow, 2).toString();
+        Account acc      = controller.findByUsername(username);
 
-        JDialog d = createDialog("Sửa tài khoản");
+        JTextField    user   = new JTextField(acc.getUsername());
+        JPasswordField pass  = new JPasswordField(acc.getPassword());
 
-        JTextField txtUser = new JTextField(acc.getUsername());
-        txtUser.setEditable(true);
+        JComboBox<String> role   = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
+        role.setSelectedItem(acc.getRole());
 
-        JPasswordField txtPass = new JPasswordField(acc.getPassword());
-        JPasswordField txtConfirm = new JPasswordField(acc.getPassword());
+        JCheckBox active = new JCheckBox("Hoạt động", acc.isActive());
 
-        JComboBox<String> cbRole =
-                new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
-        cbRole.setSelectedItem(acc.getRole());
+        JPanel p = createForm();
+        addField(p, "Username:",   user);
+        addField(p, "Password:",   pass);
+        addField(p, "Role:",       role);
+        addField(p, "Trạng thái:", active);
 
-        JCheckBox chkActive = new JCheckBox("Hoạt động", acc.isActive());
-
-        JPanel form = createForm();
-        addField(form, "Username:", txtUser);
-        addField(form, "Password:", txtPass);
-        addField(form, "Confirm:", txtConfirm);
-        addField(form, "Role:", cbRole);
-        addField(form, "Trạng thái:", chkActive);
-
-        JButton btnSave = new JButton("Cập nhật");
-        btnSave.addActionListener(e -> {
-            String pass = new String(txtPass.getPassword());
-            String confirm = new String(txtConfirm.getPassword());
-
-            if (!pass.equals(confirm)) {
-                JOptionPane.showMessageDialog(d, "Mật khẩu không khớp!");
-                return;
-            }
-
-            try {
-                controller.update(
-                        id,
-                        acc.getUsername(),
-                        pass,              // cập nhật mật khẩu
-                        Objects.requireNonNull(Objects.requireNonNull(cbRole.getSelectedItem())).toString(),
-                        chkActive.isSelected()
-                );
-                d.dispose();
-                loadData();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(d, ex.getMessage(),
-                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        d.add(form, BorderLayout.CENTER);
-        d.add(btnSave, BorderLayout.SOUTH);
-        d.setVisible(true);
+        if (JOptionPane.showConfirmDialog(this, p, "Sửa", JOptionPane.OK_CANCEL_OPTION) == 0) {
+            controller.update(
+                    id,
+                    user.getText(),
+                    new String(pass.getPassword()),
+                    Objects.requireNonNull(role.getSelectedItem()).toString(),
+                    active.isSelected()
+            );
+            loadData();
+        }
     }
 
-
-    /* ================= DELETE ================= */
     private void deleteAccount() {
-        int viewRow = table.getSelectedRow();
-        if (viewRow == -1) return;
+        int row = table.getSelectedRow();
+        if (row == -1) return;
 
-        int modelRow = table.convertRowIndexToModel(viewRow);
-        int id = (int) tableModel.getValueAt(modelRow, 0);
+        int modelRow = table.convertRowIndexToModel(row);
+        int id       = (int) tableModel.getValueAt(modelRow, 0);
 
-        if (JOptionPane.showConfirmDialog(
-                this, "Xóa tài khoản này?", "Xác nhận",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-
+        if (JOptionPane.showConfirmDialog(this, "Xóa tài khoản?") == 0) {
             controller.delete(id);
             loadData();
         }
     }
 
-    /* ================= UI HELPERS ================= */
-    private JButton createButton(String t, Color c) {
-        JButton b = new JButton(t);
-        b.setBackground(c);
+    private JButton createButton(String text, Color color) {
+        JButton b = new JButton(text);
+        b.setFocusPainted(false);
+        b.setBackground(color);
         b.setForeground(Color.WHITE);
-        b.setPreferredSize(new Dimension(120, 36));
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setBorder(new EmptyBorder(8, 15, 8, 15));
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return b;
     }
 
-    private JDialog createDialog(String title) {
-        JDialog d = new JDialog(
-                SwingUtilities.getWindowAncestor(this),
-                title,
-                Dialog.ModalityType.APPLICATION_MODAL
-        );
-        d.setSize(360, 300);
-        d.setLocationRelativeTo(this);
-        d.setLayout(new BorderLayout());
-        return d;
-    }
-
     private JPanel createForm() {
-        JPanel p = new JPanel(new GridLayout(0, 2, 8, 8));
+        JPanel p = new JPanel(new GridLayout(0, 2, 10, 10));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
         return p;
     }
