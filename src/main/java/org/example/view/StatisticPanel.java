@@ -3,6 +3,12 @@ package org.example.view;
 import org.example.controller.StatisticController;
 import org.example.event.DataChangeEventBus;
 
+import org.jfree.chart.*;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.data.category.DefaultCategoryDataset;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -20,13 +26,12 @@ public class StatisticPanel extends JPanel
     private final StatisticController reportController = new StatisticController();
 
     public StatisticPanel() {
-        setLayout(new BorderLayout(16, 16));
+        setLayout(new BorderLayout(15, 15));
         setBorder(new EmptyBorder(20, 20, 20, 20));
         setBackground(new Color(245, 247, 255));
 
         initUI();
-        loadData(); // load lần đầu
-
+        loadData();
 
         DataChangeEventBus.onRegister(this);
     }
@@ -34,12 +39,13 @@ public class StatisticPanel extends JPanel
     /* ================= UI ================= */
     private void initUI() {
 
-        JLabel title = new JLabel("THỐNG KÊ TỔNG QUAN");
+        JLabel title = new JLabel("📊 Dashboard thống kê");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(new Color(60, 60, 90));
+        title.setForeground(new Color(40, 40, 70));
         add(title, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 3, 16, 16));
+        /* ===== CARD ===== */
+        JPanel grid = new JPanel(new GridLayout(3, 2, 12, 12));
         grid.setOpaque(false);
 
         lblCustomer = createValueLabel();
@@ -49,57 +55,54 @@ public class StatisticPanel extends JPanel
         lblStock = createValueLabel();
         lblExported = createValueLabel();
 
-        grid.add(createCard("Khách hàng", lblCustomer, new Color(52, 152, 219)));
-        grid.add(createCard("Nhân viên", lblEmployee, new Color(46, 204, 113)));
-        grid.add(createCard("Doanh thu tháng", lblRevenue, new Color(241, 196, 15)));
-        grid.add(createCard("Đặt bàn tháng", lblReservation, new Color(155, 89, 182)));
-        grid.add(createCard("Tồn kho", lblStock, new Color(230, 126, 34)));
-        grid.add(createCard("Đã xuất kho", lblExported, new Color(231, 76, 60)));
+        grid.add(createCard("Khách hàng", "👤", lblCustomer, new Color(52,152,219)));
+        grid.add(createCard("Nhân viên", "👨‍💼", lblEmployee, new Color(46,204,113)));
+        grid.add(createCard("Doanh thu", "💰", lblRevenue, new Color(241,196,15)));
+        grid.add(createCard("Đặt bàn", "📅", lblReservation, new Color(155,89,182)));
+        grid.add(createCard("Tồn kho", "📦", lblStock, new Color(230,126,34)));
+        grid.add(createCard("Xuất kho", "🚚", lblExported, new Color(231,76,60)));
 
-        add(grid, BorderLayout.CENTER);
+        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        wrapper.setOpaque(false);
+        grid.setPreferredSize(new Dimension(700, 260));
+        wrapper.add(grid);
+
+        /* ===== CHART ===== */
+        JPanel chartPanel = createRevenueChart();
+
+        JPanel center = new JPanel(new BorderLayout(15, 15));
+        center.setOpaque(false);
+
+        center.add(wrapper, BorderLayout.NORTH);
+        center.add(chartPanel, BorderLayout.CENTER);
+
+        add(center, BorderLayout.CENTER);
     }
 
     /* ================= LOAD DATA ================= */
     private void loadData() {
         try {
-            lblCustomer.setText(String.valueOf(
-                    reportController.getCustomerCount()
-            ));
-
-            lblEmployee.setText(String.valueOf(
-                    reportController.getEmployeeCount()
-            ));
-
-            lblRevenue.setText(String.format("%,.0f VNĐ",
-                    reportController.getMonthlyRevenue()
-            ));
-
-            lblReservation.setText(String.valueOf(
-                    reportController.getReservationCount()
-            ));
-
-
-            lblStock.setText(String.valueOf(
-                    reportController.getTotalInventory()
-            ));
-
-            lblExported.setText(String.valueOf(
-                    reportController.getExportedTotal()
-            ));
-
+            lblCustomer.setText(formatNumber(reportController.getCustomerCount()));
+            lblEmployee.setText(formatNumber(reportController.getEmployeeCount()));
+            lblRevenue.setText(formatCurrency(reportController.getMonthlyRevenue()));
+            lblReservation.setText(formatNumber(reportController.getReservationCount()));
+            lblStock.setText(formatNumber(reportController.getTotalInventory()));
+            lblExported.setText(formatNumber(reportController.getExportedTotal()));
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Không thể tải dữ liệu thống kê",
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
     }
 
-    /* ================= PUBLIC API ================= */
-    // 👉 Cho MainFrame gọi khi switch màn hình
-    public void reload() {
-        SwingUtilities.invokeLater(this::loadData);
+    /* ================= FORMAT ================= */
+    private String formatNumber(int value) {
+        return String.format("%,d", value);
+    }
+
+    private String formatCurrency(double value) {
+        return String.format("%,.0f VNĐ", value);
     }
 
     /* ================= EVENT ================= */
@@ -108,26 +111,127 @@ public class StatisticPanel extends JPanel
         reload();
     }
 
-    /* ================= UI HELPER ================= */
-    private JPanel createCard(String title, JLabel value, Color color) {
-        JPanel card = new JPanel(new BorderLayout(8, 8));
-        card.setBackground(color);
-        card.setBorder(new EmptyBorder(18, 18, 18, 18));
+    public void reload() {
+        SwingUtilities.invokeLater(this::loadData);
+    }
+
+    /* ================= CARD ================= */
+    private JPanel createCard(String title, String icon, JLabel value, Color color) {
+
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setPreferredSize(new Dimension(320, 80));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230,230,230)),
+                new EmptyBorder(10, 12, 10, 12)
+        ));
+
+        JLabel lblIcon = new JLabel(icon, SwingConstants.CENTER);
+        lblIcon.setPreferredSize(new Dimension(50, 50));
+        lblIcon.setOpaque(true);
+        lblIcon.setBackground(color);
+        lblIcon.setForeground(Color.WHITE);
+        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+
+        JPanel textPanel = new JPanel(new GridLayout(2,1));
+        textPanel.setOpaque(false);
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTitle.setForeground(new Color(120,120,140));
 
-        card.add(lblTitle, BorderLayout.NORTH);
-        card.add(value, BorderLayout.CENTER);
+        value.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        value.setForeground(new Color(40,40,80));
+
+        textPanel.add(lblTitle);
+        textPanel.add(value);
+
+        card.add(lblIcon, BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                card.setBackground(new Color(245,247,255));
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                card.setBackground(Color.WHITE);
+            }
+        });
 
         return card;
     }
 
     private JLabel createValueLabel() {
-        JLabel lbl = new JLabel("0");
-        lbl.setForeground(Color.WHITE);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        return lbl;
+        return new JLabel("0");
+    }
+
+    /* ================= CHART ================= */
+    private JPanel createRevenueChart() {
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        // 👉 demo (sau bạn thay bằng DB)
+        dataset.addValue(12000000, "Doanh thu", "T1");
+        dataset.addValue(15000000, "Doanh thu", "T2");
+        dataset.addValue(10000000, "Doanh thu", "T3");
+        dataset.addValue(18000000, "Doanh thu", "T4");
+        dataset.addValue(22000000, "Doanh thu", "T5");
+        dataset.addValue(25000000, "Doanh thu", "T7");
+        dataset.addValue(20000000, "Doanh thu", "T8");
+        dataset.addValue(18000000, "Doanh thu", "T9");
+        dataset.addValue(26000000, "Doanh thu", "T10");
+
+        JFreeChart chart = ChartFactory.createBarChart(
+                "", // bỏ title mặc định
+                "Tháng",
+                "VNĐ",
+                dataset
+        );
+
+        /* ===== STYLE ===== */
+        chart.setBackgroundPaint(new Color(245,247,255));
+
+        CategoryPlot plot = chart.getCategoryPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setOutlineVisible(false);
+        plot.setRangeGridlinePaint(new Color(220,220,220));
+
+        /* ===== BAR COLOR ===== */
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setSeriesPaint(0, new Color(52,152,219)); // xanh đẹp
+        renderer.setMaximumBarWidth(0.08); // thanh mỏng đẹp hơn
+
+        /* ===== BO GÓC BAR ===== */
+        renderer.setBarPainter(new StandardBarPainter());
+        renderer.setShadowVisible(false);
+
+        /* ===== HIỆN SỐ TRÊN CỘT ===== */
+        renderer.setDefaultItemLabelsVisible(true);
+        renderer.setDefaultItemLabelFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        /* ===== AXIS ===== */
+        plot.getDomainAxis().setTickLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
+        plot.getRangeAxis().setTickLabelFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        plot.getDomainAxis().setAxisLineVisible(false);
+        plot.getRangeAxis().setAxisLineVisible(false);
+
+        /* ===== TITLE CUSTOM ===== */
+        JLabel title = new JLabel("📈 Doanh thu 10 tháng gần nhất");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 0));
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new Dimension(200, 260));
+        chartPanel.setMouseWheelEnabled(true);
+        chartPanel.setBorder(BorderFactory.createEmptyBorder());
+
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+
+        wrapper.add(title, BorderLayout.NORTH);
+        wrapper.add(chartPanel, BorderLayout.CENTER);
+
+        return wrapper;
     }
 }
