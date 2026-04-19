@@ -4,6 +4,7 @@ import org.example.dto.LoginRequest;
 import org.example.dto.RegisterRequest;
 import org.example.entity.Account;
 import org.example.entity.Employee;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.AccountRepository;
 import org.example.repository.EmployeeRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
@@ -12,11 +13,11 @@ import org.example.service.AuthService;
 
 public class AuthServiceImpl implements AuthService {
 
-    private final AccountRepository accountRepository;
+    private final AccountRepository  accountRepository;
     private final EmployeeRepository employeeRepository;
 
     public AuthServiceImpl() {
-        this.accountRepository = new AccountRepositoryImpl();
+        this.accountRepository  = new AccountRepositoryImpl();
         this.employeeRepository = new EmployeeRepositoryImpl();
     }
 
@@ -44,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
 
         validateInfo(request);
 
-        // Lấy role từ form
         String role = request.getRole();
         if (role == null || role.isBlank()) {
             role = "USER";
@@ -60,20 +60,28 @@ public class AuthServiceImpl implements AuthService {
         // Lưu account
         accountRepository.save(account);
 
-        // 👉 NẾU LÀ STAFF → TẠO EMPLOYEE
-        if ("STAFF".equalsIgnoreCase(role)) {
+        // Lấy lại để có ID thật
+        Account saved = accountRepository.findByUsername(request.getUsername());
+
+        // Nếu là STAFF → tạo Employee
+        if ("STAFF".equalsIgnoreCase(role) && saved != null) {
             Employee employee = new Employee();
             employee.setName(request.getUsername());
+            employee.setPhone("");
             employee.setPosition("Staff");
-            employee.setAccountId(account.getId());
+            employee.setAccountId(saved.getId());
+            employee.setUsername(saved.getUsername());
 
             employeeRepository.save(employee);
         }
 
+        // FIX: notify để các panel tự refresh
+        DataChangeEventBus.notifyChange();
+
         return true;
     }
 
-    // ================= CHECK USERNAME =================
+    // ================= EXISTS =================
     @Override
     public boolean existsByUsername(String username) {
         return accountRepository.existsByUsername(username);

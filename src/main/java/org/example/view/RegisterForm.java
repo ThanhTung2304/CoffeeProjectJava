@@ -59,7 +59,7 @@ public class RegisterForm extends JFrame {
         txtPassword = new JPasswordField();
         txtConfirm  = new JPasswordField();
 
-        cbRole = new JComboBox<>(new String[]{"USER", "STAFF"});
+        cbRole = new JComboBox<>(new String[]{"STAFF","USER"});
 
         form.add(createRow("Username", txtUsername));
         form.add(Box.createVerticalStrut(12));

@@ -7,103 +7,118 @@ import java.util.List;
 
 public class Sidebar extends JScrollPane {
 
+    private final JPanel container = new JPanel();
     private final JPanel menuPanel = new JPanel();
+
     private final Map<String, JButton> menuMap = new LinkedHashMap<>();
     private final Map<String, List<String>> rolePermissions = new HashMap<>();
 
-    private static final Color BG = new Color(45, 52, 70);
-    private static final Color BG_ACTIVE = new Color(70, 90, 160);
-    private static final Color BG_HOVER = new Color(60, 70, 100);
+    private static final Color BG        = new Color(30, 35, 50);
+    private static final Color BG_ITEM   = new Color(40, 45, 65);
+    private static final Color BG_HOVER  = new Color(60, 70, 100);
+    private static final Color BG_ACTIVE = new Color(85, 120, 200);
+    private static final Color ACCENT    = new Color(0, 180, 255);
 
     public Sidebar(String role) {
 
-        /* ===== INIT UI ===== */
+        // FIX: chuẩn hóa role tránh lỗi "staff" vs "STAFF"
+        String normalizedRole = (role != null) ? role.toUpperCase().trim() : "";
+
+        container.setLayout(new BorderLayout());
+        container.setBackground(BG);
+        container.add(createHeader(), BorderLayout.NORTH);
+
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBackground(BG);
         menuPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        container.add(menuPanel, BorderLayout.CENTER);
 
-        setViewportView(menuPanel);
-        setPreferredSize(new Dimension(230, 0));
+        setViewportView(container);
+        setPreferredSize(new Dimension(220, 0));
         setBorder(null);
         setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        /* ===== INIT PERMISSION ===== */
         initPermissions();
 
-        /* ===== LOAD MENU THEO ROLE ===== */
-        List<String> menus = rolePermissions.getOrDefault(role, new ArrayList<>());
+        List<String> menus = rolePermissions.getOrDefault(normalizedRole, new ArrayList<>());
+
+        // DEBUG - xóa sau khi fix xong
+        System.out.println(">>> Sidebar role: '" + normalizedRole + "' | menus: " + menus);
 
         for (String menu : menus) {
             addMenu(menu);
         }
-
-        /* ===== ĐẨY ĐĂNG XUẤT XUỐNG CUỐI ===== */
-//        menuPanel.add(Box.createVerticalGlue());
-//        addMenu("Đăng xuất");
     }
 
-    /* ================= PERMISSION ================= */
-    private void initPermissions() {
+    private JPanel createHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(BG);
+        header.setBorder(BorderFactory.createEmptyBorder(24, 20, 16, 20));
 
+        JLabel icon = new JLabel("☕");
+        icon.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+
+        JLabel title = new JLabel("  Coffee Admin");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        row.setOpaque(false);
+        row.add(icon);
+        row.add(title);
+
+        header.add(row, BorderLayout.CENTER);
+
+        // Divider
+        JPanel divider = new JPanel();
+        divider.setBackground(new Color(60, 70, 100));
+        divider.setPreferredSize(new Dimension(0, 1));
+        header.add(divider, BorderLayout.SOUTH);
+
+        return header;
+    }
+
+    private void initPermissions() {
         rolePermissions.put("ADMIN", Arrays.asList(
                 "Thống Kê",
-                "Quản Lý Tài Khoản",
                 "Quản Lý Nhân Viên",
-                "Quản Lý Ca Làm",
-                "Quản Lý Lịch Làm",
-                "Quản Lý Khách Hàng",
-                "Sản Phẩm",
                 "Quản Lý Tồn Kho",
                 "Công Thức Pha Chế",
-                "Đặt Bàn",
-                "Quản Lý Bàn",
                 "Voucher",
-                "Đơn Hàng"
+                "Quản Lý Ca Làm"
         ));
 
         rolePermissions.put("STAFF", Arrays.asList(
                 "Sản Phẩm",
-                "Đặt Bàn",
-                "Đơn Hàng",
-                "Quản Lý Khách Hàng",
-                "Quản Lý Bàn"
-        ));
-
-        rolePermissions.put("USER", Arrays.asList(
-                "Sản Phẩm",
-                "Đặt Bàn",
-                "Voucher"
+                "Công Thức Pha Chế",
+                "Voucher",
+                "Quản Lý Lịch Làm",
+                "Đơn Hàng"
         ));
     }
 
-    /* ================= MENU ITEM ================= */
     private void addMenu(String title) {
-
-        JButton btn = new JButton(title);
+        JButton btn = new JButton("  " + title);
         btn.setFocusPainted(false);
         btn.setForeground(Color.WHITE);
-        btn.setBackground(BG);
+        btn.setBackground(BG_ITEM);
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 24, 10, 10));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
 
-        /* ===== HOVER ===== */
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                if (btn.getBackground() != BG_ACTIVE) {
+                if (!btn.getBackground().equals(BG_ACTIVE))
                     btn.setBackground(BG_HOVER);
-                }
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                if (btn.getBackground() != BG_ACTIVE) {
-                    btn.setBackground(BG);
-                }
+                if (!btn.getBackground().equals(BG_ACTIVE))
+                    btn.setBackground(BG_ITEM);
             }
         });
 
@@ -112,17 +127,24 @@ public class Sidebar extends JScrollPane {
         menuPanel.add(Box.createVerticalStrut(4));
     }
 
-    /* ================= API ================= */
+    // FIX: nhận đúng menu label (không phải moduleTitle)
+    public void setActiveMenu(String menuLabel) {
+        menuMap.forEach((k, v) -> {
+            boolean active = k.equals(menuLabel);
+            v.setBackground(active ? BG_ACTIVE : BG_ITEM);
+            if (active) {
+                v.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 4, 0, 0, ACCENT),
+                        BorderFactory.createEmptyBorder(10, 11, 10, 10)
+                ));
+            } else {
+                v.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
+            }
+        });
+    }
 
     public JButton getMenu(String title) {
         return menuMap.get(title);
-    }
-
-    public void setActiveMenu(String title) {
-        menuMap.forEach((k, v) -> {
-            boolean active = k.equals(title);
-            v.setBackground(active ? BG_ACTIVE : BG);
-        });
     }
 
     public Set<String> getAvailableMenus() {
