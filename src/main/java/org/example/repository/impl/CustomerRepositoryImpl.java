@@ -20,16 +20,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Customer c = new Customer(
-                        rs.getInt("id"),
-                        rs.getString("code"),
-                        rs.getString("name"),
-                        rs.getString("phone"),
-                        rs.getString("email"),
-                        rs.getInt("point"),
-                        rs.getInt("status")
-                );
-                list.add(c);
+                list.add(mapResultSet(rs));
             }
 
         } catch (Exception e) {
@@ -41,8 +32,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     @Override
     public void save(Customer c) {
         String sql = """
-            INSERT INTO customer(code,name,phone,email,point,status)
-            VALUES (?,?,?,?,?,?)
+            INSERT INTO customer(code, name, phone, email, point, status)
+            VALUES (?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection con = DatabaseConfig.getConnection();
@@ -112,15 +103,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new Customer(
-                        rs.getInt("id"),
-                        rs.getString("code"),
-                        rs.getString("name"),
-                        rs.getString("phone"),
-                        rs.getString("email"),
-                        rs.getInt("point"),
-                        rs.getInt("status")
-                );
+                return mapResultSet(rs);
             }
 
         } catch (Exception e) {
@@ -130,34 +113,36 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     }
 
     @Override
-    public List<Customer> search(String keyword, String status) {
+    public List<Customer> search(String keyword, String statusStr) {
         List<Customer> list = new ArrayList<>();
 
-        String sql = """
-            SELECT * FROM customer
-            WHERE name LIKE ?
-            AND (? = '' OR status = ?)
-        """;
+        // 1. Chuyển đổi trạng thái từ chuỗi UI sang số DB
+        Integer statusValue = null;
+        if ("Hoạt động".equalsIgnoreCase(statusStr)) {
+            statusValue = 1;
+        } else if ("Ngưng".equalsIgnoreCase(statusStr)) {
+            statusValue = 0;
+        }
+
+        // 2. Xây dựng câu SQL động
+        StringBuilder sql = new StringBuilder("SELECT * FROM customer WHERE (name LIKE ? OR phone LIKE ?)");
+        if (statusValue != null) {
+            sql.append(" AND status = ?");
+        }
 
         try (Connection con = DatabaseConfig.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
 
             ps.setString(1, "%" + keyword + "%");
-            ps.setString(2, status);
-            ps.setString(3, status);
+            ps.setString(2, "%" + keyword + "%");
+
+            if (statusValue != null) {
+                ps.setInt(3, statusValue);
+            }
 
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
-                list.add(new Customer(
-                        rs.getInt("id"),
-                        rs.getString("code"),
-                        rs.getString("name"),
-                        rs.getString("phone"),
-                        rs.getString("email"),
-                        rs.getInt("point"),
-                        rs.getInt("status")
-                ));
+                list.add(mapResultSet(rs));
             }
 
         } catch (Exception e) {
@@ -165,5 +150,17 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         }
 
         return list;
+    }
+
+    private Customer mapResultSet(ResultSet rs) throws SQLException {
+        return new Customer(
+                rs.getInt("id"),
+                rs.getString("code"),
+                rs.getString("name"),
+                rs.getString("phone"),
+                rs.getString("email"),
+                rs.getInt("point"),
+                rs.getInt("status")
+        );
     }
 }

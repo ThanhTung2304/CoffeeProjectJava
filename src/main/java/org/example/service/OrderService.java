@@ -10,4 +10,5 @@ public interface OrderService {
     void completeOrder(int orderId);
     Order getOrderWithDetails(int orderId);
     List<Order> getAllOrders();
+    void deleteOrder(int orderId); // Thêm phương thức xóa cứng
 }

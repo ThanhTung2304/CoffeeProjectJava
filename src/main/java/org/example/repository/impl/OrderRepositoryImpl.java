@@ -2,6 +2,7 @@ package org.example.repository.impl;
 
 import org.example.config.DatabaseConfig;
 import org.example.entity.Order;
+import org.example.repository.OrderDetailRepository;
 import org.example.repository.OrderRepository;
 
 import java.sql.*;
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderRepositoryImpl implements OrderRepository {
+
+    private final OrderDetailRepository detailRepo = new OrderDetailRepositoryImpl();
 
     @Override
     public void save(Order order) {
@@ -89,6 +92,21 @@ public class OrderRepositoryImpl implements OrderRepository {
             throw new RuntimeException("Lỗi khi lọc order theo status", e);
         }
         return list;
+    }
+
+    @Override
+    public void delete(int id) {
+        // Xóa chi tiết đơn hàng trước (ràng buộc khóa ngoại)
+        detailRepo.deleteByOrderId(id);
+
+        String sql = "DELETE FROM orders WHERE id = ?";
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi xóa order", e);
+        }
     }
 
     private Order mapRow(ResultSet rs) throws SQLException {

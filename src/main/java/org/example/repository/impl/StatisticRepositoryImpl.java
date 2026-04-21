@@ -21,16 +21,16 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         return getCount(sql);
     }
 
-
     @Override
     public double getMonthlyRevenue() {
+        // Lấy doanh thu từ các hóa đơn (đơn hàng) hoàn thành trong tháng hiện tại
+        // Sửa cột total_price -> total_amount và created_time -> createdTime
         String sql = """
-            SELECT IFNULL(SUM(ABS(h.quantity_change) * p.price), 0)
-            FROM inventory_history h
-            JOIN product p ON h.product_id = p.id
-            WHERE h.action = 'EXPORT'
-              AND MONTH(h.createdTime) = MONTH(CURRENT_DATE())
-              AND YEAR(h.createdTime) = YEAR(CURRENT_DATE())
+            SELECT IFNULL(SUM(total_amount), 0)
+            FROM orders
+            WHERE status = 'COMPLETED'
+              AND MONTH(createdTime) = MONTH(CURRENT_DATE())
+              AND YEAR(createdTime) = YEAR(CURRENT_DATE())
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -40,7 +40,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             if (rs.next()) return rs.getDouble(1);
 
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi thống kê doanh thu", e);
+            e.printStackTrace();
         }
 
         return 0;
@@ -85,38 +85,16 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         return 0;
     }
 
-
-
     @Override
     public int getExportedTotal() {
-        String sql = """
-        SELECT IFNULL(SUM(ABS(quantity_change)), 0)
-        FROM inventory_history
-        WHERE action = 'EXPORT'
-    """;
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
+        return getTotalExported();
     }
-
 
     @Override
     public int countMonthlyReservations() {
-        return getCount("""
-            SELECT COUNT(*)
-            FROM reservations
-            WHERE MONTH(time) = MONTH(CURRENT_DATE())
-              AND YEAR(time) = YEAR(CURRENT_DATE())
-        """);
+        // Lấy tổng số lượng đặt bàn
+        String sql = "SELECT COUNT(*) FROM reservations";
+        return getCount(sql);
     }
 
     private int getCount(String sql) {
@@ -127,7 +105,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             if (rs.next()) return rs.getInt(1);
 
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi thống kê", e);
+            System.err.println("Lỗi thực thi SQL: " + sql);
+            e.printStackTrace();
         }
         return 0;
     }

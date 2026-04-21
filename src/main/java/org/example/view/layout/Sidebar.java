@@ -98,9 +98,11 @@ public class Sidebar extends JScrollPane {
 
         rolePermissions.put("STAFF", Arrays.asList(
                 "Sản Phẩm",
+                "Quản Lý Nhân Viên",
                 "Công Thức Pha Chế",
                 "Voucher",
                 "Quản Lý Lịch Làm",
+                "Đặt Bàn",
                 "Đơn Hàng"
         ));
     }

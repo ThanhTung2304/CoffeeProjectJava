@@ -62,7 +62,6 @@ public class AccountManagementPanel extends JPanel {
         DataChangeEventBus.onRegister(this::loadData);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
     private void initUI() {
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
@@ -89,7 +88,7 @@ public class AccountManagementPanel extends JPanel {
         title.setFont(FONT_TITLE);
         title.setForeground(Color.WHITE);
 
-        JLabel sub = new JLabel("Thêm, sửa, xóa và phân quyền tài khoản người dùng");
+        JLabel sub = new JLabel("Thêm, sửa, xóa và phân quyền tài khoản đăng nhập hệ thống");
         sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         sub.setForeground(new Color(0x94A3B8));
 
@@ -102,7 +101,7 @@ public class AccountManagementPanel extends JPanel {
 
         // Right: row count
         rowCountLabel = new JLabel("0 tài khoản");
-        rowCountLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        rowCountLabel.setFont(FONT_BOLD);
         rowCountLabel.setForeground(new Color(0xCBD5E1));
         rowCountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         header.add(rowCountLabel, BorderLayout.EAST);
@@ -122,7 +121,7 @@ public class AccountManagementPanel extends JPanel {
         return center;
     }
 
-    // ── Control bar (search + buttons) ────────────────────────────────────────
+    // ── Control bar ──────────────────────────────────────────────────────────
     private JPanel buildControlBar() {
         JPanel bar = new JPanel(new BorderLayout(12, 0));
         bar.setOpaque(false);
@@ -135,10 +134,6 @@ public class AccountManagementPanel extends JPanel {
         txtSearch = new JTextField();
         txtSearch.setPreferredSize(new Dimension(220, 36));
         txtSearch.setFont(FONT_BODY);
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDER_COLOR, 1),
-                new EmptyBorder(4, 10, 4, 10)
-        ));
         txtSearch.putClientProperty("JTextField.placeholderText", "Tìm kiếm username...");
 
         cbStatus = new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
@@ -159,19 +154,17 @@ public class AccountManagementPanel extends JPanel {
         JButton btnEdit    = createButton("✎  Sửa",        BTN_AMBER);
         JButton btnDelete  = createButton("✕  Xóa",        BTN_RED);
         JButton btnRefresh = createButton("↻  Làm mới",    BTN_SLATE);
-        JButton btnExport  = createButton("↓  Xuất Excel", BTN_BLUE);
+        JButton btnExport  = createButton("↓  Excel",      BTN_BLUE);
 
         actionGroup.add(btnAdd);
         actionGroup.add(btnEdit);
         actionGroup.add(btnDelete);
-        actionGroup.add(createSeparator());
         actionGroup.add(btnRefresh);
         actionGroup.add(btnExport);
 
         bar.add(searchGroup,  BorderLayout.WEST);
         bar.add(actionGroup,  BorderLayout.EAST);
 
-        // Events
         btnSearch.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> { txtSearch.setText(""); cbStatus.setSelectedIndex(0); loadData(); });
         btnAdd.addActionListener(e -> openAddDialog());
@@ -179,17 +172,7 @@ public class AccountManagementPanel extends JPanel {
         btnDelete.addActionListener(e -> deleteAccount());
         btnExport.addActionListener(e -> ExportToExcel.export(table, "DanhSachTaiKhoan.xlsx"));
 
-        // Live search on Enter
-        txtSearch.addActionListener(e -> loadData());
-
         return bar;
-    }
-
-    private JSeparator createSeparator() {
-        JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
-        sep.setPreferredSize(new Dimension(1, 30));
-        sep.setForeground(BORDER_COLOR);
-        return sep;
     }
 
     // ── Table ─────────────────────────────────────────────────────────────────
@@ -211,124 +194,58 @@ public class AccountManagementPanel extends JPanel {
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
 
-        // Hide ID column
         table.removeColumn(table.getColumnModel().getColumn(0));
 
-        // Column widths
-        int[] widths = {55, 160, 160, 120, 110};
-        for (int i = 0; i < widths.length; i++) {
-            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
-        }
-
-        // Custom cell renderer (zebra + status badge)
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
                     JTable t, Object value, boolean isSelected,
                     boolean hasFocus, int row, int col) {
 
-                // Col 4 = "Trạng Thái" (after ID hidden) — render as badge
                 if (col == 4 && value != null) {
                     boolean active = value.toString().equals("Hoạt động");
                     JLabel badge = new JLabel(active ? "● Hoạt động" : "● Khóa");
                     badge.setFont(new Font("Segoe UI", Font.BOLD, 12));
                     badge.setOpaque(true);
                     badge.setHorizontalAlignment(CENTER);
-
-                    if (isSelected) {
-                        badge.setBackground(ROW_SELECTED);
-                        badge.setForeground(active ? BADGE_ACTIVE_FG : BADGE_LOCKED_FG);
-                    } else {
-                        badge.setBackground(active ? BADGE_ACTIVE : BADGE_LOCKED);
-                        badge.setForeground(active ? BADGE_ACTIVE_FG : BADGE_LOCKED_FG);
-                    }
+                    badge.setBackground(isSelected ? ROW_SELECTED : (active ? BADGE_ACTIVE : BADGE_LOCKED));
+                    badge.setForeground(active ? BADGE_ACTIVE_FG : BADGE_LOCKED_FG);
                     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
                     return badge;
                 }
 
-                super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col);
+                super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col); // Đã sửa 'v' thành 'value'
                 setBorder(new EmptyBorder(0, 12, 0, 12));
-
-                if (isSelected) {
-                    setBackground(ROW_SELECTED);
-                    setForeground(new Color(0x1E40AF));
-                } else {
-                    setBackground(row % 2 == 0 ? ROW_ODD : ROW_EVEN);
-                    setForeground(new Color(0x1E293B));
-                }
-
-                setHorizontalAlignment(col == 0 ? CENTER : LEFT);
+                setBackground(isSelected ? ROW_SELECTED : (row % 2 == 0 ? ROW_ODD : ROW_EVEN));
+                setForeground(isSelected ? new Color(0x1E40AF) : new Color(0x1E293B));
                 return this;
             }
         });
 
-        // Table header
         JTableHeader th = table.getTableHeader();
         th.setFont(FONT_HEADER);
         th.setBackground(TH_BG);
         th.setForeground(TH_FG);
         th.setPreferredSize(new Dimension(0, 40));
-        th.setReorderingAllowed(false);
-        th.setDefaultRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(
-                    JTable t, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int col) {
-                super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col);
-                setBackground(TH_BG);
-                setForeground(TH_FG);
-                setFont(FONT_HEADER);
-                setBorder(new EmptyBorder(0, 12, 0, 12));
-                setHorizontalAlignment(col == 0 ? CENTER : LEFT);
-                return this;
-            }
-        });
-
-        // Hover
-        table.addMouseMotionListener(new MouseAdapter() {
-            int hovered = -1;
-            @Override public void mouseMoved(MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                if (row != hovered) { hovered = row; table.repaint(); }
-            }
-        });
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         scroll.getViewport().setBackground(Color.WHITE);
-        scroll.setBackground(Color.WHITE);
         return scroll;
     }
 
-    // ── Load data ─────────────────────────────────────────────────────────────
     private void loadData() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(this::loadData);
-            return;
-        }
-
         tableModel.setRowCount(0);
-
-        List<Account> list = controller.search(
-                txtSearch.getText(),
-                Objects.requireNonNull(cbStatus.getSelectedItem()).toString()
-        );
-
+        List<Account> list = controller.search(txtSearch.getText(), Objects.requireNonNull(cbStatus.getSelectedItem()).toString());
         int stt = 1;
         for (Account a : list) {
             tableModel.addRow(new Object[]{
-                    a.getId(), stt++,
-                    a.getUsername(),
-                    a.getPassword(),
-                    a.getRole(),
-                    a.isActive() ? "Hoạt động" : "Khóa"
+                    a.getId(), stt++, a.getUsername(), a.getPassword(), a.getRole(), a.isActive() ? "Hoạt động" : "Khóa"
             });
         }
-
         rowCountLabel.setText(list.size() + " tài khoản");
     }
 
-    // ── Add dialog ────────────────────────────────────────────────────────────
     private void openAddDialog() {
         JTextField    user   = new JTextField();
         JPasswordField pass  = new JPasswordField();
@@ -341,31 +258,18 @@ public class AccountManagementPanel extends JPanel {
         addField(p, "Phân quyền:", role);
         addField(p, "Trạng thái:", active);
 
-        if (JOptionPane.showConfirmDialog(this, p, "➕ Thêm tài khoản",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
-            controller.add(
-                    user.getText(),
-                    new String(pass.getPassword()),
-                    Objects.requireNonNull(role.getSelectedItem()).toString(),
-                    active.isSelected()
-            );
+        if (JOptionPane.showConfirmDialog(this, p, "＋ Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+            controller.add(user.getText(), new String(pass.getPassword()), Objects.requireNonNull(role.getSelectedItem()).toString(), active.isSelected());
             loadData();
         }
     }
 
-    // ── Edit dialog ───────────────────────────────────────────────────────────
     private void openEditDialog() {
         int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng để sửa.",
-                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
+        if (row == -1) return;
         int modelRow = table.convertRowIndexToModel(row);
         int id       = (int) tableModel.getValueAt(modelRow, 0);
-        String username = tableModel.getValueAt(modelRow, 2).toString();
-        Account acc  = controller.findByUsername(username);
+        Account acc  = controller.findByUsername(tableModel.getValueAt(modelRow, 2).toString());
 
         JTextField    user  = new JTextField(acc.getUsername());
         JPasswordField pass = new JPasswordField(acc.getPassword());
@@ -379,51 +283,29 @@ public class AccountManagementPanel extends JPanel {
         addField(p, "Phân quyền:", role);
         addField(p, "Trạng thái:", active);
 
-        if (JOptionPane.showConfirmDialog(this, p, "✎ Sửa tài khoản",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
-            controller.update(
-                    id,
-                    user.getText(),
-                    new String(pass.getPassword()),
-                    Objects.requireNonNull(role.getSelectedItem()).toString(),
-                    active.isSelected()
-            );
+        if (JOptionPane.showConfirmDialog(this, p, "✎ Sửa tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+            controller.update(id, user.getText(), new String(pass.getPassword()), Objects.requireNonNull(role.getSelectedItem()).toString(), active.isSelected());
             loadData();
         }
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
     private void deleteAccount() {
         int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn 1 dòng để xóa.",
-                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
+        if (row == -1) return;
         int modelRow = table.convertRowIndexToModel(row);
         int id       = (int) tableModel.getValueAt(modelRow, 0);
-        String name  = tableModel.getValueAt(modelRow, 2).toString();
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc muốn xóa tài khoản \"" + name + "\" không?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Xóa tài khoản này?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             controller.delete(id);
             loadData();
         }
     }
 
-    // ── Button factory ────────────────────────────────────────────────────────
     private JButton createButton(String text, Color base) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isPressed()
-                        ? base.darker()
-                        : getModel().isRollover() ? base.brighter() : base);
+                g2.setColor(getModel().isPressed() ? base.darker() : getModel().isRollover() ? base.brighter() : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
@@ -434,14 +316,11 @@ public class AccountManagementPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
-        btn.setOpaque(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(130, 36));
-        btn.setMargin(new Insets(0, 10, 0, 10));
         return btn;
     }
 
-    // ── Form helpers ──────────────────────────────────────────────────────────
     private JPanel createForm() {
         JPanel p = new JPanel(new GridLayout(0, 2, 10, 12));
         p.setBorder(new EmptyBorder(12, 12, 12, 12));
@@ -452,9 +331,7 @@ public class AccountManagementPanel extends JPanel {
     private void addField(JPanel p, String label, JComponent comp) {
         JLabel lbl = new JLabel(label);
         lbl.setFont(FONT_BOLD);
-        lbl.setForeground(new Color(0x374151));
         p.add(lbl);
-        comp.setFont(FONT_BODY);
         p.add(comp);
     }
 }

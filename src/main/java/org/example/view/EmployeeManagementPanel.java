@@ -36,7 +36,7 @@ public class EmployeeManagementPanel extends JPanel {
     private DefaultTableModel model;
     private JTextField txtSearch;
     private JComboBox<String> cbPosition;
-    private JLabel rowCount;
+    private JLabel rowCountLabel;
 
     private final EmployeeController controller = new EmployeeController();
 
@@ -56,15 +56,35 @@ public class EmployeeManagementPanel extends JPanel {
         p.setBackground(HEADER_BG);
         p.setBorder(new EmptyBorder(16, 20, 16, 20));
 
-        JLabel title = new JLabel("👨‍💼 Quản Lý Nhân Viên");
-        title.setFont(FONT_TITLE);
-        title.setForeground(Color.WHITE);
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        left.setOpaque(false);
 
-        rowCount = new JLabel("0 nhân viên");
-        rowCount.setForeground(Color.LIGHT_GRAY);
+        JLabel icon = new JLabel("👨‍💼");
+        icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 26));
 
-        p.add(title, BorderLayout.WEST);
-        p.add(rowCount, BorderLayout.EAST);
+        JPanel titleBlock = new JPanel();
+        titleBlock.setOpaque(false);
+        titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
+
+        JLabel titleLabel = new JLabel("Quản Lý Nhân Viên");
+        titleLabel.setFont(FONT_TITLE);
+        titleLabel.setForeground(Color.WHITE);
+
+        JLabel sub = new JLabel("Quản lý danh sách, vai trò và thông tin liên hệ của nhân viên");
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setForeground(new Color(0x94A3B8));
+
+        titleBlock.add(titleLabel);
+        titleBlock.add(sub);
+
+        left.add(icon);
+        left.add(titleBlock);
+        p.add(left, BorderLayout.WEST);
+
+        rowCountLabel = new JLabel("0 nhân viên");
+        rowCountLabel.setFont(FONT_BOLD);
+        rowCountLabel.setForeground(new Color(0xCBD5E1));
+        p.add(rowCountLabel, BorderLayout.EAST);
 
         return p;
     }
@@ -90,7 +110,11 @@ public class EmployeeManagementPanel extends JPanel {
         left.setOpaque(false);
 
         txtSearch = new JTextField(20);
-        cbPosition = new JComboBox<>(new String[]{"Tất cả", "Staff"});
+        txtSearch.setPreferredSize(new Dimension(200, 36));
+        txtSearch.putClientProperty("JTextField.placeholderText", "Tìm tên nhân viên...");
+        
+        cbPosition = new JComboBox<>(new String[]{"Tất cả", "Staff", "Admin"});
+        cbPosition.setPreferredSize(new Dimension(130, 36));
 
         JButton btnSearch = createButton("🔍 Tìm", BTN_BLUE);
 
@@ -116,6 +140,7 @@ public class EmployeeManagementPanel extends JPanel {
 
         // events
         btnSearch.addActionListener(e -> loadData());
+        cbPosition.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             cbPosition.setSelectedIndex(0);
@@ -151,7 +176,6 @@ public class EmployeeManagementPanel extends JPanel {
         table.setSelectionBackground(ROW_SELECTED);
         table.setGridColor(BORDER);
 
-        // ẩn ID
         table.removeColumn(table.getColumnModel().getColumn(0));
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -159,13 +183,7 @@ public class EmployeeManagementPanel extends JPanel {
                     JTable t, Object v, boolean sel, boolean f, int r, int c) {
 
                 super.getTableCellRendererComponent(t, v, sel, f, r, c);
-
-                if (sel) {
-                    setBackground(ROW_SELECTED);
-                } else {
-                    setBackground(r % 2 == 0 ? ROW_ODD : ROW_EVEN);
-                }
-
+                setBackground(sel ? ROW_SELECTED : (r % 2 == 0 ? ROW_ODD : ROW_EVEN));
                 setBorder(new EmptyBorder(0, 10, 0, 10));
                 return this;
             }
@@ -187,18 +205,13 @@ public class EmployeeManagementPanel extends JPanel {
         String pos = Objects.requireNonNull(cbPosition.getSelectedItem()).toString();
 
         List<Employee> list = controller.getAll();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
+        int count = 0;
         int stt = 1;
         for (Employee e : list) {
-
-            boolean matchName =
-                    keyword.isBlank() ||
-                            e.getName().toLowerCase().contains(keyword);
-
-            boolean matchPos =
-                    pos.equals("Tất cả") ||
-                            e.getPosition().toLowerCase().contains(pos.toLowerCase());
+            boolean matchName = keyword.isBlank() || e.getName().toLowerCase().contains(keyword);
+            boolean matchPos = pos.equals("Tất cả") || (e.getPosition() != null && e.getPosition().equalsIgnoreCase(pos));
 
             if (matchName && matchPos) {
                 model.addRow(new Object[]{
@@ -211,59 +224,46 @@ public class EmployeeManagementPanel extends JPanel {
                         e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
                         e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
                 });
+                count++;
             }
         }
 
-        rowCount.setText(list.size() + " nhân viên");
+        rowCountLabel.setText(count + " nhân viên");
     }
 
     /* ================= CRUD ================= */
     private void editEmployee() {
         int row = table.getSelectedRow();
         if (row == -1) return;
-
         int modelRow = table.convertRowIndexToModel(row);
         int id = (int) model.getValueAt(modelRow, 0);
-
         Employee emp = controller.findById(id);
-
         new EmployeeForm(emp, this::loadData).setVisible(true);
     }
 
     private void deleteEmployee() {
         int row = table.getSelectedRow();
         if (row == -1) return;
-
         int modelRow = table.convertRowIndexToModel(row);
         int id = (int) model.getValueAt(modelRow, 0);
-
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Xóa nhân viên này?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Xóa nhân viên này?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             controller.delete(id);
             loadData();
         }
     }
 
-    /* ================= BUTTON ================= */
+    /* ================= BUTTON STYLE ================= */
     private JButton createButton(String text, Color base) {
         JButton btn = new JButton(text) {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(getModel().isPressed()
-                        ? base.darker()
-                        : getModel().isRollover() ? base.brighter() : base);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isPressed() ? base.darker() : getModel().isRollover() ? base.brighter() : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-
         btn.setForeground(Color.WHITE);
         btn.setFont(FONT_BOLD);
         btn.setFocusPainted(false);
@@ -271,7 +271,6 @@ public class EmployeeManagementPanel extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(130, 36));
-
         return btn;
     }
 }

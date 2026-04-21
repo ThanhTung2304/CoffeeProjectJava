@@ -76,6 +76,13 @@ public class OrderServiceImpl implements OrderService {
         return orderRepo.findAll();
     }
 
+    @Override
+    public void deleteOrder(int orderId) {
+
+    }
+
+
+
     // ===== Tạo mã đơn hàng =====
     private String generateOrderCode() {
         String timestamp = LocalDateTime.now()

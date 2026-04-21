@@ -157,7 +157,7 @@ public class WorkSchedulePanel extends JPanel {
     // ── Table Panel ───────────────────────────────────────────────────────────
     private JScrollPane buildTablePanel() {
         String[] columns = {
-                "#", "Nhân Viên", "Ca Làm", "Bắt Đầu", "Kết Thúc", "Ngày Làm", "Ngày Đăng Ký"
+                "STT", "Nhân Viên", "Ca Làm", "Bắt Đầu", "Kết Thúc", "Ngày Làm", "Ngày Đăng Ký"
         };
 
         model = new DefaultTableModel(columns, 0) {

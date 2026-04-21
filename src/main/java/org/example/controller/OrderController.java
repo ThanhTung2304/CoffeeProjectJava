@@ -35,4 +35,10 @@ public class OrderController {
     public void completeOrder(int orderId) {
         orderService.completeOrder(orderId);
     }
+
+    public Order getOrderById(int id) {return orderService.getOrderWithDetails(id);}
+
+    public List<OrderDetail> getOrderDetails(int id) {return orderService.getOrderWithDetails(id).getDetails();}
+
+
 }
