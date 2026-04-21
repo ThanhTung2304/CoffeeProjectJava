@@ -33,4 +33,11 @@ public class ReservationController {
     public Reservation getReservationById(int id) {
         return service.getById(id);
     }
+
+    public Reservation findById(int id) {
+        for (Reservation r : getAllReservations()) {
+            if (r.getId() == id) return r;
+        }
+        return null;
+    }
 }

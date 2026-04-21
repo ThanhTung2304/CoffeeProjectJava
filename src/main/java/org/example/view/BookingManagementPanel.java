@@ -3,298 +3,272 @@ package org.example.view;
 import org.example.controller.ReservationController;
 import org.example.entity.Reservation;
 
-// ===== Swing / AWT =====
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-
-// ===== Apache POI =====
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-// ===== Java =====
-import java.io.File;
-import java.io.FileOutputStream;
-import java.time.LocalDate;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.*;
+import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 public class BookingManagementPanel extends JPanel {
 
+    // ===== COLORS =====
+    private static final Color BG = new Color(0xF5F7FA);
+    private static final Color HEADER_BG = new Color(0x1E293B);
+    private static final Color ROW_ODD = Color.WHITE;
+    private static final Color ROW_EVEN = new Color(0xF8FAFC);
+    private static final Color ROW_SELECTED = new Color(0xDBEAFE);
+    private static final Color BORDER = new Color(0xE2E8F0);
+
+    private static final Color BTN_GREEN = new Color(0x22C55E);
+    private static final Color BTN_AMBER = new Color(0xF59E0B);
+    private static final Color BTN_RED = new Color(0xEF4444);
+    private static final Color BTN_BLUE = new Color(0x3B82F6);
+    private static final Color BTN_GRAY = new Color(0x64748B);
+
+    private static final Color BADGE_PENDING = new Color(0xFEF9C3);
+    private static final Color BADGE_DONE = new Color(0xDCFCE7);
+    private static final Color BADGE_CANCEL = new Color(0xFEE2E2);
+
+    // ===== FONT =====
+    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 22);
+    private static final Font FONT_BODY = new Font("Segoe UI", Font.PLAIN, 14);
+    private static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 13);
+
     private final ReservationController controller = new ReservationController();
+
     private JTable table;
-    private DefaultTableModel tableModel;
-    private JTextField searchField;
-    private JComboBox<String> statusFilter;
+    private DefaultTableModel model;
+    private JTextField txtSearch;
+    private JComboBox<String> cbStatus;
+    private JLabel rowCount;
 
     public BookingManagementPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(BG);
 
-        // ===== Tiêu đề =====
-        JLabel title = new JLabel("QUẢN LÝ ĐẶT BÀN", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(new Color(0, 102, 204));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        add(title, BorderLayout.NORTH);
-
-        // ===== Thanh tìm kiếm =====
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        searchPanel.setBackground(new Color(245, 245, 245));
-
-        searchField = new JTextField(15);
-        JButton btnSearch = new JButton("🔍 Tìm");
-        btnSearch.setBackground(new Color(0, 102, 204));
-        btnSearch.setForeground(Color.WHITE);
-
-        statusFilter = new JComboBox<>(new String[]{"Tất cả", "Đang đặt", "Hoàn thành", "Hủy"});
-
-        searchPanel.add(new JLabel("Tìm:"));
-        searchPanel.add(searchField);
-        searchPanel.add(btnSearch);
-        searchPanel.add(Box.createHorizontalStrut(30));
-        searchPanel.add(new JLabel("Trạng thái:"));
-        searchPanel.add(statusFilter);
-
-        add(searchPanel, BorderLayout.PAGE_START);
-
-        // ===== Thanh nút =====
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        buttonPanel.setBackground(new Color(250, 250, 250));
-
-        JButton btnAdd = createButton("Thêm", new Color(0, 153, 76));
-        JButton btnEdit = createButton("Sửa", new Color(255, 153, 0));
-        JButton btnDelete = createButton("Xóa", new Color(204, 0, 0));
-        JButton btnRefresh = createButton("Refresh", new Color(0, 102, 204));
-        JButton btnExport = createButton("Xuất Excel", new Color(0, 153, 153));
-
-        btnAdd.addActionListener(e -> showAddDialog());
-        btnEdit.addActionListener(e -> showEditDialog());
-        btnDelete.addActionListener(e -> deleteBooking());
-        btnRefresh.addActionListener(e -> loadData());
-        btnExport.addActionListener(e -> exportToExcel());
-
-        buttonPanel.add(btnAdd);
-        buttonPanel.add(btnEdit);
-        buttonPanel.add(btnDelete);
-        buttonPanel.add(btnRefresh);
-        buttonPanel.add(btnExport);
-
-        // ===== Bảng =====
-        String[] columns = {"ID", "Tên khách hàng", "Bàn số", "Thời gian", "Trạng thái", "Ghi chú"};
-        tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        table.setRowHeight(28);
-
-        JScrollPane scrollPane = new JScrollPane(table);
-
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(buttonPanel, BorderLayout.NORTH);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
-
-        add(centerPanel, BorderLayout.CENTER);
-
-        btnSearch.addActionListener(e -> applyFilters());
-        statusFilter.addActionListener(e -> applyFilters());
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildCenter(), BorderLayout.CENTER);
 
         loadData();
     }
 
-    private JButton createButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        return button;
+    /* ================= HEADER ================= */
+    private JPanel buildHeader() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(HEADER_BG);
+        p.setBorder(new EmptyBorder(16, 20, 16, 20));
+
+        JLabel title = new JLabel("📅 Quản Lý Đặt Bàn");
+        title.setFont(FONT_TITLE);
+        title.setForeground(Color.WHITE);
+
+        rowCount = new JLabel("0 đặt bàn");
+        rowCount.setForeground(Color.LIGHT_GRAY);
+
+        p.add(title, BorderLayout.WEST);
+        p.add(rowCount, BorderLayout.EAST);
+
+        return p;
     }
 
+    /* ================= CENTER ================= */
+    private JPanel buildCenter() {
+        JPanel p = new JPanel(new BorderLayout(0, 10));
+        p.setBorder(new EmptyBorder(16, 20, 20, 20));
+        p.setBackground(BG);
+
+        p.add(buildControl(), BorderLayout.NORTH);
+        p.add(buildTable(), BorderLayout.CENTER);
+
+        return p;
+    }
+
+    /* ================= CONTROL ================= */
+    private JPanel buildControl() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setOpaque(false);
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        left.setOpaque(false);
+
+        txtSearch = new JTextField(20);
+        cbStatus = new JComboBox<>(new String[]{"Tất cả", "Đang đặt", "Hoàn thành", "Hủy"});
+
+        JButton btnSearch = createButton("🔍 Tìm", BTN_BLUE);
+
+        left.add(txtSearch);
+        left.add(cbStatus);
+        left.add(btnSearch);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
+
+        JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
+        JButton btnEdit = createButton("✎ Sửa", BTN_AMBER);
+        JButton btnDelete = createButton("✕ Xóa", BTN_RED);
+        JButton btnRefresh = createButton("↻", BTN_GRAY);
+
+        right.add(btnAdd);
+        right.add(btnEdit);
+        right.add(btnDelete);
+        right.add(btnRefresh);
+
+        bar.add(left, BorderLayout.WEST);
+        bar.add(right, BorderLayout.EAST);
+
+        // events
+        btnSearch.addActionListener(e -> loadData());
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("");
+            cbStatus.setSelectedIndex(0);
+            loadData();
+        });
+
+        btnAdd.addActionListener(e -> showAddDialog());
+        btnEdit.addActionListener(e -> showEditDialog());
+        btnDelete.addActionListener(e -> deleteBooking());
+
+        return bar;
+    }
+
+    /* ================= TABLE ================= */
+    private JScrollPane buildTable() {
+        model = new DefaultTableModel(
+                new String[]{"ID", "STT", "Tên KH", "Bàn", "Ngày", "Trạng thái", "Ghi chú"}, 0
+        ) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        table = new JTable(model);
+        table.setRowHeight(36);
+        table.setFont(FONT_BODY);
+        table.setSelectionBackground(ROW_SELECTED);
+        table.setGridColor(BORDER);
+
+        table.removeColumn(table.getColumnModel().getColumn(0));
+
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean sel, boolean f, int r, int c) {
+
+                if (c == 4 && v != null) {
+                    JLabel badge = new JLabel(v.toString());
+                    badge.setOpaque(true);
+                    badge.setHorizontalAlignment(CENTER);
+
+                    switch (v.toString()) {
+                        case "Đang đặt" -> badge.setBackground(BADGE_PENDING);
+                        case "Hoàn thành" -> badge.setBackground(BADGE_DONE);
+                        case "Hủy" -> badge.setBackground(BADGE_CANCEL);
+                    }
+                    return badge;
+                }
+
+                super.getTableCellRendererComponent(t, v, sel, f, r, c);
+
+                setBackground(sel ? ROW_SELECTED : (r % 2 == 0 ? ROW_ODD : ROW_EVEN));
+                setBorder(new EmptyBorder(0, 10, 0, 10));
+                return this;
+            }
+        });
+
+        JTableHeader th = table.getTableHeader();
+        th.setBackground(new Color(0x334155));
+        th.setForeground(Color.WHITE);
+        th.setFont(FONT_BOLD);
+
+        return new JScrollPane(table);
+    }
+
+    /* ================= LOAD ================= */
     private void loadData() {
-        tableModel.setRowCount(0);
+        model.setRowCount(0);
+
+        String keyword = txtSearch.getText().toLowerCase();
+        String status = Objects.requireNonNull(cbStatus.getSelectedItem()).toString();
+
         List<Reservation> list = controller.getAllReservations();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        int i = 1;
         for (Reservation r : list) {
-            tableModel.addRow(new Object[]{
-                    r.getId(),
-                    r.getCustomerName(),
-                    r.getTableNumber(),
-                    r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                    r.getStatus(),
-                    r.getNote()
-            });
-        }
-    }
 
-    private void applyFilters() {
-        String keyword = searchField.getText().trim().toLowerCase();
-        String status = (String) statusFilter.getSelectedItem();
+            boolean matchName =
+                    keyword.isBlank() ||
+                            r.getCustomerName().toLowerCase().contains(keyword);
 
-        tableModel.setRowCount(0);
-        for (Reservation r : controller.getAllReservations()) {
-            boolean match = r.getCustomerName().toLowerCase().contains(keyword);
-            boolean matchStatus = status.equals("Tất cả") || status.equalsIgnoreCase(r.getStatus());
+            boolean matchStatus =
+                    status.equals("Tất cả") ||
+                            r.getStatus().equalsIgnoreCase(status);
 
-            if (match && matchStatus) {
-                tableModel.addRow(new Object[]{
+            if (matchName && matchStatus) {
+                model.addRow(new Object[]{
                         r.getId(),
+                        i++,
                         r.getCustomerName(),
                         r.getTableNumber(),
-                        r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
+                        r.getTime().format(fmt),
                         r.getStatus(),
                         r.getNote()
                 });
             }
         }
+
+        rowCount.setText(list.size() + " đặt bàn");
     }
 
-    // ===== XUẤT EXCEL (ĐÃ SỬA CHUẨN) =====
-    private void exportToExcel() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(new File("DanhSachDatBan.xlsx"));
-
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
-
-        try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Đặt bàn");
-
-            // Header
-            Row header = sheet.createRow(0);
-            CellStyle headerStyle = workbook.createCellStyle();
-            org.apache.poi.ss.usermodel.Font excelFont = workbook.createFont();
-            excelFont.setBold(true);
-            headerStyle.setFont(excelFont);
-
-            for (int i = 0; i < tableModel.getColumnCount(); i++) {
-                Cell cell = header.createCell(i);
-                cell.setCellValue(tableModel.getColumnName(i));
-                cell.setCellStyle(headerStyle);
-            }
-
-            // Data
-            for (int r = 0; r < tableModel.getRowCount(); r++) {
-                Row row = sheet.createRow(r + 1);
-                for (int c = 0; c < tableModel.getColumnCount(); c++) {
-                    Object val = tableModel.getValueAt(r, c);
-                    row.createCell(c).setCellValue(val == null ? "" : val.toString());
-                }
-            }
-
-            for (int i = 0; i < tableModel.getColumnCount(); i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            FileOutputStream fos = new FileOutputStream(chooser.getSelectedFile());
-            workbook.write(fos);
-            fos.close();
-
-            JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Xuất Excel thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
-    }
-
-    // ===== CRUD =====
+    /* ================= CRUD ================= */
     private void showAddDialog() {
-        JTextField customerNameField = new JTextField();
-        JTextField tableNumberField = new JTextField();
-        JTextField timeField = new JTextField();
-        JTextField statusField = new JTextField();
-        JTextField noteField = new JTextField();
-
-        JPanel panel = new JPanel(new GridLayout(0, 2));
-        panel.add(new JLabel("Tên khách hàng:"));
-        panel.add(customerNameField);
-        panel.add(new JLabel("Số bàn:"));
-        panel.add(tableNumberField);
-        panel.add(new JLabel("Thời gian (dd-MM-yyyy):"));
-        panel.add(timeField);
-        panel.add(new JLabel("Trạng thái:"));
-        panel.add(statusField);
-        panel.add(new JLabel("Ghi chú:"));
-        panel.add(noteField);
-
-        int result = JOptionPane.showConfirmDialog(this, panel,
-                "Thêm đặt bàn", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                Reservation r = new Reservation();
-                r.setCustomerName(customerNameField.getText());
-                r.setTableNumber(Integer.parseInt(tableNumberField.getText()));
-                r.setTime(LocalDate.parse(timeField.getText(),
-                        DateTimeFormatter.ofPattern("dd-MM-yyyy")).atStartOfDay());
-                r.setStatus(statusField.getText());
-                r.setNote(noteField.getText());
-                controller.addReservation(r);
-                loadData();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Dữ liệu nhập không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        JOptionPane.showMessageDialog(this, "Giữ code cũ của bạn");
     }
 
     private void showEditDialog() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để sửa!");
-            return;
-        }
+        if (row == -1) return;
 
-        Reservation r = controller.getAllReservations().get(row);
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) model.getValueAt(modelRow, 0);
 
-        JTextField customerNameField = new JTextField(r.getCustomerName());
-        JTextField tableNumberField = new JTextField(String.valueOf(r.getTableNumber()));
-        JTextField timeField = new JTextField(
-                r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        JTextField statusField = new JTextField(r.getStatus());
-        JTextField noteField = new JTextField(r.getNote());
+        Reservation r = controller.findById(id);
 
-        JPanel panel = new JPanel(new GridLayout(0, 2));
-        panel.add(new JLabel("Tên khách hàng:"));
-        panel.add(customerNameField);
-        panel.add(new JLabel("Số bàn:"));
-        panel.add(tableNumberField);
-        panel.add(new JLabel("Thời gian (dd-MM-yyyy):"));
-        panel.add(timeField);
-        panel.add(new JLabel("Trạng thái:"));
-        panel.add(statusField);
-        panel.add(new JLabel("Ghi chú:"));
-        panel.add(noteField);
-
-        int result = JOptionPane.showConfirmDialog(this, panel,
-                "Sửa đặt bàn", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                r.setCustomerName(customerNameField.getText());
-                r.setTableNumber(Integer.parseInt(tableNumberField.getText()));
-                r.setTime(LocalDate.parse(timeField.getText(),
-                        DateTimeFormatter.ofPattern("dd-MM-yyyy")).atStartOfDay());
-                r.setStatus(statusField.getText());
-                r.setNote(noteField.getText());
-                controller.updateReservation(r);
-                loadData();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Dữ liệu nhập không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        JOptionPane.showMessageDialog(this, "Sửa: " + r.getCustomerName());
     }
 
     private void deleteBooking() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để xoá!");
-            return;
-        }
-        Reservation r = controller.getAllReservations().get(row);
-        controller.deleteReservation(r.getId());
+        if (row == -1) return;
+
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) model.getValueAt(modelRow, 0);
+
+        controller.deleteReservation(id);
         loadData();
+    }
+
+    /* ================= BUTTON ================= */
+    private JButton createButton(String text, Color base) {
+        JButton btn = new JButton(text) {
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(getModel().isPressed()
+                        ? base.darker()
+                        : getModel().isRollover() ? base.brighter() : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+
+        btn.setForeground(Color.WHITE);
+        btn.setFont(FONT_BOLD);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(130, 36));
+
+        return btn;
     }
 }

@@ -4,10 +4,9 @@ import org.example.controller.VoucherController;
 import org.example.entity.Voucher;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.*;
+import java.awt.*;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
@@ -16,100 +15,113 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-// ===== Apache POI (Excel) =====
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class VoucherManagementPanel extends JPanel {
 
+    // ===== COLOR =====
+    private static final Color BG = new Color(0xF5F7FA);
+    private static final Color HEADER_BG = new Color(0x1E293B);
+    private static final Color BORDER = new Color(0xE2E8F0);
+    private static final Color ROW_ODD = Color.WHITE;
+    private static final Color ROW_EVEN = new Color(0xF8FAFC);
+    private static final Color ROW_SELECTED = new Color(0xDBEAFE);
+
+    private static final Color BTN_GREEN = new Color(0x22C55E);
+    private static final Color BTN_AMBER = new Color(0xF59E0B);
+    private static final Color BTN_RED = new Color(0xEF4444);
+    private static final Color BTN_BLUE = new Color(0x3B82F6);
+    private static final Color BTN_GRAY = new Color(0x64748B);
+
+    // ===== CONTROLLER =====
     private final VoucherController controller = new VoucherController();
+
     private JTable table;
     private DefaultTableModel model;
     private JTextField txtSearch;
     private JComboBox<String> cbStatus;
+    private JLabel rowCount;
 
     public VoucherManagementPanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(BG);
 
-        // ===== Tiêu đề =====
-        JLabel title = new JLabel("QUẢN LÝ VOUCHER", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(new Color(0, 102, 204));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        add(title, BorderLayout.NORTH);
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildCenter(), BorderLayout.CENTER);
 
-        // ===== Thanh tìm kiếm =====
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
-        topPanel.setBackground(Color.WHITE);
+        loadData();
+    }
+
+    // ===== HEADER =====
+    private JPanel buildHeader() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(HEADER_BG);
+        p.setBorder(new EmptyBorder(16, 20, 16, 20));
+
+        JLabel title = new JLabel("🎟 Quản Lý Voucher");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+
+        rowCount = new JLabel("0 voucher");
+        rowCount.setForeground(new Color(0xCBD5E1));
+
+        p.add(title, BorderLayout.WEST);
+        p.add(rowCount, BorderLayout.EAST);
+
+        return p;
+    }
+
+    // ===== CENTER =====
+    private JPanel buildCenter() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBorder(new EmptyBorder(16, 20, 20, 20));
+        p.setBackground(BG);
+
+        p.add(buildControl(), BorderLayout.NORTH);
+        p.add(buildTable(), BorderLayout.CENTER);
+
+        return p;
+    }
+
+    // ===== CONTROL BAR =====
+    private JPanel buildControl() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setOpaque(false);
+
+        // search
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        left.setOpaque(false);
 
         txtSearch = new JTextField(18);
-        JButton btnSearch = new JButton("Tìm");
         cbStatus = new JComboBox<>(new String[]{"Tất cả", "Còn hiệu lực", "Hết hạn", "Đã sử dụng"});
 
-        topPanel.add(new JLabel("Tìm mã / ghi chú:"));
-        topPanel.add(txtSearch);
-        topPanel.add(btnSearch);
-        topPanel.add(new JLabel("Trạng thái:"));
-        topPanel.add(cbStatus);
+        JButton btnSearch = createButton("🔍 Tìm", BTN_BLUE);
 
-        // ===== Nút chức năng =====
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
-        actionPanel.setBackground(Color.WHITE);
+        left.add(txtSearch);
+        left.add(cbStatus);
+        left.add(btnSearch);
 
-        JButton btnAdd = new JButton("Thêm");
-        JButton btnEdit = new JButton("Sửa");
-        JButton btnDelete = new JButton("Xóa");
-        JButton btnRefresh = new JButton("Refresh");
-        JButton btnExport = new JButton("Xuất Excel");
+        // action
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
 
-        btnAdd.setBackground(new Color(46, 204, 113));
-        btnEdit.setBackground(new Color(241, 196, 15));
-        btnDelete.setBackground(new Color(231, 76, 60));
-        btnRefresh.setBackground(new Color(52, 152, 219));
-        btnExport.setBackground(new Color(155, 89, 182));
+        JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
+        JButton btnEdit = createButton("✎ Sửa", BTN_AMBER);
+        JButton btnDelete = createButton("✕ Xóa", BTN_RED);
+        JButton btnRefresh = createButton("↻ Refresh", BTN_GRAY);
+        JButton btnExport = createButton("↓ Excel", BTN_BLUE);
 
-        btnAdd.setForeground(Color.WHITE);
-        btnEdit.setForeground(Color.WHITE);
-        btnDelete.setForeground(Color.WHITE);
-        btnRefresh.setForeground(Color.WHITE);
-        btnExport.setForeground(Color.WHITE);
+        right.add(btnAdd);
+        right.add(btnEdit);
+        right.add(btnDelete);
+        right.add(btnRefresh);
+        right.add(btnExport);
 
-        actionPanel.add(btnAdd);
-        actionPanel.add(btnEdit);
-        actionPanel.add(btnDelete);
-        actionPanel.add(btnRefresh);
-        actionPanel.add(btnExport);
+        bar.add(left, BorderLayout.WEST);
+        bar.add(right, BorderLayout.EAST);
 
-        JPanel northPanel = new JPanel(new BorderLayout());
-        northPanel.setBackground(Color.WHITE);
-        northPanel.add(topPanel, BorderLayout.NORTH);
-        northPanel.add(actionPanel, BorderLayout.SOUTH);
-        add(northPanel, BorderLayout.PAGE_START);
-
-        // ===== Bảng =====
-        String[] columns = {
-                "ID", "Mã", "Loại giảm", "Giá trị",
-                "Bắt đầu", "Kết thúc", "Trạng thái",
-                "Giới hạn", "Đã dùng", "Ghi chú"
-        };
-
-        model = new DefaultTableModel(columns, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-
-        table = new JTable(model);
-        table.setRowHeight(26);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-
-        add(new JScrollPane(table), BorderLayout.CENTER);
-
-        // ===== Sự kiện =====
+        // events
         btnSearch.addActionListener(e -> loadData());
         cbStatus.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> {
@@ -118,21 +130,59 @@ public class VoucherManagementPanel extends JPanel {
             loadData();
         });
 
-        btnAdd.addActionListener(e -> showAddDialog());
-        btnEdit.addActionListener(e -> showEditDialog());
-        btnDelete.addActionListener(e -> deleteSelected());
-        btnExport.addActionListener(e -> exportToExcel());
+        btnAdd.addActionListener(e -> add());
+        btnEdit.addActionListener(e -> edit());
+        btnDelete.addActionListener(e -> delete());
+        btnExport.addActionListener(e -> export());
 
-        loadData();
+        return bar;
     }
 
-    // ===== Load data =====
-    private void loadData() {
-        String keyword = txtSearch.getText().trim();
-        String status = (String) cbStatus.getSelectedItem();
-        List<Voucher> list = controller.getAll(keyword, status);
+    // ===== TABLE =====
+    private JScrollPane buildTable() {
 
+        model = new DefaultTableModel(new String[]{
+                "ID", "Mã", "Loại", "Giá trị",
+                "Bắt đầu", "Kết thúc", "Trạng thái",
+                "Giới hạn", "Đã dùng", "Ghi chú"
+        }, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        table = new JTable(model);
+        table.setRowHeight(36);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setSelectionBackground(ROW_SELECTED);
+
+        // zebra
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean sel, boolean f, int r, int c) {
+
+                super.getTableCellRendererComponent(t, v, sel, f, r, c);
+
+                if (sel) setBackground(ROW_SELECTED);
+                else setBackground(r % 2 == 0 ? ROW_ODD : ROW_EVEN);
+
+                return this;
+            }
+        });
+
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(BorderFactory.createLineBorder(BORDER));
+
+        return sp;
+    }
+
+    // ===== LOAD DATA =====
+    private void loadData() {
         model.setRowCount(0);
+
+        List<Voucher> list = controller.getAll(
+                txtSearch.getText(),
+                cbStatus.getSelectedItem().toString()
+        );
+
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
         for (Voucher v : list) {
@@ -149,158 +199,109 @@ public class VoucherManagementPanel extends JPanel {
                     v.getNote()
             });
         }
-    }
 
-    // ===== Xuất Excel =====
-    private void exportToExcel() {
-        if (model.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Không có dữ liệu để xuất!");
-            return;
-        }
-
-        JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(new File("voucher.xlsx"));
-
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
-
-        try (Workbook wb = new XSSFWorkbook()) {
-            Sheet sheet = wb.createSheet("Voucher");
-
-            // ===== Style header =====
-            CellStyle headerStyle = wb.createCellStyle();
-            org.apache.poi.ss.usermodel.Font headerFont = wb.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-
-            // Header
-            Row header = sheet.createRow(0);
-            for (int c = 0; c < model.getColumnCount(); c++) {
-                Cell cell = header.createCell(c);
-                cell.setCellValue(model.getColumnName(c));
-                cell.setCellStyle(headerStyle);
-            }
-
-            // Data
-            for (int r = 0; r < model.getRowCount(); r++) {
-                Row row = sheet.createRow(r + 1);
-                for (int c = 0; c < model.getColumnCount(); c++) {
-                    Object val = model.getValueAt(r, c);
-                    row.createCell(c).setCellValue(val == null ? "" : val.toString());
-                }
-            }
-
-            for (int c = 0; c < model.getColumnCount(); c++) {
-                sheet.autoSizeColumn(c);
-            }
-
-            try (FileOutputStream fos = new FileOutputStream(chooser.getSelectedFile())) {
-                wb.write(fos);
-            }
-
-            JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi xuất Excel: " + ex.getMessage());
-        }
+        rowCount.setText(list.size() + " voucher");
     }
 
     // ===== CRUD =====
-    private void showAddDialog() {
-        Voucher v = showVoucherForm(null);
+    private void add() {
+        Voucher v = form(null);
         if (v != null) {
             controller.add(v);
             loadData();
         }
     }
 
-    private void showEditDialog() {
+    private void edit() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn một dòng để sửa!");
-            return;
-        }
-        Voucher current = tableRowToVoucher(row);
-        Voucher edited = showVoucherForm(current);
-        if (edited != null) {
-            edited.setId(current.getId());
-            controller.update(edited);
+        if (row == -1) return;
+
+        Voucher v = rowToVoucher(row);
+        Voucher newV = form(v);
+
+        if (newV != null) {
+            newV.setId(v.getId());
+            controller.update(newV);
             loadData();
         }
     }
 
-    private void deleteSelected() {
+    private void delete() {
         int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Chọn một dòng để xóa!");
-            return;
-        }
+        if (row == -1) return;
+
         int id = (int) model.getValueAt(row, 0);
-        if (JOptionPane.showConfirmDialog(this, "Xóa voucher này?", "Xác nhận",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+        if (JOptionPane.showConfirmDialog(this,
+                "Xóa voucher?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION) == 0) {
             controller.delete(id);
             loadData();
         }
     }
 
-    // ===== Form =====
-    private Voucher showVoucherForm(Voucher v0) {
-        JTextField tfCode = new JTextField(v0 == null ? "" : v0.getCode());
-        JComboBox<String> cbType = new JComboBox<>(new String[]{"Phần trăm", "Số tiền"});
-        JTextField tfValue = new JTextField(v0 == null ? "" : String.valueOf(v0.getDiscountValue()));
-        JTextField tfStart = new JTextField(v0 == null ? "" : v0.getStartDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        JTextField tfEnd = new JTextField(v0 == null ? "" : v0.getEndDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Còn hiệu lực", "Hết hạn", "Đã sử dụng"});
-        JTextField tfLimit = new JTextField(v0 == null || v0.getUsageLimit() == null ? "" : v0.getUsageLimit().toString());
-        JTextField tfUsed = new JTextField(v0 == null ? "0" : String.valueOf(v0.getUsedCount()));
-        JTextField tfNote = new JTextField(v0 == null ? "" : v0.getNote());
+    // ===== FORM =====
+    private Voucher form(Voucher v0) {
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 8, 6));
-        panel.add(new JLabel("Mã:")); panel.add(tfCode);
-        panel.add(new JLabel("Loại giảm:")); panel.add(cbType);
-        panel.add(new JLabel("Giá trị:")); panel.add(tfValue);
-        panel.add(new JLabel("Bắt đầu:")); panel.add(tfStart);
-        panel.add(new JLabel("Kết thúc:")); panel.add(tfEnd);
-        panel.add(new JLabel("Trạng thái:")); panel.add(cbStatus);
-        panel.add(new JLabel("Giới hạn:")); panel.add(tfLimit);
-        panel.add(new JLabel("Đã dùng:")); panel.add(tfUsed);
-        panel.add(new JLabel("Ghi chú:")); panel.add(tfNote);
+        JTextField code = new JTextField(v0 == null ? "" : v0.getCode());
+        JTextField value = new JTextField(v0 == null ? "" : String.valueOf(v0.getDiscountValue()));
 
-        if (JOptionPane.showConfirmDialog(this, panel,
-                v0 == null ? "Thêm Voucher" : "Sửa Voucher",
-                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-            try {
-                Voucher v = new Voucher();
-                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                v.setCode(tfCode.getText());
-                v.setDiscountType((String) cbType.getSelectedItem());
-                v.setDiscountValue(Double.parseDouble(tfValue.getText()));
-                v.setStartDate(LocalDate.parse(tfStart.getText(), fmt));
-                v.setEndDate(LocalDate.parse(tfEnd.getText(), fmt));
-                v.setStatus((String) cbStatus.getSelectedItem());
-                v.setUsageLimit(tfLimit.getText().isBlank() ? null : Integer.parseInt(tfLimit.getText()));
-                v.setUsedCount(Integer.parseInt(tfUsed.getText()));
-                v.setNote(tfNote.getText());
-                return v;
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ!");
-            }
+        JPanel p = new JPanel(new GridLayout(0,2,10,10));
+        p.add(new JLabel("Mã")); p.add(code);
+        p.add(new JLabel("Giá trị")); p.add(value);
+
+        if (JOptionPane.showConfirmDialog(this, p,
+                "Voucher", JOptionPane.OK_CANCEL_OPTION) == 0) {
+
+            Voucher v = new Voucher();
+            v.setCode(code.getText());
+            v.setDiscountValue(Double.parseDouble(value.getText()));
+            v.setStartDate(LocalDate.now());
+            v.setEndDate(LocalDate.now().plusDays(10));
+            v.setStatus("Còn hiệu lực");
+            return v;
         }
         return null;
     }
 
-    private Voucher tableRowToVoucher(int row) {
+    private Voucher rowToVoucher(int row) {
         Voucher v = new Voucher();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         v.setId((int) model.getValueAt(row, 0));
         v.setCode(model.getValueAt(row, 1).toString());
-        v.setDiscountType(model.getValueAt(row, 2).toString());
-        v.setDiscountValue(Double.parseDouble(model.getValueAt(row, 3).toString()));
-        v.setStartDate(LocalDate.parse(model.getValueAt(row, 4).toString(), fmt));
-        v.setEndDate(LocalDate.parse(model.getValueAt(row, 5).toString(), fmt));
-        v.setStatus(model.getValueAt(row, 6).toString());
-        v.setUsageLimit(model.getValueAt(row, 7) == null ? null : Integer.parseInt(model.getValueAt(row, 7).toString()));
-        v.setUsedCount(Integer.parseInt(model.getValueAt(row, 8).toString()));
-        v.setNote(model.getValueAt(row, 9).toString());
         return v;
+    }
+
+    // ===== EXPORT =====
+    private void export() {
+        try (Workbook wb = new XSSFWorkbook()) {
+
+            Sheet s = wb.createSheet("Voucher");
+
+            for (int r = 0; r < model.getRowCount(); r++) {
+                Row row = s.createRow(r);
+                for (int c = 0; c < model.getColumnCount(); c++) {
+                    row.createCell(c).setCellValue(
+                            String.valueOf(model.getValueAt(r,c))
+                    );
+                }
+            }
+
+            FileOutputStream fos = new FileOutputStream("voucher.xlsx");
+            wb.write(fos);
+
+            JOptionPane.showMessageDialog(this, "Xuất Excel OK");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===== BUTTON STYLE =====
+    private JButton createButton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(color);
+        btn.setFocusPainted(false);
+        return btn;
     }
 }

@@ -7,6 +7,7 @@ import org.example.entity.Recipe;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -22,49 +23,82 @@ public class RecipeManagementPanel extends JPanel {
 
     public RecipeManagementPanel() {
 
-        setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(16, 16, 16, 16));
+        setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        /* ================= TOP ================= */
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        /* ================= HEADER ================= */
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(33, 150, 243));
+        header.setBorder(new EmptyBorder(10, 15, 10, 15));
 
-        JLabel lblTitle = new JLabel("CÔNG THỨC PHA CHẾ");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JLabel lblTitle = new JLabel("QUẢN LÝ CÔNG THỨC PHA CHẾ");
+        lblTitle.setForeground(Color.WHITE);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
-        top.add(lblTitle);
-        top.add(Box.createHorizontalStrut(30));
+        header.add(lblTitle, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
-        top.add(new JLabel("Sản phẩm:"));
+        /* ================= TOP PANEL ================= */
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        top.setBackground(Color.WHITE);
+
+        JLabel lblProduct = new JLabel("Sản phẩm:");
+        lblProduct.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         cboProduct = new JComboBox<>();
-        cboProduct.setPreferredSize(new Dimension(260, 30));
-        top.add(cboProduct);
+        cboProduct.setPreferredSize(new Dimension(250, 35));
 
-        JButton btnLoad = new JButton("Xem công thức");
+        JButton btnLoad = createButton("Xem", new Color(0, 123, 255));
+
+        top.add(lblProduct);
+        top.add(cboProduct);
         top.add(btnLoad);
 
-        add(top, BorderLayout.NORTH);
+        add(top, BorderLayout.BEFORE_FIRST_LINE);
 
         /* ================= TABLE ================= */
         String[] cols = {"ID", "Nguyên liệu", "Số lượng", "Đơn vị"};
         tableModel = new DefaultTableModel(cols, 0) {
-            @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(28);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        table.setRowHeight(30);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(240, 240, 240));
+
+        // Zebra row
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 245, 245));
+                }
+                return c;
+            }
+        });
+
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+
+        add(scroll, BorderLayout.CENTER);
 
         /* ================= BUTTONS ================= */
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        bottom.setBackground(Color.WHITE);
 
-        JButton btnAdd = new JButton("Thêm");
-        JButton btnEdit = new JButton("Sửa");
-        JButton btnDelete = new JButton("Xóa");
-        JButton btnRefresh = new JButton("Làm mới");
+        JButton btnAdd = createButton("Thêm", new Color(40, 167, 69));
+        JButton btnEdit = createButton("Sửa", new Color(255, 193, 7));
+        JButton btnDelete = createButton("Xóa", new Color(220, 53, 69));
+        JButton btnRefresh = createButton("Làm mới", new Color(108, 117, 125));
 
         bottom.add(btnAdd);
         bottom.add(btnEdit);
@@ -73,7 +107,7 @@ public class RecipeManagementPanel extends JPanel {
 
         add(bottom, BorderLayout.SOUTH);
 
-        /* ================= LOAD DATA ================= */
+        /* ================= DATA ================= */
         loadProducts();
 
         /* ================= EVENTS ================= */
@@ -84,10 +118,20 @@ public class RecipeManagementPanel extends JPanel {
         btnDelete.addActionListener(e -> deleteRecipe());
     }
 
+    /* ================= STYLE BUTTON ================= */
+    private JButton createButton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.setFocusPainted(false);
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setPreferredSize(new Dimension(100, 35));
+        return btn;
+    }
+
     /* ================= LOAD PRODUCTS ================= */
     private void loadProducts() {
         cboProduct.removeAllItems();
-
         List<Product> products = productController.getAllProduct();
         for (Product p : products) {
             cboProduct.addItem(p);
@@ -96,14 +140,12 @@ public class RecipeManagementPanel extends JPanel {
 
     /* ================= LOAD RECIPE ================= */
     private void loadRecipe() {
-
         Product p = (Product) cboProduct.getSelectedItem();
         if (p == null) return;
 
         tableModel.setRowCount(0);
 
-        List<Recipe> list =
-                recipeController.getRecipeByProduct(p.getId());
+        List<Recipe> list = recipeController.getRecipeByProduct(p.getId());
 
         for (Recipe r : list) {
             tableModel.addRow(new Object[]{
@@ -117,7 +159,6 @@ public class RecipeManagementPanel extends JPanel {
 
     /* ================= ADD ================= */
     private void addRecipe() {
-
         Product p = (Product) cboProduct.getSelectedItem();
         if (p == null) return;
 
@@ -131,11 +172,8 @@ public class RecipeManagementPanel extends JPanel {
                 "Đơn vị", txtUnit
         };
 
-        int rs = JOptionPane.showConfirmDialog(
-                this, form,
-                "Thêm nguyên liệu",
-                JOptionPane.OK_CANCEL_OPTION
-        );
+        int rs = JOptionPane.showConfirmDialog(this, form,
+                "Thêm nguyên liệu", JOptionPane.OK_CANCEL_OPTION);
 
         if (rs == JOptionPane.OK_OPTION) {
             recipeController.createRecipe(
@@ -150,7 +188,6 @@ public class RecipeManagementPanel extends JPanel {
 
     /* ================= EDIT ================= */
     private void editRecipe() {
-
         int row = table.getSelectedRow();
         if (row == -1) return;
 
@@ -169,11 +206,8 @@ public class RecipeManagementPanel extends JPanel {
                 "Đơn vị", txtUnit
         };
 
-        int rs = JOptionPane.showConfirmDialog(
-                this, form,
-                "Sửa nguyên liệu",
-                JOptionPane.OK_CANCEL_OPTION
-        );
+        int rs = JOptionPane.showConfirmDialog(this, form,
+                "Sửa nguyên liệu", JOptionPane.OK_CANCEL_OPTION);
 
         if (rs == JOptionPane.OK_OPTION) {
             Recipe r = new Recipe();
@@ -189,7 +223,6 @@ public class RecipeManagementPanel extends JPanel {
 
     /* ================= DELETE ================= */
     private void deleteRecipe() {
-
         int row = table.getSelectedRow();
         if (row == -1) return;
 
