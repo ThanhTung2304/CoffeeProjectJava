@@ -8,6 +8,7 @@ import org.example.entity.Product;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.*;
 import java.awt.*;
 import java.text.NumberFormat;
@@ -87,7 +88,7 @@ public class OrderManagementPanel extends JPanel {
         JButton btnView = createButton("📋 Hóa đơn", BTN_BLUE);
         JButton btnDone = createButton("✔ Hoàn thành", BTN_GREEN);
         JButton btnCancel = createButton("✖ Hủy", BTN_RED);
-        JButton btnRefresh = createButton("↻", BTN_SLATE);
+        JButton btnRefresh = createButton("↻ Làm mới", BTN_SLATE);
 
         panel.add(btnNew);
         panel.add(btnView);
@@ -106,9 +107,7 @@ public class OrderManagementPanel extends JPanel {
 
     // ===== TABLE =====
     private JScrollPane buildTable() {
-
         String[] cols = {"ID", "Mã đơn", "Tổng tiền", "Trạng thái", "Ghi chú", "Ngày tạo"};
-
         orderTableModel = new DefaultTableModel(cols, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -120,29 +119,28 @@ public class OrderManagementPanel extends JPanel {
         orderTable.setShowVerticalLines(false);
         orderTable.setAutoCreateRowSorter(true);
 
-        // ===== RENDER =====
+        orderTable.removeColumn(orderTable.getColumnModel().getColumn(0)); // Ẩn ID
+
         orderTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             public Component getTableCellRendererComponent(
                     JTable t, Object value, boolean isSelected,
                     boolean hasFocus, int row, int col) {
 
-                if (col == 3 && value != null) {
+                if (col == 2 && value != null) { // Cột Trạng thái (đã ẩn ID nên STT 3 thành 2)
                     JLabel lb = new JLabel(value.toString(), CENTER);
                     lb.setOpaque(true);
-
+                    lb.setFont(FONT_BOLD);
                     String v = value.toString();
-                    if (v.equals("Hoàn thành")) lb.setBackground(new Color(0xDCFCE7));
-                    else if (v.equals("Chờ xử lý")) lb.setBackground(new Color(0xFEF9C3));
-                    else if (v.equals("Đã hủy")) lb.setBackground(new Color(0xFEE2E2));
-
+                    if (v.equals("Hoàn thành")) { lb.setBackground(new Color(0xDCFCE7)); lb.setForeground(new Color(0x166534)); }
+                    else if (v.equals("Chờ xử lý")) { lb.setBackground(new Color(0xFEF9C3)); lb.setForeground(new Color(0x854D0E)); }
+                    else if (v.equals("Đã hủy")) { lb.setBackground(new Color(0xFEE2E2)); lb.setForeground(new Color(0x991B1B)); }
                     return lb;
                 }
 
                 super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col);
-
                 if (isSelected) setBackground(ROW_SELECTED);
                 else setBackground(row % 2 == 0 ? ROW_ODD : ROW_EVEN);
-
+                setBorder(new EmptyBorder(0, 10, 0, 10));
                 return this;
             }
         });
@@ -153,7 +151,6 @@ public class OrderManagementPanel extends JPanel {
     // ===== LOAD =====
     private void loadOrders() {
         orderTableModel.setRowCount(0);
-
         List<Order> list = orderController.getAllOrders();
         for (Order o : list) {
             orderTableModel.addRow(new Object[]{
@@ -167,19 +164,13 @@ public class OrderManagementPanel extends JPanel {
         }
     }
 
-    // ===== STATUS =====
     private void changeStatus(String status) {
         int row = orderTable.getSelectedRow();
-        if (row == -1) return;
-
+        if (row == -1) { JOptionPane.showMessageDialog(this, "Vui lòng chọn đơn hàng!"); return; }
         int modelRow = orderTable.convertRowIndexToModel(row);
         int id = (int) orderTableModel.getValueAt(modelRow, 0);
-
-        if ("COMPLETED".equals(status))
-            orderController.completeOrder(id);
-        else
-            orderController.cancelOrder(id);
-
+        if ("COMPLETED".equals(status)) orderController.completeOrder(id);
+        else orderController.cancelOrder(id);
         loadOrders();
     }
 
@@ -190,13 +181,14 @@ public class OrderManagementPanel extends JPanel {
         return s;
     }
 
-    // ===== BUTTON =====
     private JButton createButton(String text, Color base) {
         JButton btn = new JButton(text) {
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g;
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getModel().isPressed() ? base.darker() : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
                 super.paintComponent(g);
             }
         };
@@ -205,15 +197,124 @@ public class OrderManagementPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(130, 36));
         return btn;
     }
 
-    // ===== DIALOG GIỮ NGUYÊN =====
+    // ===== TẠO ĐƠN HÀNG =====
     private void openCreateOrderDialog() {
-        JOptionPane.showMessageDialog(this, "Giữ nguyên dialog cũ của bạn");
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Tạo đơn hàng mới", true);
+        dialog.setSize(500, 600);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setLocationRelativeTo(this);
+
+        // Danh sách món chọn
+        DefaultTableModel cartModel = new DefaultTableModel(new String[]{"Món", "Giá", "SL", "Thành tiền"}, 0);
+        JTable cartTable = new JTable(cartModel);
+        
+        // Panel chọn món
+        List<Product> products = productController.getAllProduct();
+        JComboBox<Product> cbProduct = new JComboBox<>(new DefaultComboBoxModel<>(products.toArray(new Product[0])));
+        cbProduct.setRenderer(new DefaultListCellRenderer() {
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Product) setText(((Product) value).getName() + " (" + VND.format(((Product) value).getPrice()) + ")");
+                return this;
+            }
+        });
+
+        JTextField txtQty = new JTextField("1", 5);
+        JButton btnAdd = new JButton("Thêm món");
+        
+        JPanel pnlAdd = new JPanel(new FlowLayout());
+        pnlAdd.add(cbProduct); pnlAdd.add(new JLabel("SL:")); pnlAdd.add(txtQty); pnlAdd.add(btnAdd);
+
+        btnAdd.addActionListener(e -> {
+            Product p = (Product) cbProduct.getSelectedItem();
+            int qty = Integer.parseInt(txtQty.getText());
+            cartModel.addRow(new Object[]{p.getName(), p.getPrice(), qty, p.getPrice() * qty});
+        });
+
+        // Ghi chú
+        JTextField txtNote = new JTextField();
+        JPanel pnlNote = new JPanel(new BorderLayout());
+        pnlNote.setBorder(new TitledBorder("Ghi chú"));
+        pnlNote.add(txtNote);
+
+        // Nút lưu
+        JButton btnSave = createButton("LƯU ĐƠN", BTN_GREEN);
+        btnSave.addActionListener(e -> {
+            List<OrderDetail> details = new ArrayList<>();
+            for (int i = 0; i < cartModel.getRowCount(); i++) {
+                String name = (String) cartModel.getValueAt(i, 0);
+                double price = (double) cartModel.getValueAt(i, 1);
+                int qty = (int) cartModel.getValueAt(i, 2);
+                
+                Product pMatched = products.stream().filter(pr -> pr.getName().equals(name)).findFirst().orElse(null);
+                if (pMatched != null) details.add(new OrderDetail(pMatched.getId(), name, price, qty));
+            }
+            if (details.isEmpty()) { JOptionPane.showMessageDialog(dialog, "Vui lòng chọn món!"); return; }
+            orderController.createOrder(details, txtNote.getText());
+            loadOrders();
+            dialog.dispose();
+        });
+
+        dialog.add(pnlAdd, BorderLayout.NORTH);
+        dialog.add(new JScrollPane(cartTable), BorderLayout.CENTER);
+        JPanel pnlBottom = new JPanel(new BorderLayout());
+        pnlBottom.add(pnlNote, BorderLayout.NORTH);
+        pnlBottom.add(btnSave, BorderLayout.SOUTH);
+        dialog.add(pnlBottom, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
+    // ===== XEM HÓA ĐƠN =====
     private void openInvoiceDialog() {
-        JOptionPane.showMessageDialog(this, "Giữ nguyên phần hóa đơn");
+        int row = orderTable.getSelectedRow();
+        if (row == -1) { JOptionPane.showMessageDialog(this, "Vui lòng chọn một đơn hàng!"); return; }
+        int modelRow = orderTable.convertRowIndexToModel(row);
+        int id = (int) orderTableModel.getValueAt(modelRow, 0);
+        Order order = orderController.getOrderById(id);
+        List<OrderDetail> details = orderController.getOrderDetails(id);
+
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Chi tiết hóa đơn", true);
+        dialog.setSize(400, 500);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setLocationRelativeTo(this);
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("      COFFEE PROJECT - HÓA ĐƠN\n");
+        sb.append("--------------------------------------\n");
+        sb.append("Mã đơn: ").append(order.getOrderCode()).append("\n");
+        sb.append("Ngày:   ").append(order.getCreatedTime()).append("\n");
+        sb.append("Trạng thái: ").append(translateStatus(order.getStatus())).append("\n");
+        sb.append("--------------------------------------\n");
+        sb.append(String.format("%-18s %3s %10s\n", "Tên món", "SL", "T.Tiền"));
+        
+        for (OrderDetail d : details) {
+            sb.append(String.format("%-18s %3d %10s\n", 
+                d.getProductName(), d.getQuantity(), VND.format(d.getUnitPrice() * d.getQuantity())));
+        }
+        
+        sb.append("--------------------------------------\n");
+        sb.append("TỔNG CỘNG:            ").append(VND.format(order.getTotalAmount())).append(" ₫\n");
+        sb.append("--------------------------------------\n");
+        sb.append("Ghi chú: ").append(order.getNote() != null ? order.getNote() : "").append("\n\n");
+        sb.append("   CẢM ƠN QUÝ KHÁCH. HẸN GẶP LẠI!");
+
+        area.setText(sb.toString());
+        dialog.add(new JScrollPane(area), BorderLayout.CENTER);
+        
+        JButton btnClose = new JButton("Đóng");
+        btnClose.addActionListener(e -> dialog.dispose());
+        dialog.add(btnClose, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 }

@@ -15,9 +15,11 @@ public class VoucherServiceImpl implements VoucherService {
     public List<Voucher> search(String keyword, String status) {
         List<Voucher> list = repo.findAll(keyword, status);
         LocalDate today = LocalDate.now();
+        
+        // Kiểm tra tự động hết hạn khi tải dữ liệu
         for (Voucher v : list) {
-            if (today.isAfter(v.getEndDate())) {
-                v.setStatus("EXPIRED");
+            if (today.isAfter(v.getEndDate()) && !"Hết hạn".equals(v.getStatus())) {
+                v.setStatus("Hết hạn");
                 repo.update(v);
             }
         }
@@ -31,6 +33,10 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public void add(Voucher voucher) {
+        // Kiểm tra xem mã đã tồn tại chưa
+        if (repo.findByCode(voucher.getCode()) != null) {
+            throw new RuntimeException("Mã Voucher này đã tồn tại trên hệ thống!");
+        }
         repo.save(voucher);
     }
 
