@@ -27,6 +27,13 @@ public class EmployeeController {
         service.deleteById(id);
     }
 
-
+    public Employee findById(int id) {
+        for (Employee e : getAll()) {
+            if (e.getId() == id) {
+                return e;
+            }
+        }
+        return null;
+    }
 
 }

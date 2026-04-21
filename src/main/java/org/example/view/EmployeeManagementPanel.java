@@ -1,106 +1,120 @@
 package org.example.view;
 
-import org.apache.poi.ss.usermodel.Font;
 import org.example.controller.EmployeeController;
 import org.example.entity.Employee;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-
-import java.io.File;
-import java.io.FileOutputStream;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.*;
+import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-
-import org.apache.poi.ss.usermodel.*;
-
 
 public class EmployeeManagementPanel extends JPanel {
 
+    // ===== COLORS =====
+    private static final Color BG = new Color(0xF5F7FA);
+    private static final Color HEADER_BG = new Color(0x1E293B);
+    private static final Color ROW_ODD = Color.WHITE;
+    private static final Color ROW_EVEN = new Color(0xF8FAFC);
+    private static final Color ROW_SELECTED = new Color(0xDBEAFE);
+    private static final Color BORDER = new Color(0xE2E8F0);
+
+    private static final Color BTN_GREEN = new Color(0x22C55E);
+    private static final Color BTN_AMBER = new Color(0xF59E0B);
+    private static final Color BTN_RED = new Color(0xEF4444);
+    private static final Color BTN_BLUE = new Color(0x3B82F6);
+    private static final Color BTN_GRAY = new Color(0x64748B);
+
+    // ===== FONT =====
+    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 22);
+    private static final Font FONT_BODY = new Font("Segoe UI", Font.PLAIN, 14);
+    private static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 13);
+
     private JTable table;
     private DefaultTableModel model;
-
     private JTextField txtSearch;
     private JComboBox<String> cbPosition;
+    private JLabel rowCount;
 
     private final EmployeeController controller = new EmployeeController();
 
     public EmployeeManagementPanel() {
-        setLayout(new BorderLayout(10, 10));
-        initUI();
+        setLayout(new BorderLayout());
+        setBackground(BG);
+
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildCenter(), BorderLayout.CENTER);
+
         loadData();
     }
 
-    private void initUI() {
+    /* ================= HEADER ================= */
+    private JPanel buildHeader() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(HEADER_BG);
+        p.setBorder(new EmptyBorder(16, 20, 16, 20));
 
-        /* ===== TITLE ===== */
-        JLabel lblTitle = new JLabel("QUẢN LÝ NHÂN VIÊN");
-        lblTitle.setFont(
-                new java.awt.Font("Arial", java.awt.Font.BOLD, 20)
-        );
+        JLabel title = new JLabel("👨‍💼 Quản Lý Nhân Viên");
+        title.setFont(FONT_TITLE);
+        title.setForeground(Color.WHITE);
 
+        rowCount = new JLabel("0 nhân viên");
+        rowCount.setForeground(Color.LIGHT_GRAY);
 
-        /* ===== SEARCH + FILTER ===== */
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        p.add(title, BorderLayout.WEST);
+        p.add(rowCount, BorderLayout.EAST);
+
+        return p;
+    }
+
+    /* ================= CENTER ================= */
+    private JPanel buildCenter() {
+        JPanel p = new JPanel(new BorderLayout(0, 10));
+        p.setBorder(new EmptyBorder(16, 20, 20, 20));
+        p.setBackground(BG);
+
+        p.add(buildControl(), BorderLayout.NORTH);
+        p.add(buildTable(), BorderLayout.CENTER);
+
+        return p;
+    }
+
+    /* ================= CONTROL ================= */
+    private JPanel buildControl() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setOpaque(false);
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        left.setOpaque(false);
 
         txtSearch = new JTextField(20);
-        JButton btnSearch = new JButton("🔍 Tìm");
+        cbPosition = new JComboBox<>(new String[]{"Tất cả", "Staff"});
 
-        cbPosition = new JComboBox<>(new String[]{
-                "Tất cả", "Staff"
-        });
+        JButton btnSearch = createButton("🔍 Tìm", BTN_BLUE);
 
-        filterPanel.add(new JLabel("Tìm:"));
-        filterPanel.add(txtSearch);
-        filterPanel.add(btnSearch);
-        filterPanel.add(Box.createHorizontalStrut(20));
-        filterPanel.add(new JLabel("Vị trí:"));
-        filterPanel.add(cbPosition);
+        left.add(txtSearch);
+        left.add(cbPosition);
+        left.add(btnSearch);
 
-        /* ===== BUTTONS ===== */
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
 
-        JButton btnAdd = createButton("Thêm", new Color(46, 204, 113));
-        JButton btnEdit = createButton("Sửa", new Color(241, 196, 15));
-        JButton btnDelete = createButton("Xóa", new Color(231, 76, 60));
-        JButton btnRefresh = createButton("Refresh", new Color(149, 165, 166));
+        JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
+        JButton btnEdit = createButton("✎ Sửa", BTN_AMBER);
+        JButton btnDelete = createButton("✕ Xóa", BTN_RED);
+        JButton btnRefresh = createButton("↻ Làm mới", BTN_GRAY);
 
-        JButton btnExport = createButton("Xuất Excel", new Color(52, 152, 219));
+        right.add(btnAdd);
+        right.add(btnEdit);
+        right.add(btnDelete);
+        right.add(btnRefresh);
 
-        buttonPanel.add(btnExport);
+        bar.add(left, BorderLayout.WEST);
+        bar.add(right, BorderLayout.EAST);
 
-        buttonPanel.add(btnAdd);
-        buttonPanel.add(btnEdit);
-        buttonPanel.add(btnDelete);
-        buttonPanel.add(btnRefresh);
-
-        /* ===== TOP ===== */
-        JPanel top = new JPanel(new BorderLayout());
-        top.add(lblTitle, BorderLayout.NORTH);
-        top.add(filterPanel, BorderLayout.CENTER);
-        top.add(buttonPanel, BorderLayout.SOUTH);
-
-        add(top, BorderLayout.NORTH);
-
-        /* ===== TABLE ===== */
-        model = new DefaultTableModel(
-                new Object[]{
-                        "STT", "Tên", "SĐT", "Vai trò",
-                        "Username", "Ngày tạo", "Cập nhật"
-                },
-                0
-        );
-
-        table = new JTable(model);
-        table.setRowHeight(28);
-
-        add(new JScrollPane(table), BorderLayout.CENTER);
-
-        /* ===== EVENTS ===== */
+        // events
         btnSearch.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
@@ -108,21 +122,69 @@ public class EmployeeManagementPanel extends JPanel {
             loadData();
         });
 
-        btnAdd.addActionListener(e ->new EmployeeForm(null, this::loadData).setVisible(true)
+        btnAdd.addActionListener(e ->
+                new EmployeeForm(null, this::loadData).setVisible(true)
         );
 
         btnEdit.addActionListener(e -> editEmployee());
         btnDelete.addActionListener(e -> deleteEmployee());
-        btnExport.addActionListener(e -> exportToExcel());
 
+        return bar;
     }
 
-    /* ===== LOAD DATA ===== */
+    /* ================= TABLE ================= */
+    private JScrollPane buildTable() {
+        model = new DefaultTableModel(
+                new String[]{
+                        "ID", "STT", "Tên", "SĐT",
+                        "Vai trò", "Username", "Ngày tạo", "Cập nhật"
+                }, 0
+        ) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+
+        table = new JTable(model);
+        table.setRowHeight(36);
+        table.setFont(FONT_BODY);
+        table.setSelectionBackground(ROW_SELECTED);
+        table.setGridColor(BORDER);
+
+        // ẩn ID
+        table.removeColumn(table.getColumnModel().getColumn(0));
+
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean sel, boolean f, int r, int c) {
+
+                super.getTableCellRendererComponent(t, v, sel, f, r, c);
+
+                if (sel) {
+                    setBackground(ROW_SELECTED);
+                } else {
+                    setBackground(r % 2 == 0 ? ROW_ODD : ROW_EVEN);
+                }
+
+                setBorder(new EmptyBorder(0, 10, 0, 10));
+                return this;
+            }
+        });
+
+        JTableHeader th = table.getTableHeader();
+        th.setBackground(new Color(0x334155));
+        th.setForeground(Color.WHITE);
+        th.setFont(FONT_BOLD);
+
+        return new JScrollPane(table);
+    }
+
+    /* ================= LOAD ================= */
     private void loadData() {
         model.setRowCount(0);
 
         String keyword = txtSearch.getText().toLowerCase();
-        String positionFilter = Objects.requireNonNull(cbPosition.getSelectedItem()).toString();
+        String pos = Objects.requireNonNull(cbPosition.getSelectedItem()).toString();
 
         List<Employee> list = controller.getAll();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -134,31 +196,36 @@ public class EmployeeManagementPanel extends JPanel {
                     keyword.isBlank() ||
                             e.getName().toLowerCase().contains(keyword);
 
-            boolean matchPosition =
-                    positionFilter.equals("Tất cả") ||
-                            e.getPosition().toLowerCase().startsWith(positionFilter.toLowerCase());
+            boolean matchPos =
+                    pos.equals("Tất cả") ||
+                            e.getPosition().toLowerCase().contains(pos.toLowerCase());
 
-            if (matchName && matchPosition) {
+            if (matchName && matchPos) {
                 model.addRow(new Object[]{
+                        e.getId(),
                         stt++,
                         e.getName(),
                         e.getPhone(),
-                        e.getPosition(),// đã chứa username
+                        e.getPosition(),
                         e.getUsername(),
                         e.getCreatedTime() == null ? "" : e.getCreatedTime().format(fmt),
                         e.getUpdateTime() == null ? "" : e.getUpdateTime().format(fmt)
                 });
             }
         }
+
+        rowCount.setText(list.size() + " nhân viên");
     }
 
-
+    /* ================= CRUD ================= */
     private void editEmployee() {
         int row = table.getSelectedRow();
         if (row == -1) return;
 
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) model.getValueAt(modelRow, 0);
 
-        Employee emp = controller.getAll().get(row);
+        Employee emp = controller.findById(id);
 
         new EmployeeForm(emp, this::loadData).setVisible(true);
     }
@@ -167,133 +234,44 @@ public class EmployeeManagementPanel extends JPanel {
         int row = table.getSelectedRow();
         if (row == -1) return;
 
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) model.getValueAt(modelRow, 0);
+
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc muốn xóa nhân viên này?",
+                "Xóa nhân viên này?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            int id = controller.getAll().get(row).getId();
             controller.delete(id);
             loadData();
         }
     }
 
-    private void exportToExcel() {
-
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Chọn nơi lưu file Excel");
-        chooser.setSelectedFile(new File("employee.xlsx"));
-
-        int result = chooser.showSaveDialog(this);
-        if (result != JFileChooser.APPROVE_OPTION) return;
-
-        File file = chooser.getSelectedFile();
-
-        try (
-                org.apache.poi.ss.usermodel.Workbook workbook =
-                        new org.apache.poi.xssf.usermodel.XSSFWorkbook();
-                FileOutputStream fos = new FileOutputStream(file)
-        ) {
-
-            org.apache.poi.ss.usermodel.Sheet sheet =
-                    workbook.createSheet("Employees");
-
-            /* ================= HEADER STYLE ================= */
-            org.apache.poi.ss.usermodel.CellStyle headerStyle =
-                    workbook.createCellStyle();
-
-            org.apache.poi.ss.usermodel.Font headerFont =
-                    workbook.createFont();   // ⚠️ Font POI, KHÔNG phải java.awt.Font
-
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-
-            /* ================= HEADER ================= */
-            org.apache.poi.ss.usermodel.Row headerRow =
-                    sheet.createRow(0);
-
-            String[] columns = {
-                    "STT", "Tên", "SĐT", "Vai trò",
-                    "Username", "Ngày tạo", "Cập nhật"
-            };
-
-            for (int i = 0; i < columns.length; i++) {
-                org.apache.poi.ss.usermodel.Cell cell =
-                        headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerStyle);
+    /* ================= BUTTON ================= */
+    private JButton createButton(String text, Color base) {
+        JButton btn = new JButton(text) {
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(getModel().isPressed()
+                        ? base.darker()
+                        : getModel().isRollover() ? base.brighter() : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
             }
+        };
 
-            /* ================= DATA ================= */
-            List<Employee> employees = controller.getAll();
-            DateTimeFormatter formatter =
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-            int rowIndex = 1;
-            int stt = 1;
-
-            for (Employee e : employees) {
-
-                org.apache.poi.ss.usermodel.Row row =
-                        sheet.createRow(rowIndex++);
-
-                row.createCell(0).setCellValue(stt++);
-                row.createCell(1).setCellValue(
-                        e.getName() == null ? "" : e.getName()
-                );
-                row.createCell(2).setCellValue(
-                        e.getPhone() == null ? "" : e.getPhone()
-                );
-                row.createCell(3).setCellValue(
-                        e.getPosition() == null ? "" : e.getPosition()
-                );
-                row.createCell(4).setCellValue(
-                        e.getUsername() == null ? "" : e.getUsername()
-                );
-                row.createCell(5).setCellValue(
-                        e.getCreatedTime() == null ? "" : e.getCreatedTime().format(formatter)
-                );
-                row.createCell(6).setCellValue(
-                        e.getUpdateTime() == null ? "" : e.getUpdateTime().format(formatter)
-                );
-            }
-
-            /* ================= AUTO SIZE ================= */
-            for (int i = 0; i < columns.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            workbook.write(fos);
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Xuất Excel thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Xuất Excel thất bại: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-            );
-        }
-    }
-
-
-
-    private JButton createButton(String text, Color color) {
-        JButton btn = new JButton(text);
-        btn.setBackground(color);
         btn.setForeground(Color.WHITE);
+        btn.setFont(FONT_BOLD);
         btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(130, 36));
+
         return btn;
     }
-
 }
