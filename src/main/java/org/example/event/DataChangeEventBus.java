@@ -1,7 +1,6 @@
 package org.example.event;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DataChangeEventBus {
 
@@ -9,15 +8,31 @@ public class DataChangeEventBus {
         void onDataChanged();
     }
 
-    private static final List<DataChangeListener> listeners = new ArrayList<>();
+    private static final CopyOnWriteArrayList<DataChangeListener> listeners = new CopyOnWriteArrayList<>();
 
     public static void onRegister(DataChangeListener listener) {
-        listeners.add(listener);
+        if (listener != null) {
+            listeners.addIfAbsent(listener);
+        }
+    }
+
+    public static void onUnregister(DataChangeListener listener) {
+        if (listener != null) {
+            listeners.remove(listener);
+        }
     }
 
     public static void notifyChange() {
         for (DataChangeListener l : listeners) {
-            l.onDataChanged();
+            try {
+                l.onDataChanged();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static void clearAll() {
+        listeners.clear();
     }
 }

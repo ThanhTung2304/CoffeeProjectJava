@@ -204,7 +204,8 @@ public class OrderManagementPanel extends JPanel {
 
     // ===== TẠO ĐƠN HÀNG =====
     private void openCreateOrderDialog() {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Tạo đơn hàng mới", true);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Tạo đơn hàng mới", true);
         dialog.setSize(500, 600);
         dialog.setLayout(new BorderLayout(10, 10));
         dialog.setLocationRelativeTo(this);
@@ -232,8 +233,17 @@ public class OrderManagementPanel extends JPanel {
 
         btnAdd.addActionListener(e -> {
             Product p = (Product) cbProduct.getSelectedItem();
-            int qty = Integer.parseInt(txtQty.getText());
-            cartModel.addRow(new Object[]{p.getName(), p.getPrice(), qty, p.getPrice() * qty});
+            if (p == null) return;
+            try {
+                int qty = Integer.parseInt(txtQty.getText());
+                if (qty <= 0) {
+                    JOptionPane.showMessageDialog(dialog, "Số lượng phải > 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                cartModel.addRow(new Object[]{p.getName(), p.getPrice(), qty, p.getPrice() * qty});
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Vui lòng nhập số hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // Ghi chú
@@ -279,7 +289,8 @@ public class OrderManagementPanel extends JPanel {
         Order order = orderController.getOrderById(id);
         List<OrderDetail> details = orderController.getOrderDetails(id);
 
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Chi tiết hóa đơn", true);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Chi tiết hóa đơn", true);
         dialog.setSize(400, 500);
         dialog.setLayout(new BorderLayout(10, 10));
         dialog.setLocationRelativeTo(this);

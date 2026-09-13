@@ -1,7 +1,12 @@
 package org.example.view;
 
 import org.example.controller.CustomerController;
+import org.example.controller.AccountController;
+import org.example.entity.Account;
 import org.example.entity.Customer;
+import org.example.event.DataChangeEventBus;
+import org.example.repository.AccountRepository;
+import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.util.ExportToExcel;
 
 import javax.swing.*;
@@ -10,8 +15,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,9 +33,12 @@ public class CustomerManagementPanel extends JPanel {
     private static final Color BTN_RED = new Color(0xEF4444);
     private static final Color BTN_BLUE = new Color(0x3B82F6);
     private static final Color BTN_SLATE = new Color(0x64748B);
+    private static final Color BTN_PURPLE = new Color(0x8B5CF6);
 
     private static final Color BADGE_ACTIVE = new Color(0xDCFCE7);
+    private static final Color BADGE_ACTIVE_FG = new Color(0x166534);
     private static final Color BADGE_STOP = new Color(0xFEE2E2);
+    private static final Color BADGE_STOP_FG = new Color(0x991B1B);
 
     // ===== FONTS =====
     private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 22);
@@ -40,6 +46,9 @@ public class CustomerManagementPanel extends JPanel {
     private static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 13);
 
     private final CustomerController controller = new CustomerController();
+    private final AccountController accountController = new AccountController();
+    private final AccountRepository accountRepository = new AccountRepositoryImpl();
+    private final DataChangeEventBus.DataChangeListener dataListener = this::loadData;
 
     private JTable table;
     private DefaultTableModel tableModel;
@@ -53,6 +62,11 @@ public class CustomerManagementPanel extends JPanel {
 
         initUI();
         loadData();
+        DataChangeEventBus.onRegister(dataListener);
+    }
+
+    public void cleanup() {
+        DataChangeEventBus.onUnregister(dataListener);
     }
 
     /* ================= UI INITIALIZATION ================= */
@@ -70,7 +84,7 @@ public class CustomerManagementPanel extends JPanel {
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
 
-        JLabel icon = new JLabel("👥");
+        JLabel icon = new JLabel("\uD83D\uDC65");
         icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 26));
 
         JPanel titleBlock = new JPanel();
@@ -143,17 +157,18 @@ public class CustomerManagementPanel extends JPanel {
         JButton btnDelete = createButton("✕ Xóa", BTN_RED);
         JButton btnRefresh = createButton("↻ Làm mới", BTN_SLATE);
         JButton btnExport = createButton("↓ Excel", BTN_BLUE);
+        JButton btnViewAccount = createButton("🔗 Xem Tài Khoản", BTN_PURPLE);
 
         right.add(btnAdd);
         right.add(btnEdit);
         right.add(btnDelete);
         right.add(btnRefresh);
         right.add(btnExport);
+        right.add(btnViewAccount);
 
         bar.add(left, BorderLayout.WEST);
         bar.add(right, BorderLayout.EAST);
 
-        // events
         btnSearch.addActionListener(e -> loadData());
         cbStatus.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> {
@@ -165,6 +180,7 @@ public class CustomerManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> openEditDialog());
         btnDelete.addActionListener(e -> deleteCustomer());
         btnExport.addActionListener(e -> ExportToExcel.export(table, "DanhSachKhachHang.xlsx"));
+        btnViewAccount.addActionListener(e -> navigateToLinkedAccount());
 
         return bar;
     }
@@ -172,7 +188,10 @@ public class CustomerManagementPanel extends JPanel {
     /* ================= TABLE ================= */
     private JScrollPane buildTable() {
         tableModel = new DefaultTableModel(
-                new String[]{"ID", "STT", "Mã", "Tên", "SĐT", "Email", "Điểm", "Trạng thái"}, 0
+                new String[]{
+                        "ID", "STT", "Mã", "Tên", "SĐT", "Email", "Điểm",
+                        "Username", "Phân Quyền", "Trạng Thái TK", "Trạng thái"
+                }, 0
         ) {
             public boolean isCellEditable(int r, int c) {
                 return false;
@@ -190,18 +209,31 @@ public class CustomerManagementPanel extends JPanel {
         table.setSelectionForeground(new Color(0x1E40AF));
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
+        table.setAutoCreateRowSorter(true);
 
         table.removeColumn(table.getColumnModel().getColumn(0)); // Hide ID column
 
-        // Custom cell renderer (zebra + status badge)
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
                     JTable t, Object value, boolean isSelected,
                     boolean hasFocus, int row, int col) {
 
-                // Col 6 = "Trạng thái" (after ID hidden) — render as badge
-                if (col == 6 && value != null) {
+                // Col 9 = "Trạng Thái TK" — render as badge
+                if (col == 9 && value != null && !value.toString().isEmpty()) {
+                    boolean active = value.toString().equals("Hoạt động");
+                    JLabel badge = new JLabel(active ? "● Hoạt động" : "● Khóa");
+                    badge.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                    badge.setOpaque(true);
+                    badge.setHorizontalAlignment(CENTER);
+                    badge.setBackground(isSelected ? ROW_SELECTED : (active ? BADGE_ACTIVE : BADGE_STOP));
+                    badge.setForeground(active ? BADGE_ACTIVE_FG : BADGE_STOP_FG);
+                    badge.setBorder(new EmptyBorder(4, 12, 4, 12));
+                    return badge;
+                }
+
+                // Col 10 = "Trạng thái" — render as badge
+                if (col == 10 && value != null) {
                     boolean active = value.toString().equals("Hoạt động");
                     JLabel badge = new JLabel(active ? "● Hoạt động" : "● Ngưng");
                     badge.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -230,8 +262,20 @@ public class CustomerManagementPanel extends JPanel {
                     setForeground(new Color(0x1E293B));
                 }
 
-                setHorizontalAlignment(col == 0 ? CENTER : LEFT);
                 return this;
+            }
+        });
+
+        JTableHeader th = table.getTableHeader();
+        th.setBackground(new Color(0x334155));
+        th.setForeground(Color.WHITE);
+        th.setFont(FONT_BOLD);
+
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    navigateToLinkedAccount();
+                }
             }
         });
 
@@ -252,6 +296,15 @@ public class CustomerManagementPanel extends JPanel {
 
         int i = 1;
         for (Customer c : list) {
+            Account acc = null;
+            if (c.getAccountId() != null) {
+                acc = accountRepository.findById(c.getAccountId().longValue()).orElse(null);
+            }
+
+            String username  = acc != null ? acc.getUsername() : "";
+            String role      = acc != null ? acc.getRole() : "";
+            String accStatus = acc != null ? (acc.isActive() ? "Hoạt động" : "Khóa") : "";
+
             tableModel.addRow(new Object[]{
                     c.getId(),
                     i++,
@@ -260,11 +313,40 @@ public class CustomerManagementPanel extends JPanel {
                     c.getPhone(),
                     c.getEmail(),
                     c.getPoint(),
+                    username,
+                    role,
+                    accStatus,
                     c.getStatus() == 1 ? "Hoạt động" : "Ngưng"
             });
         }
 
         rowCountLabel.setText(list.size() + " khách hàng");
+    }
+
+    /* ================= NAVIGATION ================= */
+    private void navigateToLinkedAccount() {
+        int row = table.getSelectedRow();
+        if (row == -1) return;
+
+        int modelRow = table.convertRowIndexToModel(row);
+        int custId = (int) tableModel.getValueAt(modelRow, 0);
+        Customer cust = controller.findById(custId);
+
+        if (cust == null || cust.getAccountId() == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Khách hàng này chưa liên kết tài khoản nào!",
+                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        MainFrame mainFrame = MainFrame.getInstance();
+        if (mainFrame != null) {
+            mainFrame.showScreen(
+                    MainFrame.SCREEN_ACCOUNTS,
+                    "Quản Lý Tài Khoản",
+                    "Quản Lý Tài Khoản"
+            );
+        }
     }
 
     /* ================= CRUD OPERATIONS ================= */
@@ -273,6 +355,8 @@ public class CustomerManagementPanel extends JPanel {
         JTextField txtName = new JTextField();
         JTextField txtPhone = new JTextField();
         JTextField txtEmail = new JTextField();
+        JTextField txtUsername = new JTextField();
+        JPasswordField txtPassword = new JPasswordField();
         JCheckBox chkActive = new JCheckBox("Hoạt động", true);
 
         JPanel formPanel = createFormPanel();
@@ -280,6 +364,8 @@ public class CustomerManagementPanel extends JPanel {
         addField(formPanel, "Tên khách hàng:", txtName);
         addField(formPanel, "Số điện thoại:", txtPhone);
         addField(formPanel, "Email:", txtEmail);
+        addField(formPanel, "Username:", txtUsername);
+        addField(formPanel, "Password:", txtPassword);
         addField(formPanel, "Trạng thái:", chkActive);
 
         int result = JOptionPane.showConfirmDialog(this, formPanel, "➕ Thêm khách hàng",
@@ -287,13 +373,25 @@ public class CustomerManagementPanel extends JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
+                String username = txtUsername.getText().trim();
+                String password = new String(txtPassword.getPassword()).trim();
+                if (username.isEmpty() || password.isEmpty()) {
+                    throw new RuntimeException("Khách hàng cần username và password để liên kết tài khoản");
+                }
+                if (accountController.findByUsername(username) != null) {
+                    throw new RuntimeException("Username đã tồn tại");
+                }
+                accountController.add(username, password, "USER", true);
+                Account account = accountController.findByUsername(username);
                 controller.add(
                         txtCode.getText().trim(),
                         txtName.getText().trim(),
                         txtPhone.getText().trim(),
                         txtEmail.getText().trim(),
-                        chkActive.isSelected()
+                        chkActive.isSelected(),
+                        account == null ? null : account.getId()
                 );
+                org.example.event.DataChangeEventBus.notifyChange();
                 loadData();
                 JOptionPane.showMessageDialog(this, "Thêm khách hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } catch (RuntimeException ex) {
@@ -309,7 +407,8 @@ public class CustomerManagementPanel extends JPanel {
             return;
         }
 
-        int id = (int) tableModel.getValueAt(row, 0);
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) tableModel.getValueAt(modelRow, 0);
         Customer customer = controller.findById(id);
 
         if (customer == null) {
@@ -323,7 +422,6 @@ public class CustomerManagementPanel extends JPanel {
         JCheckBox chkActive = new JCheckBox("Hoạt động", customer.getStatus() == 1);
 
         JPanel formPanel = createFormPanel();
-        // Mã khách hàng không cho sửa
         addField(formPanel, "Mã khách hàng:", new JLabel(customer.getCode()));
         addField(formPanel, "Tên khách hàng:", txtName);
         addField(formPanel, "Số điện thoại:", txtPhone);
@@ -357,8 +455,9 @@ public class CustomerManagementPanel extends JPanel {
             return;
         }
 
-        int id = (int) tableModel.getValueAt(row, 0);
-        String customerName = (String) tableModel.getValueAt(row, 3);
+        int modelRow = table.convertRowIndexToModel(row);
+        int id = (int) tableModel.getValueAt(modelRow, 0);
+        String customerName = (String) tableModel.getValueAt(modelRow, 3);
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc muốn xóa khách hàng \"" + customerName + "\" không?",
@@ -413,7 +512,7 @@ public class CustomerManagementPanel extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(120, 36));
+        btn.setPreferredSize(new Dimension(155, 36));
         return btn;
     }
 }

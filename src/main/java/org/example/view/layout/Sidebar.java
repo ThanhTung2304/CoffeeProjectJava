@@ -42,9 +42,6 @@ public class Sidebar extends JScrollPane {
 
         List<String> menus = rolePermissions.getOrDefault(normalizedRole, new ArrayList<>());
 
-        // DEBUG - xóa sau khi fix xong
-        System.out.println(">>> Sidebar role: '" + normalizedRole + "' | menus: " + menus);
-
         for (String menu : menus) {
             addMenu(menu);
         }
@@ -89,7 +86,7 @@ public class Sidebar extends JScrollPane {
                 "Quản Lý Lịch Làm",
                 "Sản Phẩm",
                 "Đặt Bàn",
-                "Quản Lý Bàn",
+//                "Quản Lý Bàn",
                 "Quản Lý Tồn Kho",
                 "Đơn Hàng",
                 "Voucher"

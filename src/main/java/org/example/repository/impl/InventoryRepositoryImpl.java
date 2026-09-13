@@ -10,7 +10,6 @@ import java.util.List;
 
 public class InventoryRepositoryImpl implements InventoryRepository {
 
-    /* ================== TỒN KHO HIỆN TẠI ================== */
     @Override
     public List<Inventory> findAll() {
         List<Inventory> list = new ArrayList<>();
@@ -35,12 +34,11 @@ public class InventoryRepositoryImpl implements InventoryRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi lấy danh sách tồn kho", e);
         }
         return list;
     }
 
-    /* ================== NHẬP KHO ================== */
     @Override
     public void importInventory(int productId, int quantity, String note) {
 
@@ -72,14 +70,18 @@ public class InventoryRepositoryImpl implements InventoryRepository {
                 ps2.executeUpdate();
 
                 con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi nhập kho", e);
         }
     }
 
-    /* ================== XUẤT KHO ================== */
     @Override
     public void exportInventory(int productId, int quantity, String note) {
 
@@ -105,7 +107,7 @@ public class InventoryRepositoryImpl implements InventoryRepository {
                 ps1.setInt(3, quantity);
 
                 if (ps1.executeUpdate() == 0) {
-                    throw new RuntimeException("Không đủ hàng trong kho");
+                    throw new SQLException("Không đủ hàng trong kho");
                 }
 
                 ps2.setInt(1, productId);
@@ -114,14 +116,18 @@ public class InventoryRepositoryImpl implements InventoryRepository {
                 ps2.executeUpdate();
 
                 con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi xuất kho", e);
         }
     }
 
-    /* ================== LỊCH SỬ ================== */
     @Override
     public List<Inventory> findHistoryByProduct(int productId) {
 
@@ -153,7 +159,7 @@ public class InventoryRepositoryImpl implements InventoryRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi lấy lịch sử tồn kho", e);
         }
         return list;
     }
@@ -169,7 +175,7 @@ public class InventoryRepositoryImpl implements InventoryRepository {
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Lỗi khi xóa lịch sử trong DB: " + e.getMessage());
+            throw new RuntimeException("Lỗi khi xóa lịch sử tồn kho", e);
         }
     }
 }

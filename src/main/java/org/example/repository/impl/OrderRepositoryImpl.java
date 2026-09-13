@@ -96,14 +96,24 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void delete(int id) {
-        // Xóa chi tiết đơn hàng trước (ràng buộc khóa ngoại)
-        detailRepo.deleteByOrderId(id);
+        try (Connection con = DatabaseConfig.getConnection()) {
+            con.setAutoCommit(false);
+            try {
+                detailRepo.deleteByOrderId(id);
 
-        String sql = "DELETE FROM orders WHERE id = ?";
-        try (Connection con = DatabaseConfig.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+                String sql = "DELETE FROM orders WHERE id = ?";
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi khi xóa order", e);
         }

@@ -16,7 +16,7 @@ public class CustomerController {
     }
 
     /* ================= ADD ================= */
-    public void add(String code, String name, String phone, String email, boolean active) {
+    public void add(String code, String name, String phone, String email, boolean active, Integer accountId) {
 
         if (code == null || code.isBlank()) {
             throw new RuntimeException("Mã khách hàng không được để trống");
@@ -35,6 +35,7 @@ public class CustomerController {
         c.setEmail(email);
         c.setPoint(0);
         c.setStatus(active ? 1 : 0);
+        c.setAccountId(accountId);
 
         service.create(c);
     }

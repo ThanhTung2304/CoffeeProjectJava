@@ -27,7 +27,6 @@ public class StatisticServiceImpl implements StatisticService {
         return reportRepository.countMonthlyReservations();
     }
 
-
     @Override
     public int getTotalInventory() {
         return reportRepository.getTotalInventory();
@@ -37,5 +36,4 @@ public class StatisticServiceImpl implements StatisticService {
     public int getExportedTotal() {
         return reportRepository.getTotalExported();
     }
-
 }

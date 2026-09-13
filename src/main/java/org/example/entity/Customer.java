@@ -9,6 +9,7 @@ public class Customer {
     private String email;
     private int point;
     private int status;
+    private Integer accountId;
 
     public Customer() {}
 
@@ -44,4 +45,7 @@ public class Customer {
 
     public int getStatus() { return status; }
     public void setStatus(int status) { this.status = status; }
+
+    public Integer getAccountId() { return accountId; }
+    public void setAccountId(Integer accountId) { this.accountId = accountId; }
 }

@@ -1,49 +1,61 @@
 package org.example.service.impl;
 
+import org.example.config.DatabaseConfig;
 import org.example.entity.Account;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AccountServiceImplTest {
 
     private AccountServiceImpl accountService;
+    private String createdUsername = null;
 
     @BeforeEach
     void setUp() {
         accountService = new AccountServiceImpl();
     }
 
-    /* ================= TEST READ (TÌM KIẾM) ================= */
+    @AfterEach
+    void tearDown() {
+        if (createdUsername != null) {
+            try (Connection conn = DatabaseConfig.getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM account WHERE username = ?")) {
+                ps.setString(1, createdUsername);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                // ignore
+            }
+            createdUsername = null;
+        }
+    }
 
     @Test
     @DisplayName("Lấy tất cả danh sách - Phải trả về List không null")
     void testFindAll() {
         List<Account> list = accountService.findAll();
         assertNotNull(list);
-        System.out.println("Kiểm tra findAll: OK");
     }
 
-@Test
-@DisplayName("Tìm theo Username hợp lệ")
-void testFindByUsername_Valid() {
-    Account acc = accountService.findByUsername("admin");
+    @Test
+    @DisplayName("Tìm theo Username hợp lệ")
+    void testFindByUsername_Valid() {
+        Account acc = accountService.findByUsername("admin");
+        assertNotNull(acc, "Account không được null");
+        assertEquals("admin", acc.getUsername());
+    }
 
-    assertNotNull(acc, "Account không được null");
-    assertEquals("admin", acc.getUsername());
-}
-
-    /* ================= TEST CREATE (THÊM MỚI) ================= */
-//Thêm nhưng để trống acoount -->  kỳ vọng lỗi
     @Test
     @DisplayName("Thêm mới thất bại - Account bị null")
     void testCreate_NullAccount() {
         assertThrows(IllegalArgumentException.class, () -> accountService.create(null));
     }
 
-// ueser trống --->từ cối và ném lỗi
     @Test
     @DisplayName("Thêm mới thất bại - Username để trống")
     void testCreate_EmptyUsername() {
@@ -52,7 +64,6 @@ void testFindByUsername_Valid() {
         assertEquals("Username không được để trống", ex.getMessage());
     }
 
-    // trùng usser --->nesmm lỗi
     @Test
     @DisplayName("Thêm mới thất bại - Username đã tồn tại")
     void testCreate_DuplicateUsername() {
@@ -60,7 +71,6 @@ void testFindByUsername_Valid() {
         assertThrows(IllegalArgumentException.class, () -> accountService.create(acc));
     }
 
-    //thêm thành công --> kì vọng create account
     @Test
     @DisplayName("Thêm mới thành công - Dữ liệu chuẩn")
     void testCreate_Success() {
@@ -68,9 +78,8 @@ void testFindByUsername_Valid() {
         Account acc = new Account(uniqueUser, "pass123", "STAFF", true);
 
         assertDoesNotThrow(() -> accountService.create(acc));
+        createdUsername = uniqueUser;
     }
-
-    /* ================= TEST UPDATE (CẬP NHẬT) ================= */
 
     @Test
     @DisplayName("Cập nhật thất bại - Username bị null")
@@ -87,21 +96,16 @@ void testFindByUsername_Valid() {
         assertEquals("Password không được trống", ex.getMessage());
     }
 
-    /* ================= TEST DELETE & EXISTS ================= */
-
     @Test
-    @DisplayName("Xóa tài khoản - Kiểm tra không gây crash app")
+    @DisplayName("Xóa tài khoản - Kiểm tra ID không hợp lệ")
     void testDelete() {
-        // Xóa một ID không tồn tại để xem hệ thống có chịu tải được không
-        assertDoesNotThrow(() -> accountService.deleteById(-999));
+        assertThrows(IllegalArgumentException.class, () -> accountService.deleteById(-999));
     }
 
     @Test
     @DisplayName("Kiểm tra tồn tại - Username có thật")
     void testExists_True() {
         boolean exists = accountService.existsByUsername("admin");
-        // Nếu DB có admin thì sẽ là true, không thì false.
         assertTrue(accountService.existsByUsername("admin"));
-        System.out.println("Admin exists: " + exists);
     }
 }

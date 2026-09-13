@@ -46,6 +46,7 @@ public class ProductManagementPanel extends JPanel {
     private JTable cartTable;
     private DefaultTableModel cartTableModel;
     private JLabel lblTotal;
+    private boolean cartUpdating = false;
 
     private final ProductController productController = new ProductController();
     private final OrderController   orderController   = new OrderController();
@@ -233,15 +234,22 @@ public class ProductManagementPanel extends JPanel {
         btnCheckout.addActionListener(e -> openCheckoutDialog());
 
         cartTableModel.addTableModelListener(e -> {
+            if (cartUpdating) return;
             if (e.getColumn() == 2) {
                 int row = e.getFirstRow();
+                if (row < 0 || row >= cartTableModel.getRowCount()) return;
                 try {
                     int qty = Integer.parseInt(cartTableModel.getValueAt(row, 2).toString());
                     double unitPrice = (double) cartTableModel.getValueAt(row, 1);
+                    cartUpdating = true;
                     if (qty <= 0) cartTableModel.removeRow(row);
                     else cartTableModel.setValueAt(unitPrice * qty, row, 3);
                     updateTotal();
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                } catch (IndexOutOfBoundsException ignored) {
+                } finally {
+                    cartUpdating = false;
+                }
             }
         });
     }
@@ -283,7 +291,8 @@ public class ProductManagementPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống!", "Cảnh báo", JOptionPane.WARNING_MESSAGE); return;
         }
 
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Thanh Toán", true);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Thanh Toán", true);
         dialog.setSize(600, 720);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -503,7 +512,8 @@ public class ProductManagementPanel extends JPanel {
     }
 
     private void openAddDialog() {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Thêm sản phẩm mới", true);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Thêm sản phẩm mới", true);
         dialog.setSize(400, 240); dialog.setLocationRelativeTo(this); dialog.setLayout(new BorderLayout(10, 10));
         JPanel form = new JPanel(new GridLayout(3, 2, 10, 10));
         form.setBorder(new EmptyBorder(20, 20, 10, 20));
@@ -537,7 +547,8 @@ public class ProductManagementPanel extends JPanel {
         String name = (String) productTableModel.getValueAt(row, 1);
         double price = (double) productTableModel.getValueAt(row, 2);
         boolean active = "Đang bán".equals(productTableModel.getValueAt(row, 3));
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Sửa sản phẩm", true);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Sửa sản phẩm", true);
         dialog.setSize(400, 240); dialog.setLocationRelativeTo(this); dialog.setLayout(new BorderLayout(10, 10));
         JPanel form = new JPanel(new GridLayout(3, 2, 10, 10));
         form.setBorder(new EmptyBorder(20, 20, 10, 20));

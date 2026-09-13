@@ -23,8 +23,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 list.add(mapResultSet(rs));
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lấy danh sách khách hàng", e);
         }
         return list;
     }
@@ -32,8 +32,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     @Override
     public void save(Customer c) {
         String sql = """
-            INSERT INTO customer(code, name, phone, email, point, status)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO customer(code, name, phone, email, point, status, account_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection con = DatabaseConfig.getConnection();
@@ -45,11 +45,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             ps.setString(4, c.getEmail());
             ps.setInt(5, c.getPoint());
             ps.setInt(6, c.getStatus());
+            ps.setObject(7, c.getAccountId());
 
             ps.executeUpdate();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lưu khách hàng", e);
         }
     }
 
@@ -57,7 +58,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     public void update(Customer c) {
         String sql = """
             UPDATE customer
-            SET name=?, phone=?, email=?, status=?
+            SET name=?, phone=?, email=?, status=?, account_id=?
             WHERE id=?
         """;
 
@@ -68,12 +69,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             ps.setString(2, c.getPhone());
             ps.setString(3, c.getEmail());
             ps.setInt(4, c.getStatus());
-            ps.setInt(5, c.getId());
+            ps.setObject(5, c.getAccountId());
+            ps.setInt(6, c.getId());
 
             ps.executeUpdate();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi cập nhật khách hàng", e);
         }
     }
 
@@ -87,8 +89,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             ps.setInt(1, id);
             ps.executeUpdate();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi xóa khách hàng", e);
         }
     }
 
@@ -100,14 +102,15 @@ public class CustomerRepositoryImpl implements CustomerRepository {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                return mapResultSet(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSet(rs);
+                }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tìm khách hàng theo ID", e);
         }
         return null;
     }
@@ -116,7 +119,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     public List<Customer> search(String keyword, String statusStr) {
         List<Customer> list = new ArrayList<>();
 
-        // 1. Chuyển đổi trạng thái từ chuỗi UI sang số DB
         Integer statusValue = null;
         if ("Hoạt động".equalsIgnoreCase(statusStr)) {
             statusValue = 1;
@@ -124,7 +126,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             statusValue = 0;
         }
 
-        // 2. Xây dựng câu SQL động
         StringBuilder sql = new StringBuilder("SELECT * FROM customer WHERE (name LIKE ? OR phone LIKE ?)");
         if (statusValue != null) {
             sql.append(" AND status = ?");
@@ -140,20 +141,21 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 ps.setInt(3, statusValue);
             }
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapResultSet(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSet(rs));
+                }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tìm kiếm khách hàng", e);
         }
 
         return list;
     }
 
     private Customer mapResultSet(ResultSet rs) throws SQLException {
-        return new Customer(
+        Customer customer = new Customer(
                 rs.getInt("id"),
                 rs.getString("code"),
                 rs.getString("name"),
@@ -162,5 +164,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 rs.getInt("point"),
                 rs.getInt("status")
         );
+        customer.setAccountId((Integer) rs.getObject("account_id"));
+        return customer;
     }
 }

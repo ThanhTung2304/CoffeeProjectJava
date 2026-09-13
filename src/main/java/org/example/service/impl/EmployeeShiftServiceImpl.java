@@ -13,6 +13,9 @@ public class EmployeeShiftServiceImpl implements EmployeeShiftService {
 
     @Override
     public void assignShift(int empId, int shiftId, LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Ngày không được null");
+        }
 
         if (date.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Không được gán ca cho ngày trong quá khứ");
@@ -24,9 +27,13 @@ public class EmployeeShiftServiceImpl implements EmployeeShiftService {
 
         repo.assign(empId, shiftId, date);
     }
+
     @Override
     public void update(int empId, int oldShiftId, int newShiftId, String workDate) {
+        if (workDate == null || workDate.isBlank()) {
+            throw new IllegalArgumentException("Ngày làm việc không được trống");
+        }
+
         repo.update(empId, oldShiftId, newShiftId, workDate);
     }
-
 }

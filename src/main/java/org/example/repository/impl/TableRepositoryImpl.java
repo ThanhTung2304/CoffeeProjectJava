@@ -27,7 +27,7 @@ public class TableRepositoryImpl implements TableRepository {
                 list.add(t);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi lấy danh sách bàn", e);
         }
         return list;
     }
@@ -43,7 +43,7 @@ public class TableRepositoryImpl implements TableRepository {
             ps.setString(4, table.getNote());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi thêm bàn", e);
         }
     }
 
@@ -59,7 +59,7 @@ public class TableRepositoryImpl implements TableRepository {
             ps.setInt(5, table.getTableNumber());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi cập nhật bàn", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class TableRepositoryImpl implements TableRepository {
             ps.setInt(1, tableNumber);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi xóa bàn", e);
         }
     }
 }

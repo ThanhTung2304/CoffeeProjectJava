@@ -47,6 +47,9 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public void update(Recipe recipe) {
+        if (recipe == null) {
+            throw new IllegalArgumentException("Recipe không được null");
+        }
 
         if (recipe.getId() <= 0) {
             throw new IllegalArgumentException("Recipe ID không hợp lệ");
@@ -57,11 +60,17 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public void deleteById(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Recipe ID không hợp lệ");
+        }
         recipeRepository.deleteById(id);
     }
 
     @Override
     public void deleteByProductId(int productId) {
+        if (productId <= 0) {
+            throw new IllegalArgumentException("Product ID không hợp lệ");
+        }
         recipeRepository.deleteByProductId(productId);
     }
 }

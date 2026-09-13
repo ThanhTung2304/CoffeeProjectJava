@@ -2,7 +2,13 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.entity.Employee;
+import org.example.entity.Customer;
 import org.example.event.DataChangeEventBus;
+import org.example.repository.EmployeeRepository;
+import org.example.repository.impl.EmployeeRepositoryImpl;
+import org.example.repository.CustomerRepository;
+import org.example.repository.impl.CustomerRepositoryImpl;
 import org.example.util.ExportToExcel;
 
 import javax.swing.*;
@@ -11,10 +17,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class AccountManagementPanel extends JPanel {
 
@@ -33,6 +38,7 @@ public class AccountManagementPanel extends JPanel {
     private static final Color BTN_RED    = new Color(0xEF4444);
     private static final Color BTN_SLATE  = new Color(0x64748B);
     private static final Color BTN_BLUE   = new Color(0x3B82F6);
+    private static final Color BTN_PURPLE = new Color(0x8B5CF6);
 
     private static final Color BADGE_ACTIVE = new Color(0xDCFCE7);
     private static final Color BADGE_ACTIVE_FG = new Color(0x166534);
@@ -47,6 +53,8 @@ public class AccountManagementPanel extends JPanel {
 
     // ── Fields ────────────────────────────────────────────────────────────────
     private final AccountController controller = new AccountController();
+    private final EmployeeRepository employeeRepository = new EmployeeRepositoryImpl();
+    private final CustomerRepository customerRepository = new CustomerRepositoryImpl();
 
     private JTable table;
     private DefaultTableModel tableModel;
@@ -54,12 +62,18 @@ public class AccountManagementPanel extends JPanel {
     private JComboBox<String> cbStatus;
     private JLabel rowCountLabel;
 
+    private final DataChangeEventBus.DataChangeListener dataListener = this::loadData;
+
     public AccountManagementPanel() {
         setLayout(new BorderLayout());
         setBackground(BG);
         initUI();
         loadData();
-        DataChangeEventBus.onRegister(this::loadData);
+        DataChangeEventBus.onRegister(dataListener);
+    }
+
+    public void cleanup() {
+        DataChangeEventBus.onUnregister(dataListener);
     }
 
     private void initUI() {
@@ -73,7 +87,6 @@ public class AccountManagementPanel extends JPanel {
         header.setBackground(HEADER_BG);
         header.setBorder(new EmptyBorder(18, 24, 18, 24));
 
-        // Left
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
 
@@ -88,7 +101,7 @@ public class AccountManagementPanel extends JPanel {
         title.setFont(FONT_TITLE);
         title.setForeground(Color.WHITE);
 
-        JLabel sub = new JLabel("Thêm, sửa, xóa và phân quyền tài khoản đăng nhập hệ thống");
+        JLabel sub = new JLabel("Thêm, sửa, xóa và phân quyền tài khoản - Nhân viên - Khách hàng");
         sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         sub.setForeground(new Color(0x94A3B8));
 
@@ -99,7 +112,6 @@ public class AccountManagementPanel extends JPanel {
         left.add(titleBlock);
         header.add(left, BorderLayout.WEST);
 
-        // Right: row count
         rowCountLabel = new JLabel("0 tài khoản");
         rowCountLabel.setFont(FONT_BOLD);
         rowCountLabel.setForeground(new Color(0xCBD5E1));
@@ -127,14 +139,13 @@ public class AccountManagementPanel extends JPanel {
         bar.setOpaque(false);
         bar.setBorder(new EmptyBorder(0, 0, 12, 0));
 
-        // Search group
         JPanel searchGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         searchGroup.setOpaque(false);
 
         txtSearch = new JTextField();
         txtSearch.setPreferredSize(new Dimension(220, 36));
         txtSearch.setFont(FONT_BODY);
-        txtSearch.putClientProperty("JTextField.placeholderText", "Tìm kiếm username...");
+        txtSearch.putClientProperty("JTextField.placeholderText", "Tìm username, tên NV...");
 
         cbStatus = new JComboBox<>(new String[]{"Tất cả", "Hoạt động", "Khóa"});
         cbStatus.setFont(FONT_BODY);
@@ -146,7 +157,6 @@ public class AccountManagementPanel extends JPanel {
         searchGroup.add(cbStatus);
         searchGroup.add(btnSearch);
 
-        // Action buttons
         JPanel actionGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionGroup.setOpaque(false);
 
@@ -178,7 +188,7 @@ public class AccountManagementPanel extends JPanel {
     // ── Table ─────────────────────────────────────────────────────────────────
     private JScrollPane buildTable() {
         tableModel = new DefaultTableModel(
-                new String[]{"ID", "STT", "Username", "Mật Khẩu", "Phân Quyền", "Trạng Thái"}, 0
+                new String[]{"ID", "STT", "Username", "Phân Quyền", "Tên Nhân Viên", "SĐT NV", "Chức Vụ", "Trạng Thái"}, 0
         ) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -193,6 +203,7 @@ public class AccountManagementPanel extends JPanel {
         table.setSelectionForeground(new Color(0x1E40AF));
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
+        table.setAutoCreateRowSorter(true);
 
         table.removeColumn(table.getColumnModel().getColumn(0));
 
@@ -202,7 +213,7 @@ public class AccountManagementPanel extends JPanel {
                     JTable t, Object value, boolean isSelected,
                     boolean hasFocus, int row, int col) {
 
-                if (col == 4 && value != null) {
+                if (col == 6 && value != null) {
                     boolean active = value.toString().equals("Hoạt động");
                     JLabel badge = new JLabel(active ? "● Hoạt động" : "● Khóa");
                     badge.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -214,7 +225,7 @@ public class AccountManagementPanel extends JPanel {
                     return badge;
                 }
 
-                super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col); // Đã sửa 'v' thành 'value'
+                super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, col);
                 setBorder(new EmptyBorder(0, 12, 0, 12));
                 setBackground(isSelected ? ROW_SELECTED : (row % 2 == 0 ? ROW_ODD : ROW_EVEN));
                 setForeground(isSelected ? new Color(0x1E40AF) : new Color(0x1E293B));
@@ -231,39 +242,114 @@ public class AccountManagementPanel extends JPanel {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         scroll.getViewport().setBackground(Color.WHITE);
+
         return scroll;
     }
 
+    // ── Load Data ─────────────────────────────────────────────────────────────
     private void loadData() {
         tableModel.setRowCount(0);
-        List<Account> list = controller.search(txtSearch.getText(), Objects.requireNonNull(cbStatus.getSelectedItem()).toString());
+
+        String keyword = txtSearch.getText().trim().toLowerCase();
+        String status = Objects.requireNonNull(cbStatus.getSelectedItem()).toString();
+
+        List<Account> accounts = controller.search(keyword, status);
+        List<Employee> allEmployees = employeeRepository.findAll();
+
         int stt = 1;
-        for (Account a : list) {
+        for (Account a : accounts) {
+            Employee emp = allEmployees.stream()
+                    .filter(e -> e.getAccountId() != null && e.getAccountId() == a.getId())
+                    .findFirst()
+                    .orElse(null);
+
+            Customer customer = customerRepository.findAll().stream()
+                    .filter(c -> c.getAccountId() != null && c.getAccountId() == a.getId())
+                    .findFirst()
+                    .orElse(null);
+
+            String empName   = emp != null ? emp.getName() : customer != null ? customer.getName() : "";
+            String empPhone  = emp != null ? emp.getPhone() : customer != null ? customer.getPhone() : "";
+            String empPos    = emp != null ? emp.getPosition() : customer != null ? "CUSTOMER" : "";
+
             tableModel.addRow(new Object[]{
-                    a.getId(), stt++, a.getUsername(), a.getPassword(), a.getRole(), a.isActive() ? "Hoạt động" : "Khóa"
+                    a.getId(),
+                    stt++,
+                    a.getUsername(),
+                    a.getRole(),
+                    empName,
+                    empPhone,
+                    empPos,
+                    a.isActive() ? "Hoạt động" : "Khóa"
             });
         }
-        rowCountLabel.setText(list.size() + " tài khoản");
+
+        rowCountLabel.setText(accounts.size() + " tài khoản");
     }
 
+    // ── Add Dialog ────────────────────────────────────────────────────────────
     private void openAddDialog() {
-        JTextField    user   = new JTextField();
-        JPasswordField pass  = new JPasswordField();
+        JTextField    user     = new JTextField();
+        JPasswordField pass    = new JPasswordField();
         JComboBox<String> role = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
-        JCheckBox active = new JCheckBox("Hoạt động", true);
+        JCheckBox active       = new JCheckBox("Hoạt động", true);
+
+        JTextField empName     = new JTextField();
+        JTextField empPhone    = new JTextField();
+        JTextField empPosition = new JTextField();
 
         JPanel p = createForm();
-        addField(p, "Username:",   user);
-        addField(p, "Password:",   pass);
-        addField(p, "Phân quyền:", role);
-        addField(p, "Trạng thái:", active);
+        addField(p, "Username:",      user);
+        addField(p, "Password:",      pass);
+        addField(p, "Phân quyền:",    role);
+        addField(p, "Trạng thái:",    active);
+        addField(p, "── Thông tin NV ──", new JLabel(""));
+        addField(p, "Tên nhân viên:", empName);
+        addField(p, "SĐT nhân viên:", empPhone);
+        addField(p, "Chức vụ:",       empPosition);
 
         if (JOptionPane.showConfirmDialog(this, p, "＋ Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
-            controller.add(user.getText(), new String(pass.getPassword()), Objects.requireNonNull(role.getSelectedItem()).toString(), active.isSelected());
+            String selectedRole = Objects.requireNonNull(role.getSelectedItem()).toString();
+            controller.add(user.getText(), new String(pass.getPassword()), selectedRole, active.isSelected());
+
+            if ("STAFF".equalsIgnoreCase(selectedRole) || "ADMIN".equalsIgnoreCase(selectedRole)) {
+                String name = empName.getText().trim();
+                if (!name.isEmpty()) {
+                    Employee emp = new Employee();
+                    emp.setName(name);
+                    emp.setPhone(empPhone.getText().trim());
+                    emp.setPosition(empPosition.getText().trim());
+
+                    Account saved = controller.findByUsername(user.getText().trim());
+                    if (saved != null) {
+                        emp.setAccountId(saved.getId());
+                        emp.setUsername(saved.getUsername());
+                    }
+
+                    employeeRepository.save(emp);
+                    DataChangeEventBus.notifyChange();
+                }
+            } else if ("USER".equalsIgnoreCase(selectedRole)) {
+                String name = empName.getText().trim();
+                if (!name.isEmpty()) {
+                    Customer customer = new Customer();
+                    customer.setCode("CUS-" + System.currentTimeMillis());
+                    customer.setName(name);
+                    customer.setPhone(empPhone.getText().trim());
+                    customer.setPoint(0);
+                    customer.setStatus(1);
+                    Account saved = controller.findByUsername(user.getText().trim());
+                    if (saved != null) customer.setAccountId(saved.getId());
+                    customerRepository.save(customer);
+                    DataChangeEventBus.notifyChange();
+                }
+            }
+
             loadData();
         }
     }
 
+    // ── Edit Dialog ───────────────────────────────────────────────────────────
     private void openEditDialog() {
         int row = table.getSelectedRow();
         if (row == -1) return;
@@ -271,24 +357,142 @@ public class AccountManagementPanel extends JPanel {
         int id       = (int) tableModel.getValueAt(modelRow, 0);
         Account acc  = controller.findByUsername(tableModel.getValueAt(modelRow, 2).toString());
 
+        if (acc == null) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy tài khoản!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Employee existingEmp = employeeRepository.findAll().stream()
+                .filter(e -> e.getAccountId() != null && e.getAccountId() == acc.getId())
+                .findFirst()
+                .orElse(null);
+
+        Customer existingCust = customerRepository.findAll().stream()
+                .filter(c -> c.getAccountId() != null && c.getAccountId() == acc.getId())
+                .findFirst()
+                .orElse(null);
+
         JTextField    user  = new JTextField(acc.getUsername());
-        JPasswordField pass = new JPasswordField(acc.getPassword());
+        JPasswordField pass = new JPasswordField();
         JComboBox<String> role = new JComboBox<>(new String[]{"ADMIN", "STAFF", "USER"});
         role.setSelectedItem(acc.getRole());
         JCheckBox active = new JCheckBox("Hoạt động", acc.isActive());
 
         JPanel p = createForm();
-        addField(p, "Username:",   user);
-        addField(p, "Password:",   pass);
-        addField(p, "Phân quyền:", role);
-        addField(p, "Trạng thái:", active);
+        addField(p, "Username:",      user);
+        addField(p, "Password:",      pass);
+        addField(p, "Phân quyền:",    role);
+        addField(p, "Trạng thái:",    active);
+
+        String selectedInitial = Objects.requireNonNull(role.getSelectedItem()).toString();
+        JPanel entityPanel = new JPanel(new GridLayout(0, 2, 10, 12));
+        entityPanel.setBackground(Color.WHITE);
+
+        JTextField empName = new JTextField();
+        JTextField empPhone = new JTextField();
+        JTextField empPosition = new JTextField();
+        JTextField custName = new JTextField();
+        JTextField custPhone = new JTextField();
+        JTextField custEmail = new JTextField();
+
+        if ("ADMIN".equalsIgnoreCase(selectedInitial) || "STAFF".equalsIgnoreCase(selectedInitial)) {
+            empName.setText(existingEmp != null ? existingEmp.getName() : "");
+            empPhone.setText(existingEmp != null ? existingEmp.getPhone() : "");
+            empPosition.setText(existingEmp != null ? existingEmp.getPosition() : "");
+            addField(entityPanel, "── Thông tin NV ──", new JLabel(""));
+            addField(entityPanel, "Tên nhân viên:", empName);
+            addField(entityPanel, "SĐT nhân viên:", empPhone);
+            addField(entityPanel, "Chức vụ:",       empPosition);
+        } else {
+            custName.setText(existingCust != null ? existingCust.getName() : "");
+            custPhone.setText(existingCust != null ? existingCust.getPhone() : "");
+            custEmail.setText(existingCust != null ? existingCust.getEmail() : "");
+            addField(entityPanel, "── Thông tin KH ──", new JLabel(""));
+            addField(entityPanel, "Tên khách hàng:", custName);
+            addField(entityPanel, "SĐT:",            custPhone);
+            addField(entityPanel, "Email:",          custEmail);
+        }
+
+        p.add(entityPanel);
+
+        role.addActionListener(e -> {
+            String newRole = Objects.requireNonNull(role.getSelectedItem()).toString();
+            entityPanel.removeAll();
+            if ("ADMIN".equalsIgnoreCase(newRole) || "STAFF".equalsIgnoreCase(newRole)) {
+                empName.setText(existingEmp != null ? existingEmp.getName() : "");
+                empPhone.setText(existingEmp != null ? existingEmp.getPhone() : "");
+                empPosition.setText(existingEmp != null ? existingEmp.getPosition() : "");
+                addField(entityPanel, "── Thông tin NV ──", new JLabel(""));
+                addField(entityPanel, "Tên nhân viên:", empName);
+                addField(entityPanel, "SĐT nhân viên:", empPhone);
+                addField(entityPanel, "Chức vụ:",       empPosition);
+            } else {
+                custName.setText(existingCust != null ? existingCust.getName() : "");
+                custPhone.setText(existingCust != null ? existingCust.getPhone() : "");
+                custEmail.setText(existingCust != null ? existingCust.getEmail() : "");
+                addField(entityPanel, "── Thông tin KH ──", new JLabel(""));
+                addField(entityPanel, "Tên khách hàng:", custName);
+                addField(entityPanel, "SĐT:",            custPhone);
+                addField(entityPanel, "Email:",          custEmail);
+            }
+            entityPanel.revalidate();
+            entityPanel.repaint();
+        });
 
         if (JOptionPane.showConfirmDialog(this, p, "✎ Sửa tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
-            controller.update(id, user.getText(), new String(pass.getPassword()), Objects.requireNonNull(role.getSelectedItem()).toString(), active.isSelected());
+            String newPass = new String(pass.getPassword());
+            if (newPass.isEmpty()) {
+                newPass = acc.getPassword();
+            }
+            String selectedRole = Objects.requireNonNull(role.getSelectedItem()).toString();
+            controller.update(id, user.getText(), newPass, selectedRole, active.isSelected());
+
+            if ("STAFF".equalsIgnoreCase(selectedRole) || "ADMIN".equalsIgnoreCase(selectedRole)) {
+                String name = empName.getText().trim();
+                if (!name.isEmpty()) {
+                    if (existingEmp != null) {
+                        existingEmp.setName(name);
+                        existingEmp.setPhone(empPhone.getText().trim());
+                        existingEmp.setPosition(empPosition.getText().trim());
+                        employeeRepository.update(existingEmp);
+                    } else {
+                        Employee emp = new Employee();
+                        emp.setName(name);
+                        emp.setPhone(empPhone.getText().trim());
+                        emp.setPosition(empPosition.getText().trim());
+                        emp.setAccountId(acc.getId());
+                        emp.setUsername(acc.getUsername());
+                        employeeRepository.save(emp);
+                    }
+                }
+            } else if ("USER".equalsIgnoreCase(selectedRole)) {
+                String name = custName.getText().trim();
+                if (!name.isEmpty()) {
+                    if (existingCust != null) {
+                        existingCust.setName(name);
+                        existingCust.setPhone(custPhone.getText().trim());
+                        existingCust.setEmail(custEmail.getText().trim());
+                        customerRepository.update(existingCust);
+                    } else {
+                        Customer cust = new Customer();
+                        cust.setCode("CUS-" + System.currentTimeMillis());
+                        cust.setName(name);
+                        cust.setPhone(custPhone.getText().trim());
+                        cust.setEmail(custEmail.getText().trim());
+                        cust.setPoint(0);
+                        cust.setStatus(1);
+                        cust.setAccountId(acc.getId());
+                        customerRepository.save(cust);
+                    }
+                }
+            }
+
+            DataChangeEventBus.notifyChange();
             loadData();
         }
     }
 
+    // ── Delete ────────────────────────────────────────────────────────────────
     private void deleteAccount() {
         int row = table.getSelectedRow();
         if (row == -1) return;
@@ -300,6 +504,7 @@ public class AccountManagementPanel extends JPanel {
         }
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
     private JButton createButton(String text, Color base) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
@@ -317,7 +522,7 @@ public class AccountManagementPanel extends JPanel {
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(130, 36));
+        btn.setPreferredSize(new Dimension(155, 36));
         return btn;
     }
 

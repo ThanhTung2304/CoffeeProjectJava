@@ -16,13 +16,11 @@ public class CustomerServiceImpl implements CustomerService {
         this.customerRepository = new CustomerRepositoryImpl();
     }
 
-    /* ================= FIND ALL ================= */
     @Override
     public List<Customer> findAll() {
         return customerRepository.findAll();
     }
 
-    /* ================= CREATE ================= */
     @Override
     public void create(Customer customer) {
 
@@ -43,7 +41,6 @@ public class CustomerServiceImpl implements CustomerService {
         DataChangeEventBus.notifyChange();
     }
 
-    /* ================= UPDATE ================= */
     @Override
     public void update(Customer customer) {
 
@@ -51,12 +48,19 @@ public class CustomerServiceImpl implements CustomerService {
             throw new IllegalArgumentException("Customer không hợp lệ");
         }
 
+        if (customer.getName() == null || customer.getName().isBlank()) {
+            throw new IllegalArgumentException("Tên khách hàng không được để trống");
+        }
+
+        if (customer.getPhone() == null || customer.getPhone().isBlank()) {
+            throw new IllegalArgumentException("Số điện thoại không được để trống");
+        }
+
         customerRepository.update(customer);
 
         DataChangeEventBus.notifyChange();
     }
 
-    /* ================= DELETE ================= */
     @Override
     public void deleteById(int id) {
 
@@ -69,7 +73,6 @@ public class CustomerServiceImpl implements CustomerService {
         DataChangeEventBus.notifyChange();
     }
 
-    /* ================= FIND BY ID ================= */
     @Override
     public Customer findById(int id) {
 
@@ -80,7 +83,6 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findById(id);
     }
 
-    /* ================= SEARCH ================= */
     @Override
     public List<Customer> search(String keyword, String status) {
         return customerRepository.search(keyword, status);

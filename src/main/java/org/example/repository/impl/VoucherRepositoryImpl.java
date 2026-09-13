@@ -19,14 +19,11 @@ public class VoucherRepositoryImpl implements VoucherRepository {
         return "Còn hiệu lực";
     }
 
-    /**
-     * Chuẩn hóa loại giảm giá sang Tiếng Việt để khớp với DB ENUM/VARCHAR
-     */
     private String normalizeDiscountType(String type) {
         if (type == null) return "Phần trăm";
         String t = type.trim().toUpperCase();
         if (t.equals("PERCENT") || t.contains("PHẦN TRĂM")) return "Phần trăm";
-        if (t.equals("AMOUNT") || t.contains("CỐ ĐỊNH") || t.contains("SỐ TIỀN")) return "Cố định";
+        if (t.equals("AMOUNT") || t.contains("CỐ ĐỊNH") || t.contains("SỐ TIỀN")) return "Số tiền";
         return "Phần trăm";
     }
 
@@ -42,9 +39,12 @@ public class VoucherRepositoryImpl implements VoucherRepository {
             ps.setString(1, "%" + keyword + "%");
             ps.setString(2, "%" + keyword + "%");
             if (hasStatus) ps.setString(3, normalizeStatus(status));
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) list.add(mapResultSet(rs));
-        } catch (SQLException e) { throw new RuntimeException(e); }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapResultSet(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tìm kiếm voucher", e);
+        }
         return list;
     }
 
@@ -54,9 +54,12 @@ public class VoucherRepositoryImpl implements VoucherRepository {
         try (Connection con = DatabaseConfig.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, code);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapResultSet(rs);
-        } catch (SQLException e) { e.printStackTrace(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapResultSet(rs);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tìm voucher theo mã", e);
+        }
         return null;
     }
 
@@ -66,7 +69,7 @@ public class VoucherRepositoryImpl implements VoucherRepository {
         try (Connection con = DatabaseConfig.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, v.getCode());
-            ps.setString(2, normalizeDiscountType(v.getDiscountType())); // SỬA TẠI ĐÂY
+            ps.setString(2, normalizeDiscountType(v.getDiscountType()));
             ps.setDouble(3, v.getDiscountValue());
             ps.setDate(4, Date.valueOf(v.getStartDate()));
             ps.setDate(5, Date.valueOf(v.getEndDate()));
@@ -75,7 +78,9 @@ public class VoucherRepositoryImpl implements VoucherRepository {
             ps.setObject(8, v.getUsedCount() != null ? v.getUsedCount() : 0, Types.INTEGER);
             ps.setString(9, v.getNote());
             ps.executeUpdate();
-        } catch (SQLException e) { throw new RuntimeException("Lỗi SQL khi lưu Voucher: " + e.getMessage()); }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lưu voucher", e);
+        }
     }
 
     @Override
@@ -84,7 +89,7 @@ public class VoucherRepositoryImpl implements VoucherRepository {
         try (Connection con = DatabaseConfig.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, v.getCode());
-            ps.setString(2, normalizeDiscountType(v.getDiscountType())); // SỬA TẠI ĐÂY
+            ps.setString(2, normalizeDiscountType(v.getDiscountType()));
             ps.setDouble(3, v.getDiscountValue());
             ps.setDate(4, Date.valueOf(v.getStartDate()));
             ps.setDate(5, Date.valueOf(v.getEndDate()));
@@ -94,7 +99,9 @@ public class VoucherRepositoryImpl implements VoucherRepository {
             ps.setString(9, v.getNote());
             ps.setInt(10, v.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { throw new RuntimeException(e); }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi cập nhật voucher", e);
+        }
     }
 
     @Override
@@ -104,7 +111,9 @@ public class VoucherRepositoryImpl implements VoucherRepository {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi xóa voucher", e);
+        }
     }
 
     private Voucher mapResultSet(ResultSet rs) throws SQLException {

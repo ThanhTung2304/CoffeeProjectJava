@@ -14,11 +14,8 @@ import java.util.List;
 
 public class InventoryManagementPanel extends JPanel {
 
-    // ── Palette (Giống AccountManagementPanel) ───────────────────────────────
     private static final Color BG           = new Color(0xF5F7FA);
     private static final Color HEADER_BG    = new Color(0x1E293B);
-    private static final Color BORDER_COLOR = new Color(0xE2E8F0);
-
     private static final Color BTN_GREEN  = new Color(0x22C55E);
     private static final Color BTN_RED    = new Color(0xEF4444);
     private static final Color BTN_SLATE  = new Color(0x64748B);
@@ -37,40 +34,41 @@ public class InventoryManagementPanel extends JPanel {
     private DefaultTableModel inventoryModel;
     private DefaultTableModel historyModel;
 
-    private JTextField txtQuantity;
-    private JTextField txtNote;
-
     public InventoryManagementPanel() {
         setLayout(new BorderLayout());
         setBackground(BG);
 
         initUI();
-        loadInventory();
+        try {
+            loadInventory();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu tồn kho: " + ex.getMessage());
+        }
 
-        // Auto reload khi mở tab
         this.addAncestorListener(new AncestorListener() {
             @Override
             public void ancestorAdded(AncestorEvent event) {
-                loadInventory();
-                if (historyModel != null) historyModel.setRowCount(0);
+                try {
+                    loadInventory();
+                    if (historyModel != null) historyModel.setRowCount(0);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(InventoryManagementPanel.this, "Lỗi khi tải dữ liệu tồn kho: " + ex.getMessage());
+                }
             }
-
             @Override public void ancestorRemoved(AncestorEvent event) {}
             @Override public void ancestorMoved(AncestorEvent event) {}
         });
     }
 
     private void initUI() {
-        /* ===== HEADER (BANNER) ===== */
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(HEADER_BG);
         header.setBorder(new EmptyBorder(18, 24, 18, 24));
 
-        // Left block
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
 
-        JLabel icon = new JLabel("📦");
+        JLabel icon = new JLabel("\uD83D\uDCE6");
         icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 26));
 
         JPanel titleBlock = new JPanel();
@@ -92,48 +90,20 @@ public class InventoryManagementPanel extends JPanel {
         left.add(titleBlock);
         header.add(left, BorderLayout.WEST);
 
-        /* ===== CONTROLS (FILTER + BUTTONS) ===== */
-        JPanel controlPanel = new JPanel(new BorderLayout(12, 0));
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         controlPanel.setOpaque(false);
         controlPanel.setBorder(new EmptyBorder(16, 20, 10, 20));
-
-        // Input group
-        JPanel inputGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        inputGroup.setOpaque(false);
-
-        txtQuantity = new JTextField();
-        txtQuantity.setPreferredSize(new Dimension(80, 36));
-        txtQuantity.setFont(FONT_BODY);
-        txtQuantity.putClientProperty("JTextField.placeholderText", "Số lượng");
-
-        txtNote = new JTextField();
-        txtNote.setPreferredSize(new Dimension(180, 36));
-        txtNote.setFont(FONT_BODY);
-        txtNote.putClientProperty("JTextField.placeholderText", "Ghi chú nhập/xuất...");
-
-        inputGroup.add(new JLabel("Số lượng:"));
-        inputGroup.add(txtQuantity);
-        inputGroup.add(new JLabel("Ghi chú:"));
-        inputGroup.add(txtNote);
-
-        // Action buttons
-        JPanel actionGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        actionGroup.setOpaque(false);
 
         JButton btnImport = createButton("＋ Nhập kho", BTN_GREEN);
         JButton btnExport = createButton("－ Xuất kho", BTN_RED);
         JButton btnDeleteHistory = createButton("✕ Xóa lịch sử", BTN_SLATE);
         JButton btnRefresh = createButton("↻ Làm mới", BTN_BLUE);
 
-        actionGroup.add(btnImport);
-        actionGroup.add(btnExport);
-        actionGroup.add(btnDeleteHistory);
-        actionGroup.add(btnRefresh);
+        controlPanel.add(btnImport);
+        controlPanel.add(btnExport);
+        controlPanel.add(btnDeleteHistory);
+        controlPanel.add(btnRefresh);
 
-        controlPanel.add(inputGroup, BorderLayout.WEST);
-        controlPanel.add(actionGroup, BorderLayout.EAST);
-
-        /* ===== NORTH CONTAINER ===== */
         JPanel northContainer = new JPanel(new BorderLayout());
         northContainer.setBackground(BG);
         northContainer.add(header, BorderLayout.NORTH);
@@ -141,12 +111,10 @@ public class InventoryManagementPanel extends JPanel {
 
         add(northContainer, BorderLayout.NORTH);
 
-        /* ===== CENTER (TABLES) ===== */
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setOpaque(false);
         centerPanel.setBorder(new EmptyBorder(0, 20, 20, 20));
 
-        // Table Inventory
         inventoryModel = new DefaultTableModel(
                 new String[]{"Mã SP", "Tên SP", "Số lượng tồn"}, 0
         ) {
@@ -155,7 +123,7 @@ public class InventoryManagementPanel extends JPanel {
         tblInventory = new JTable(inventoryModel);
         tblInventory.setRowHeight(32);
         tblInventory.setFont(FONT_BODY);
-        
+
         tblInventory.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) loadHistory();
         });
@@ -164,7 +132,6 @@ public class InventoryManagementPanel extends JPanel {
         scrollInv.setBorder(BorderFactory.createTitledBorder("Danh sách tồn kho"));
         scrollInv.getViewport().setBackground(Color.WHITE);
 
-        // Table History
         historyModel = new DefaultTableModel(
                 new String[]{"Thời gian", "Hành động", "Thay đổi", "Ghi chú"}, 0
         ) {
@@ -179,9 +146,7 @@ public class InventoryManagementPanel extends JPanel {
         scrollHistory.getViewport().setBackground(Color.WHITE);
 
         JSplitPane splitPane = new JSplitPane(
-                JSplitPane.VERTICAL_SPLIT,
-                scrollInv,
-                scrollHistory
+                JSplitPane.VERTICAL_SPLIT, scrollInv, scrollHistory
         );
         splitPane.setDividerLocation(250);
         splitPane.setResizeWeight(0.5);
@@ -190,67 +155,141 @@ public class InventoryManagementPanel extends JPanel {
         centerPanel.add(splitPane, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
 
-        /* ===== EVENTS ===== */
-        btnImport.addActionListener(e -> handleAction(true));
-        btnExport.addActionListener(e -> handleAction(false));
+        btnImport.addActionListener(e -> showStockDialog(true));
+        btnExport.addActionListener(e -> showStockDialog(false));
         btnDeleteHistory.addActionListener(e -> handleDeleteHistory());
         btnRefresh.addActionListener(e -> {
-            loadInventory();
-            historyModel.setRowCount(0);
+            try {
+                loadInventory();
+                historyModel.setRowCount(0);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi làm mới dữ liệu: " + ex.getMessage());
+            }
         });
     }
 
-    /* ===== LOAD DATA METHODS ===== */
+    /* ===== DIALOG NHẬP/XUẤT KHO ===== */
+    private void showStockDialog(boolean isImport) {
+        int row = tblInventory.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm!");
+            return;
+        }
+
+        int productId = (int) inventoryModel.getValueAt(row, 0);
+        String productName = (String) inventoryModel.getValueAt(row, 1);
+        int currentQty = (int) inventoryModel.getValueAt(row, 2);
+
+        String title = isImport ? "Nhập kho" : "Xuất kho";
+        String headerText = isImport
+                ? "Nhập hàng cho: " + productName
+                : "Xuất hàng cho: " + productName;
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel lblHeader = new JLabel(headerText);
+        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        panel.add(lblHeader, gbc);
+
+        if (!isImport) {
+            gbc.gridy++;
+            JLabel lblCurrent = new JLabel("Tồn kho hiện tại: " + currentQty);
+            lblCurrent.setFont(FONT_BODY);
+            panel.add(lblCurrent, gbc);
+        }
+
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Số lượng:"), gbc);
+        JSpinner spnQuantity = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+        spnQuantity.setFont(FONT_BODY);
+        spnQuantity.setPreferredSize(new Dimension(120, 30));
+        gbc.gridx = 1;
+        panel.add(spnQuantity, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        panel.add(new JLabel("Ghi chú:"), gbc);
+        JTextField txtNote = new JTextField(20);
+        txtNote.setFont(FONT_BODY);
+        gbc.gridx = 1;
+        panel.add(txtNote, gbc);
+
+        int result = JOptionPane.showConfirmDialog(
+                this, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                int qty = (int) spnQuantity.getValue();
+                String note = txtNote.getText().trim();
+
+                if (isImport) {
+                    controller.importStock(productId, qty, note);
+                } else {
+                    controller.exportStock(productId, qty, note);
+                }
+
+                loadInventory();
+                selectProductById(productId);
+                loadHistory();
+                JOptionPane.showMessageDialog(this,
+                        (isImport ? "Nhập" : "Xuất") + " kho thành công!");
+            } catch (Exception ex) {
+                String msg = ex.getMessage();
+                if (msg == null || msg.isEmpty()) msg = "Lỗi không xác định";
+                JOptionPane.showMessageDialog(this, msg);
+            }
+        }
+    }
+
+    /* ===== LOAD DATA ===== */
     private void loadInventory() {
-        inventoryModel.setRowCount(0);
-        List<Inventory> list = controller.getAllInventory();
-        for (Inventory inv : list) {
-            inventoryModel.addRow(new Object[]{
-                    inv.getProductId(),
-                    inv.getProductName(),
-                    inv.getQuantity()
-            });
+        try {
+            inventoryModel.setRowCount(0);
+            List<Inventory> list = controller.getAllInventory();
+            for (Inventory inv : list) {
+                inventoryModel.addRow(new Object[]{
+                        inv.getProductId(), inv.getProductName(), inv.getQuantity()
+                });
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải danh sách tồn kho: " + ex.getMessage());
+        }
+    }
+
+    private void selectProductById(int productId) {
+        for (int i = 0; i < inventoryModel.getRowCount(); i++) {
+            if ((int) inventoryModel.getValueAt(i, 0) == productId) {
+                tblInventory.setRowSelectionInterval(i, i);
+                tblInventory.scrollRectToVisible(tblInventory.getCellRect(i, 0, true));
+                return;
+            }
         }
     }
 
     private void loadHistory() {
-        historyModel.setRowCount(0);
-        int row = tblInventory.getSelectedRow();
-        if (row == -1) return;
-
-        int productId = (int) inventoryModel.getValueAt(row, 0);
-        List<Inventory> list = controller.getHistoryByProduct(productId);
-
-        for (Inventory h : list) {
-            historyModel.addRow(new Object[]{
-                    h.getCreatedTime().format(formatter),
-                    h.getAction(),
-                    (h.getQuantityChange() > 0 ? "+" : "") + h.getQuantityChange(),
-                    h.getNote()
-            });
-        }
-    }
-
-    private void handleAction(boolean isImport) {
-        int row = tblInventory.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Chọn sản phẩm!");
-            return;
-        }
         try {
-            int pid = (int) inventoryModel.getValueAt(row, 0);
-            int qty = Integer.parseInt(txtQuantity.getText().trim());
-            String note = txtNote.getText();
+            historyModel.setRowCount(0);
+            int row = tblInventory.getSelectedRow();
+            if (row == -1) return;
 
-            if (isImport) controller.importStock(pid, qty, note);
-            else controller.exportStock(pid, qty, note);
+            int productId = (int) inventoryModel.getValueAt(row, 0);
+            List<Inventory> list = controller.getHistoryByProduct(productId);
 
-            loadInventory();
-            loadHistory();
-            txtQuantity.setText("");
-            txtNote.setText("");
+            for (Inventory h : list) {
+                historyModel.addRow(new Object[]{
+                        h.getCreatedTime().format(formatter),
+                        h.getAction(),
+                        (h.getQuantityChange() > 0 ? "+" : "") + h.getQuantityChange(),
+                        h.getNote()
+                });
+            }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải lịch sử tồn kho: " + ex.getMessage());
         }
     }
 
@@ -274,7 +313,6 @@ public class InventoryManagementPanel extends JPanel {
         }
     }
 
-    /* ===== BUTTON FACTORY (Copy phong cách từ Account Management) ===== */
     private JButton createButton(String text, Color base) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
