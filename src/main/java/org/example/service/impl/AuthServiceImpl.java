@@ -10,6 +10,7 @@ import org.example.repository.EmployeeRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.repository.impl.EmployeeRepositoryImpl;
 import org.example.service.AuthService;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthServiceImpl implements AuthService {
 
@@ -21,7 +22,6 @@ public class AuthServiceImpl implements AuthService {
         this.employeeRepository = new EmployeeRepositoryImpl();
     }
 
-    // ================= LOGIN =================
     @Override
     public Account login(LoginRequest request) {
 
@@ -33,13 +33,26 @@ public class AuthServiceImpl implements AuthService {
         if (account == null || !account.isActive())
             return null;
 
-        if (!account.getPassword().equals(request.getPassword()))
+        String storedPassword = account.getPassword();
+        String inputPassword = request.getPassword();
+
+        boolean passwordMatch;
+        if (storedPassword != null && storedPassword.startsWith("$2a$")) {
+            passwordMatch = BCrypt.checkpw(inputPassword, storedPassword);
+        } else {
+            passwordMatch = inputPassword.equals(storedPassword);
+            if (passwordMatch) {
+                account.setPassword(BCrypt.hashpw(inputPassword, BCrypt.gensalt()));
+                accountRepository.update(account);
+            }
+        }
+
+        if (!passwordMatch)
             return null;
 
         return account;
     }
 
-    // ================= REGISTER =================
     @Override
     public boolean register(RegisterRequest request) {
 
@@ -50,20 +63,19 @@ public class AuthServiceImpl implements AuthService {
             role = "USER";
         }
 
+        String hashedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt());
+
         Account account = new Account(
                 request.getUsername(),
-                request.getPassword(),
+                hashedPassword,
                 role,
                 true
         );
 
-        // Lưu account
         accountRepository.save(account);
 
-        // Lấy lại để có ID thật
         Account saved = accountRepository.findByUsername(request.getUsername());
 
-        // Nếu là STAFF → tạo Employee
         if ("STAFF".equalsIgnoreCase(role) && saved != null) {
             Employee employee = new Employee();
             employee.setName(request.getUsername());
@@ -75,19 +87,16 @@ public class AuthServiceImpl implements AuthService {
             employeeRepository.save(employee);
         }
 
-        // FIX: notify để các panel tự refresh
         DataChangeEventBus.notifyChange();
 
         return true;
     }
 
-    // ================= EXISTS =================
     @Override
     public boolean existsByUsername(String username) {
         return accountRepository.existsByUsername(username);
     }
 
-    // ================= VALIDATE =================
     private void validateInfo(RegisterRequest request) {
 
         if (request.getUsername() == null || request.getUsername().isBlank())
@@ -95,6 +104,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (request.getPassword() == null || request.getPassword().isBlank())
             throw new RuntimeException("Password không được để trống");
+
+        if (request.getPassword().length() < 6)
+            throw new RuntimeException("Password phải có ít nhất 6 ký tự");
 
         if (request.getConfirmPassword() == null || request.getConfirmPassword().isBlank())
             throw new RuntimeException("Confirm Password không được để trống");

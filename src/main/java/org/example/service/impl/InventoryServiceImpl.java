@@ -19,6 +19,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public void importInventory(int productId, int quantity, String note) {
+        if (productId <= 0) {
+            throw new IllegalArgumentException("Product ID không hợp lệ");
+        }
         if (quantity <= 0) {
             throw new IllegalArgumentException("Số lượng nhập phải > 0");
         }
@@ -29,6 +32,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public void exportInventory(int productId, int quantity, String note) {
+        if (productId <= 0) {
+            throw new IllegalArgumentException("Product ID không hợp lệ");
+        }
         if (quantity <= 0) {
             throw new IllegalArgumentException("Số lượng xuất phải > 0");
         }
@@ -39,12 +45,18 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public List<Inventory> findHistoryByProduct(int productId) {
+        if (productId <= 0) {
+            throw new IllegalArgumentException("Product ID không hợp lệ");
+        }
         return repo.findHistoryByProduct(productId);
     }
 
     @Override
     public void deleteHistoryByProduct(int productId) {
-        // Bạn có thể thêm kiểm tra quyền hạn ở đây nếu cần
+        if (productId <= 0) {
+            throw new IllegalArgumentException("Product ID không hợp lệ");
+        }
         repo.deleteHistoryByProduct(productId);
+        DataChangeEventBus.notifyChange();
     }
 }

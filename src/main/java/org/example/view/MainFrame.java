@@ -1,6 +1,7 @@
 package org.example.view;
 
 import org.example.session.UserSession;
+import org.example.event.DataChangeEventBus;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.Sidebar;
@@ -11,30 +12,37 @@ import java.awt.*;
 
 public class MainFrame extends JFrame {
 
+    private static MainFrame instance;
+
+    public static MainFrame getInstance() { return instance; }
+
     private final Header header;
     private final Sidebar sideBar;
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
 
     /* ===== CARD KEYS ===== */
-    private static final String SCREEN_STATISTIC     = "statistic";
-    private static final String SCREEN_ACCOUNTS      = "accounts";
-    private static final String SCREEN_CUSTOMERS     = "customers";
-    private static final String SCREEN_EMPLOYEES     = "employees";
-    private static final String SCREEN_SHIFTS        = "shifts";
-    private static final String SCREEN_WORK_SCHEDULE = "work_schedule";
-    private static final String SCREEN_PRODUCTS      = "products";
-    private static final String SCREEN_BOOKING       = "booking";
-    private static final String SCREEN_TABLES        = "tables";
-    private static final String SCREEN_VOUCHERS      = "vouches";
-    private static final String SCREEN_SETTINGS      = "settings";
-    private static final String SCREEN_INVENTORY     = "inventory";
-    private static final String SCREEN_RECIPE        = "recipe";
-    private static final String SCREEN_ORDER         = "order";
+    public static final String SCREEN_STATISTIC     = "statistic";
+    public static final String SCREEN_ACCOUNTS      = "accounts";
+    public static final String SCREEN_CUSTOMERS     = "customers";
+    public static final String SCREEN_EMPLOYEES     = "employees";
+    public static final String SCREEN_SHIFTS        = "shifts";
+    public static final String SCREEN_WORK_SCHEDULE = "work_schedule";
+    public static final String SCREEN_PRODUCTS      = "products";
+    public static final String SCREEN_BOOKING       = "booking";
+    public static final String SCREEN_TABLES        = "tables";
+    public static final String SCREEN_VOUCHERS      = "vouches";
+    public static final String SCREEN_SETTINGS      = "settings";
+    public static final String SCREEN_INVENTORY     = "inventory";
+    public static final String SCREEN_RECIPE        = "recipe";
+    public static final String SCREEN_ORDER         = "order";
 
     private String currentModuleTitle = "";
 
     public MainFrame(String username, String role) {
+        instance = this;
+
+        DataChangeEventBus.clearAll();
 
         /* ===== SESSION ===== */
         UserSession.getInstance().setUsername(username);
@@ -42,7 +50,15 @@ public class MainFrame extends JFrame {
 
         /* ===== FRAME ===== */
         setTitle("Hệ Thống Quản Lý Bán Cà Phê");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                DataChangeEventBus.clearAll();
+                dispose();
+                System.exit(0);
+            }
+        });
         setSize(1400, 850);
         setMinimumSize(new Dimension(1200, 700));
         setLocationRelativeTo(null);
@@ -127,6 +143,7 @@ public class MainFrame extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
+                DataChangeEventBus.clearAll();
                 UserSession.getInstance().clear();
                 new LoginForm().setVisible(true);
                 dispose();
@@ -152,7 +169,7 @@ public class MainFrame extends JFrame {
     }
 
     /* ================= SHOW SCREEN ================= */
-    private void showScreen(String cardKey, String moduleTitle, String menuLabel) {
+    public void showScreen(String cardKey, String moduleTitle, String menuLabel) {
         currentModuleTitle = moduleTitle;
         header.setModuleTitle(moduleTitle);
         sideBar.setActiveMenu(menuLabel);

@@ -18,22 +18,43 @@ public class ShiftServiceImpl implements ShiftService {
 
     @Override
     public void create(Shift s) {
-        if (s.getName().isBlank())
-            throw new IllegalArgumentException("Tên ca không được trống");
+        if (s == null) {
+            throw new IllegalArgumentException("Ca làm không được null");
+        }
 
-        if (s.getEndTime().isBefore(s.getStartTime()))
+        if (s.getName() == null || s.getName().isBlank()) {
+            throw new IllegalArgumentException("Tên ca không được trống");
+        }
+
+        if (s.getStartTime() == null || s.getEndTime() == null) {
+            throw new IllegalArgumentException("Giờ bắt đầu và kết thúc không được null");
+        }
+
+        if (s.getEndTime().isBefore(s.getStartTime())) {
             throw new IllegalArgumentException("Giờ kết thúc phải > giờ bắt đầu");
+        }
 
         repo.save(s);
     }
 
     @Override
     public void update(Shift s) {
+        if (s == null) {
+            throw new IllegalArgumentException("Ca làm không được null");
+        }
+
+        if (s.getId() <= 0) {
+            throw new IllegalArgumentException("ID ca làm không hợp lệ");
+        }
+
         repo.update(s);
     }
 
     @Override
     public void deleteById(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("ID ca làm không hợp lệ");
+        }
         repo.deleteById(id);
     }
 }

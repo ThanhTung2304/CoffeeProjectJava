@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public class Reservation {
     private int id;
+    private Integer customerId;
     private String customerName;
     private int tableNumber;
     private LocalDateTime time;
@@ -29,9 +30,11 @@ public class Reservation {
         this.note = note;
     }
 
-    // Getter & Setter
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
+    public Integer getCustomerId() { return customerId; }
+    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }

@@ -8,13 +8,13 @@ public class DatabaseConfig {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/coffee" +
             "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = "020304";
+    private static final String PASSWORD = "123456";
 
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Không tìm thấy driver SQL Server", e);
+            throw new RuntimeException("Không tìm thấy driver MySQL", e);
         }
     }
 

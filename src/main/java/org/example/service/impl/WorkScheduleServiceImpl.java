@@ -18,11 +18,17 @@ public class WorkScheduleServiceImpl implements WorkScheduleService {
 
     @Override
     public void update(int employeeId, int oldShiftId, int newShiftId, String workDate) {
+        if (workDate == null || workDate.isBlank()) {
+            throw new IllegalArgumentException("Ngày làm việc không được trống");
+        }
         repo.update(employeeId, oldShiftId, newShiftId, workDate);
     }
 
     @Override
     public void delete(int empId, int shiftId, String workDate) {
+        if (workDate == null || workDate.isBlank()) {
+            throw new IllegalArgumentException("Ngày làm việc không được trống");
+        }
         repo.delete(empId, shiftId, workDate);
     }
 }

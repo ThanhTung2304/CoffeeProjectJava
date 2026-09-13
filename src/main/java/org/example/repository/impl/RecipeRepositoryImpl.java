@@ -22,9 +22,10 @@ public class RecipeRepositoryImpl implements RecipeRepository {
 
             ps.setInt(1, productId);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapRow(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
             }
 
         } catch (SQLException e) {
@@ -53,7 +54,7 @@ public class RecipeRepositoryImpl implements RecipeRepository {
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi lưu recipe", e);
         }
     }
 
@@ -77,33 +78,31 @@ public class RecipeRepositoryImpl implements RecipeRepository {
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi cập nhật recipe", e);
         }
     }
 
     @Override
     public void deleteById(int id) {
         try (Connection con = DatabaseConfig.getConnection();
-             PreparedStatement ps =
-                     con.prepareStatement("DELETE FROM recipe WHERE id=?")) {
+             PreparedStatement ps = con.prepareStatement("DELETE FROM recipe WHERE id=?")) {
 
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi xóa recipe", e);
         }
     }
 
     @Override
     public void deleteByProductId(int productId) {
         try (Connection con = DatabaseConfig.getConnection();
-             PreparedStatement ps =
-                     con.prepareStatement("DELETE FROM recipe WHERE product_id=?")) {
+             PreparedStatement ps = con.prepareStatement("DELETE FROM recipe WHERE product_id=?")) {
 
             ps.setInt(1, productId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi khi xóa recipe theo product", e);
         }
     }
 

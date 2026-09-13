@@ -83,9 +83,8 @@ class VoucherServiceImplTest {
 
     // --- TRƯỜNG HỢP 5: TEST XÓA VOUCHER ---
     @Test
-    @DisplayName("TC5: Xóa Voucher theo ID")
+    @DisplayName("TC5: Xóa Voucher theo ID không hợp lệ")
     void testDelete() {
-        // Test với ID không tồn tại để đảm bảo không lỗi SQL
-        assertDoesNotThrow(() -> voucherService.delete(-1));
+        assertThrows(IllegalArgumentException.class, () -> voucherService.delete(-1));
     }
 }

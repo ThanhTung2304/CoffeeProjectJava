@@ -16,13 +16,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         this.employeeRepository = new EmployeeRepositoryImpl();
     }
 
-    /* ================= FIND ALL ================= */
     @Override
     public List<Employee> findAll() {
         return employeeRepository.findAll();
     }
 
-    /* ================= CREATE ================= */
     @Override
     public void create(Employee employee) {
 
@@ -34,13 +32,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("Tên nhân viên không được để trống");
         }
 
+        if (employee.getPosition() == null || employee.getPosition().isBlank()) {
+            throw new IllegalArgumentException("Chức vụ không được để trống");
+        }
 
         employeeRepository.save(employee);
 
         DataChangeEventBus.notifyChange();
     }
 
-    /* ================= UPDATE ================= */
     @Override
     public void update(Employee employee) {
 
@@ -48,12 +48,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("Employee không hợp lệ");
         }
 
+        if (employee.getName() == null || employee.getName().isBlank()) {
+            throw new IllegalArgumentException("Tên nhân viên không được để trống");
+        }
+
         employeeRepository.update(employee);
 
         DataChangeEventBus.notifyChange();
     }
 
-    /* ================= DELETE ================= */
     @Override
     public void deleteById(int id) {
 

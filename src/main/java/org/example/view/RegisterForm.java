@@ -59,7 +59,7 @@ public class RegisterForm extends JFrame {
         txtPassword = new JPasswordField();
         txtConfirm  = new JPasswordField();
 
-        cbRole = new JComboBox<>(new String[]{"STAFF","USER"});
+        cbRole = new JComboBox<>(new String[]{"USER"});
 
         form.add(createRow("Username", txtUsername));
         form.add(Box.createVerticalStrut(12));
@@ -87,7 +87,6 @@ public class RegisterForm extends JFrame {
             }
         });
 
-
         form.add(linkLogin);
         main.add(form, BorderLayout.CENTER);
     }
@@ -108,7 +107,6 @@ public class RegisterForm extends JFrame {
         return row;
     }
 
-    // ===== VIEW chỉ bắt sự kiện =====
     private void handleRegister() {
         try {
             authController.onRegister(

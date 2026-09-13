@@ -6,6 +6,7 @@ import org.example.repository.StatisticRepository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class StatisticRepositoryImpl implements StatisticRepository {
 
@@ -23,8 +24,6 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
     @Override
     public double getMonthlyRevenue() {
-        // Lấy doanh thu từ các hóa đơn (đơn hàng) hoàn thành trong tháng hiện tại
-        // Sửa cột total_price -> total_amount và created_time -> createdTime
         String sql = """
             SELECT IFNULL(SUM(total_amount), 0)
             FROM orders
@@ -39,8 +38,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
             if (rs.next()) return rs.getDouble(1);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lấy doanh thu tháng", e);
         }
 
         return 0;
@@ -57,8 +56,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lấy tổng tồn kho", e);
         }
         return 0;
     }
@@ -66,10 +65,10 @@ public class StatisticRepositoryImpl implements StatisticRepository {
     @Override
     public int getTotalExported() {
         String sql = """
-        SELECT IFNULL(SUM(ABS(quantity_change)), 0)
-        FROM inventory_history
-        WHERE action = 'EXPORT'
-    """;
+            SELECT IFNULL(SUM(ABS(quantity_change)), 0)
+            FROM inventory_history
+            WHERE action = 'EXPORT'
+        """;
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -79,8 +78,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                 return rs.getInt(1);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi lấy tổng xuất kho", e);
         }
         return 0;
     }
@@ -92,7 +91,6 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
     @Override
     public int countMonthlyReservations() {
-        // Lấy tổng số lượng đặt bàn
         String sql = "SELECT COUNT(*) FROM reservations";
         return getCount(sql);
     }
@@ -104,9 +102,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
             if (rs.next()) return rs.getInt(1);
 
-        } catch (Exception e) {
-            System.err.println("Lỗi thực thi SQL: " + sql);
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi thực thi truy vấn: " + sql, e);
         }
         return 0;
     }

@@ -47,23 +47,25 @@ public class EmployeeShiftRepositoryImpl implements EmployeeShiftRepository {
             ps.setInt(2, shiftId);
             ps.setDate(3, Date.valueOf(date));
 
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
 
         } catch (Exception e) {
             throw new RuntimeException("Lỗi kiểm tra trùng ca", e);
         }
     }
+
     @Override
     public void update(int empId, int oldShiftId, int newShiftId, String workDate) {
 
         String sql = """
-        UPDATE employee_shift
-        SET shift_id = ?
-        WHERE employee_id = ?
-          AND shift_id = ?
-          AND work_date = ?
-    """;
+            UPDATE employee_shift
+            SET shift_id = ?
+            WHERE employee_id = ?
+              AND shift_id = ?
+              AND work_date = ?
+        """;
 
         try (Connection con = DatabaseConfig.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -79,5 +81,4 @@ public class EmployeeShiftRepositoryImpl implements EmployeeShiftRepository {
             throw new RuntimeException("Lỗi cập nhật ca làm", e);
         }
     }
-
 }

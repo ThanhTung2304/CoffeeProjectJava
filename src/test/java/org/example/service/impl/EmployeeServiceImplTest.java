@@ -1,10 +1,12 @@
 package org.example.service.impl;
 
 import org.example.entity.Employee;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.example.config.DatabaseConfig;
+import org.junit.jupiter.api.*;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,20 +14,25 @@ import static org.junit.jupiter.api.Assertions.*;
 class EmployeeServiceImplTest {
 
     private EmployeeServiceImpl employeeService;
+    private int createdId = -1;
 
     @BeforeEach
     void setUp() {
         employeeService = new EmployeeServiceImpl();
     }
 
-    /**
-     * Hàm phụ trợ: Giúp lấy nhân viên mới nhất từ Database
-     * để lấy được ID thật phục vụ cho Test Update và Delete
-     */
-    private Employee getLatestEmployee() {
-        List<Employee> all = employeeService.findAll();
-        if (all == null || all.isEmpty()) return null;
-        return all.get(all.size() - 1);
+    @AfterEach
+    void tearDown() {
+        if (createdId > 0) {
+            try (Connection conn = DatabaseConfig.getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM employee WHERE id = ?")) {
+                ps.setInt(1, createdId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                // ignore cleanup error
+            }
+            createdId = -1;
+        }
     }
 
     @Test
@@ -33,12 +40,7 @@ class EmployeeServiceImplTest {
     void findAll() {
         List<Employee> list = employeeService.findAll();
         assertNotNull(list);
-
-        System.out.println("=== THỐNG KÊ NHÂN VIÊN ===");
-        System.out.println("Tổng số nhân viên hiện có: " + list.size());
-        if (!list.isEmpty()) {
-            System.out.println("Nhân viên tiêu biểu: " + list.get(0).getName());
-        }
+        System.out.println("Tổng số nhân viên: " + list.size());
     }
 
     @Test
@@ -52,28 +54,32 @@ class EmployeeServiceImplTest {
 
         assertDoesNotThrow(() -> employeeService.create(emp));
 
-        // Kiểm tra xem đã lưu vào DB chưa
-        Employee latest = getLatestEmployee();
+        Employee latest = employeeService.findAll().stream()
+                .filter(e -> e.getName().contains(uniqueName))
+                .findFirst().orElse(null);
         assertNotNull(latest);
-        assertTrue(latest.getName().contains(uniqueName));
+        createdId = latest.getId();
     }
 
     @Test
     @DisplayName("3. Test cập nhật thông tin nhân viên")
     void update() {
-        // Bước 1: Tạo 1 nhân viên mới để lấy ID thật
-        create();
-        Employee latest = getLatestEmployee();
-        assertNotNull(latest, "Không có dữ liệu để update");
+        Employee emp = new Employee();
+        emp.setName("NV UpdateTest");
+        emp.setPhone("0987654321");
+        emp.setPosition("Staff");
+        employeeService.create(emp);
 
-        // Bước 2: Thay đổi thông tin
-        latest.setName(latest.getName() + " (Updated)");
+        Employee latest = employeeService.findAll().stream()
+                .filter(e -> e.getName().equals("NV UpdateTest"))
+                .findFirst().orElse(null);
+        assertNotNull(latest, "Không tìm thấy nhân viên vừa tạo");
+        createdId = latest.getId();
+
+        latest.setName("NV UpdateTest (Updated)");
         latest.setPosition("Manager");
-
-        // Bước 3: Lưu cập nhật
         employeeService.update(latest);
 
-        // Bước 4: Kiểm tra
         List<Employee> all = employeeService.findAll();
         boolean found = all.stream().anyMatch(e -> e.getName().contains("(Updated)"));
         assertTrue(found, "Tên nhân viên chưa được cập nhật trong DB");
@@ -82,15 +88,21 @@ class EmployeeServiceImplTest {
     @Test
     @DisplayName("4. Test xóa nhân viên")
     void deleteById() {
-        // Bước 1: Tạo nhân viên mới để xóa
-        create();
-        Employee latest = getLatestEmployee();
+        Employee emp = new Employee();
+        emp.setName("NV DeleteTest");
+        emp.setPhone("0987654321");
+        emp.setPosition("Staff");
+        employeeService.create(emp);
+
+        Employee latest = employeeService.findAll().stream()
+                .filter(e -> e.getName().equals("NV DeleteTest"))
+                .findFirst().orElse(null);
+        assertNotNull(latest, "Không tìm thấy nhân viên vừa tạo");
         int targetId = latest.getId();
 
-        // Bước 2: Thực hiện xóa
         employeeService.deleteById(targetId);
+        createdId = -1;
 
-        // Bước 3: Kiểm tra xem ID đó còn tồn tại không
         List<Employee> all = employeeService.findAll();
         boolean stillExists = all.stream().anyMatch(e -> e.getId() == targetId);
         assertFalse(stillExists, "Nhân viên vẫn còn tồn tại sau khi xóa");

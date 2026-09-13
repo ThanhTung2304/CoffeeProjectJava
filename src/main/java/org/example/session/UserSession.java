@@ -1,26 +1,29 @@
 package org.example.session;
 
 /**
- * UserSession - Lưu thông tin người dùng sau khi đăng nhập.
- * Dùng Singleton để truy cập từ bất kỳ đâu trong ứng dụng.
+ * UserSession - Luu thong tin nguoi dung sau khi dangNhap.
+ * Dung Singleton de truy cap tu bat ky dau trong ung dung.
  */
 public class UserSession {
 
-    private static UserSession instance;
+    private static volatile UserSession instance;
 
     private String username;
-    private String role; // "ADMIN" hoặc "USER"
+    private String role;
 
     private UserSession() {}
 
     public static UserSession getInstance() {
         if (instance == null) {
-            instance = new UserSession();
+            synchronized (UserSession.class) {
+                if (instance == null) {
+                    instance = new UserSession();
+                }
+            }
         }
         return instance;
     }
 
-    // ===== GETTERS & SETTERS =====
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
@@ -31,7 +34,6 @@ public class UserSession {
         return "ADMIN".equalsIgnoreCase(role);
     }
 
-    // ===== Xóa session khi logout =====
     public void clear() {
         instance = null;
     }

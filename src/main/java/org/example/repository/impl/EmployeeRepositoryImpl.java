@@ -15,13 +15,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         List<Employee> list = new ArrayList<>();
 
         String sql = """
-            SELECT
-                id,
-                name,
-                phone,
-                position,
-                createdTime,
-                updateTime
+            SELECT id, name, phone, position, account_id, createdTime, updateTime
             FROM employee
         """;
 
@@ -43,25 +37,19 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public Employee findById(int id) {
         String sql = """
-            SELECT
-                id,
-                name,
-                phone,
-                position,
-                createdTime,
-                updateTime
-            FROM employee
-            WHERE id = ?
+            SELECT id, name, phone, position, account_id, createdTime, updateTime
+            FROM employee WHERE id = ?
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                return mapRow(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
             }
 
         } catch (SQLException e) {
@@ -74,8 +62,8 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     @Override
     public void save(Employee emp) {
         String sql = """
-            INSERT INTO employee (name, phone, position)
-            VALUES (?, ?, ?)
+            INSERT INTO employee (name, phone, position, account_id)
+            VALUES (?, ?, ?, ?)
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -84,6 +72,11 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getPhone());
             ps.setString(3, emp.getPosition());
+            if (emp.getAccountId() != null) {
+                ps.setInt(4, emp.getAccountId());
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
 
             ps.executeUpdate();
 
@@ -96,7 +89,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
     public void update(Employee emp) {
         String sql = """
             UPDATE employee
-            SET name = ?, phone = ?, position = ?, updateTime = NOW()
+            SET name = ?, phone = ?, position = ?, account_id = ?, updateTime = NOW()
             WHERE id = ?
         """;
 
@@ -106,7 +99,12 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getPhone());
             ps.setString(3, emp.getPosition());
-            ps.setInt(4, emp.getId());
+            if (emp.getAccountId() != null) {
+                ps.setInt(4, emp.getAccountId());
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
+            ps.setInt(5, emp.getId());
 
             ps.executeUpdate();
 
@@ -130,9 +128,6 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         }
     }
 
-    // =======================
-    // MAP ROW
-    // =======================
     private Employee mapRow(ResultSet rs) throws SQLException {
         Employee e = new Employee();
 
@@ -140,6 +135,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         e.setName(rs.getString("name"));
         e.setPhone(rs.getString("phone"));
         e.setPosition(rs.getString("position"));
+        e.setAccountId((Integer) rs.getObject("account_id"));
 
         Timestamp created = rs.getTimestamp("createdTime");
         Timestamp updated = rs.getTimestamp("updateTime");

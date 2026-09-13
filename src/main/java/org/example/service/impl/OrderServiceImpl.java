@@ -11,33 +11,32 @@ import org.example.service.OrderService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepo = new OrderRepositoryImpl();
     private final OrderDetailRepository detailRepo = new OrderDetailRepositoryImpl();
 
+    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger(0);
+
     @Override
     public Order createOrder(List<OrderDetail> details, String note) {
         if (details == null || details.isEmpty())
             throw new IllegalArgumentException("Đơn hàng phải có ít nhất 1 sản phẩm");
 
-        // Tính tổng tiền
         double total = details.stream()
                 .mapToDouble(OrderDetail::getSubtotal)
                 .sum();
 
-        // Tạo mã đơn hàng tự động
         String code = generateOrderCode();
 
         Order order = new Order(code, note);
         order.setTotalAmount(total);
         order.setStatus("PENDING");
 
-        // Lưu order (lấy được generated id)
         orderRepo.save(order);
 
-        // Gắn order_id cho từng detail rồi lưu
         for (OrderDetail d : details) {
             d.setOrderId(order.getId());
         }
@@ -54,11 +53,20 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Không tìm thấy đơn hàng ID = " + orderId);
         if ("COMPLETED".equals(order.getStatus()))
             throw new IllegalStateException("Không thể hủy đơn đã hoàn thành");
+        if ("CANCELLED".equals(order.getStatus()))
+            throw new IllegalStateException("Đơn hàng đã bị hủy trước đó");
         orderRepo.updateStatus(orderId, "CANCELLED");
     }
 
     @Override
     public void completeOrder(int orderId) {
+        Order order = orderRepo.findById(orderId);
+        if (order == null)
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng ID = " + orderId);
+        if ("CANCELLED".equals(order.getStatus()))
+            throw new IllegalStateException("Không thể hoàn thành đơn đã hủy");
+        if ("COMPLETED".equals(order.getStatus()))
+            throw new IllegalStateException("Đơn hàng đã hoàn thành trước đó");
         orderRepo.updateStatus(orderId, "COMPLETED");
     }
 
@@ -78,15 +86,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void deleteOrder(int orderId) {
-
+        Order order = orderRepo.findById(orderId);
+        if (order == null)
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng ID = " + orderId);
+        if ("COMPLETED".equals(order.getStatus()))
+            throw new IllegalStateException("Không thể xóa đơn đã hoàn thành");
+        orderRepo.delete(orderId);
     }
 
-
-
-    // ===== Tạo mã đơn hàng =====
     private String generateOrderCode() {
         String timestamp = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-        return "ORD-" + timestamp;
+        int seq = ORDER_COUNTER.incrementAndGet() % 10000;
+        return String.format("ORD-%s-%04d", timestamp, seq);
     }
 }

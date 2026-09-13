@@ -105,7 +105,7 @@ public class AccountRepositoryImpl implements AccountRepository {
             ));
 
             ps.setNull(4, Types.TIMESTAMP); // updateTime
-            ps.setBoolean(5, true);         // is_active
+            ps.setBoolean(5, account.isActive());
             ps.setString(6, account.getRole());
 
             ps.executeUpdate();
