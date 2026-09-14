@@ -135,7 +135,8 @@ public class AccountManagementPanel extends JPanel {
 
     // ── Control bar ──────────────────────────────────────────────────────────
     private JPanel buildControlBar() {
-        JPanel bar = new JPanel(new BorderLayout(12, 0));
+        JPanel bar = new JPanel();
+        bar.setLayout(new BoxLayout(bar, BoxLayout.Y_AXIS));
         bar.setOpaque(false);
         bar.setBorder(new EmptyBorder(0, 0, 12, 0));
 
@@ -151,29 +152,36 @@ public class AccountManagementPanel extends JPanel {
         cbStatus.setFont(FONT_BODY);
         cbStatus.setPreferredSize(new Dimension(130, 36));
 
-        JButton btnSearch = createButton("🔍  Tìm", BTN_BLUE);
+        JButton btnSearch = createButton("🔍  Tìm", BTN_BLUE, 120, 36);
 
         searchGroup.add(txtSearch);
         searchGroup.add(cbStatus);
         searchGroup.add(btnSearch);
 
-        JPanel actionGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel actionGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         actionGroup.setOpaque(false);
 
-        JButton btnAdd     = createButton("＋  Thêm",      BTN_GREEN);
-        JButton btnEdit    = createButton("✎  Sửa",        BTN_AMBER);
-        JButton btnDelete  = createButton("✕  Xóa",        BTN_RED);
-        JButton btnRefresh = createButton("↻  Làm mới",    BTN_SLATE);
-        JButton btnExport  = createButton("↓  Excel",      BTN_BLUE);
+        JButton btnAdd     = createButton("＋  Thêm",      BTN_GREEN,  130, 38);
+        JButton btnEdit    = createButton("✎  Sửa",        BTN_AMBER,  110, 38);
+        JButton btnDelete  = createButton("✕  Xóa",        BTN_RED,    110, 38);
+        JButton btnRefresh = createButton("↻  Làm mới",    BTN_SLATE,  120, 36);
+        JButton btnExport  = createButton("↓  Excel",      BTN_BLUE,   110, 36);
 
         actionGroup.add(btnAdd);
         actionGroup.add(btnEdit);
         actionGroup.add(btnDelete);
+
+        JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
+        sep.setPreferredSize(new Dimension(2, 30));
+        sep.setForeground(new Color(0xD1D5DB));
+        actionGroup.add(sep);
+
         actionGroup.add(btnRefresh);
         actionGroup.add(btnExport);
 
-        bar.add(searchGroup,  BorderLayout.WEST);
-        bar.add(actionGroup,  BorderLayout.EAST);
+        bar.add(searchGroup);
+        bar.add(Box.createVerticalStrut(8));
+        bar.add(actionGroup);
 
         btnSearch.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> { txtSearch.setText(""); cbStatus.setSelectedIndex(0); loadData(); });
@@ -505,7 +513,7 @@ public class AccountManagementPanel extends JPanel {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-    private JButton createButton(String text, Color base) {
+    private JButton createButton(String text, Color base, int width, int height) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -522,7 +530,7 @@ public class AccountManagementPanel extends JPanel {
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(155, 36));
+        btn.setPreferredSize(new Dimension(width, height));
         return btn;
     }
 

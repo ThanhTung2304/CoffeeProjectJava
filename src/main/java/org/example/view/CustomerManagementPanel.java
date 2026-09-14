@@ -33,7 +33,6 @@ public class CustomerManagementPanel extends JPanel {
     private static final Color BTN_RED = new Color(0xEF4444);
     private static final Color BTN_BLUE = new Color(0x3B82F6);
     private static final Color BTN_SLATE = new Color(0x64748B);
-    private static final Color BTN_PURPLE = new Color(0x8B5CF6);
 
     private static final Color BADGE_ACTIVE = new Color(0xDCFCE7);
     private static final Color BADGE_ACTIVE_FG = new Color(0x166534);
@@ -128,7 +127,8 @@ public class CustomerManagementPanel extends JPanel {
 
     /* ================= CONTROL BAR ================= */
     private JPanel buildControl() {
-        JPanel bar = new JPanel(new BorderLayout());
+        JPanel bar = new JPanel();
+        bar.setLayout(new BoxLayout(bar, BoxLayout.Y_AXIS));
         bar.setOpaque(false);
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -149,7 +149,7 @@ public class CustomerManagementPanel extends JPanel {
         left.add(cbStatus);
         left.add(btnSearch);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         right.setOpaque(false);
 
         JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
@@ -157,17 +157,16 @@ public class CustomerManagementPanel extends JPanel {
         JButton btnDelete = createButton("✕ Xóa", BTN_RED);
         JButton btnRefresh = createButton("↻ Làm mới", BTN_SLATE);
         JButton btnExport = createButton("↓ Excel", BTN_BLUE);
-        JButton btnViewAccount = createButton("🔗 Xem Tài Khoản", BTN_PURPLE);
 
         right.add(btnAdd);
         right.add(btnEdit);
         right.add(btnDelete);
         right.add(btnRefresh);
         right.add(btnExport);
-        right.add(btnViewAccount);
 
-        bar.add(left, BorderLayout.WEST);
-        bar.add(right, BorderLayout.EAST);
+        bar.add(left);
+        bar.add(Box.createVerticalStrut(8));
+        bar.add(right);
 
         btnSearch.addActionListener(e -> loadData());
         cbStatus.addActionListener(e -> loadData());
@@ -180,7 +179,6 @@ public class CustomerManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> openEditDialog());
         btnDelete.addActionListener(e -> deleteCustomer());
         btnExport.addActionListener(e -> ExportToExcel.export(table, "DanhSachKhachHang.xlsx"));
-        btnViewAccount.addActionListener(e -> navigateToLinkedAccount());
 
         return bar;
     }
@@ -271,14 +269,6 @@ public class CustomerManagementPanel extends JPanel {
         th.setForeground(Color.WHITE);
         th.setFont(FONT_BOLD);
 
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    navigateToLinkedAccount();
-                }
-            }
-        });
-
         JScrollPane sp = new JScrollPane(table);
         sp.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         sp.getViewport().setBackground(Color.WHITE);
@@ -321,32 +311,6 @@ public class CustomerManagementPanel extends JPanel {
         }
 
         rowCountLabel.setText(list.size() + " khách hàng");
-    }
-
-    /* ================= NAVIGATION ================= */
-    private void navigateToLinkedAccount() {
-        int row = table.getSelectedRow();
-        if (row == -1) return;
-
-        int modelRow = table.convertRowIndexToModel(row);
-        int custId = (int) tableModel.getValueAt(modelRow, 0);
-        Customer cust = controller.findById(custId);
-
-        if (cust == null || cust.getAccountId() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Khách hàng này chưa liên kết tài khoản nào!",
-                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        MainFrame mainFrame = MainFrame.getInstance();
-        if (mainFrame != null) {
-            mainFrame.showScreen(
-                    MainFrame.SCREEN_ACCOUNTS,
-                    "Quản Lý Tài Khoản",
-                    "Quản Lý Tài Khoản"
-            );
-        }
     }
 
     /* ================= CRUD OPERATIONS ================= */
