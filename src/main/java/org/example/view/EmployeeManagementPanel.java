@@ -30,7 +30,6 @@ public class EmployeeManagementPanel extends JPanel {
     private static final Color BTN_RED = new Color(0xEF4444);
     private static final Color BTN_BLUE = new Color(0x3B82F6);
     private static final Color BTN_GRAY = new Color(0x64748B);
-    private static final Color BTN_PURPLE = new Color(0x8B5CF6);
 
     private static final Color BADGE_ACTIVE = new Color(0xDCFCE7);
     private static final Color BADGE_ACTIVE_FG = new Color(0x166534);
@@ -121,7 +120,8 @@ public class EmployeeManagementPanel extends JPanel {
 
     /* ================= CONTROL ================= */
     private JPanel buildControl() {
-        JPanel bar = new JPanel(new BorderLayout());
+        JPanel bar = new JPanel();
+        bar.setLayout(new BoxLayout(bar, BoxLayout.Y_AXIS));
         bar.setOpaque(false);
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -141,23 +141,22 @@ public class EmployeeManagementPanel extends JPanel {
         left.add(cbPosition);
         left.add(btnSearch);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         right.setOpaque(false);
 
         JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
         JButton btnEdit = createButton("✎ Sửa", BTN_AMBER);
         JButton btnDelete = createButton("✕ Xóa", BTN_RED);
         JButton btnRefresh = createButton("↻ Làm mới", BTN_GRAY);
-        JButton btnViewAccount = createButton("🔗 Xem Tài Khoản", BTN_PURPLE);
 
         right.add(btnAdd);
         right.add(btnEdit);
         right.add(btnDelete);
         right.add(btnRefresh);
-        right.add(btnViewAccount);
 
-        bar.add(left, BorderLayout.WEST);
-        bar.add(right, BorderLayout.EAST);
+        bar.add(left);
+        bar.add(Box.createVerticalStrut(8));
+        bar.add(right);
 
         btnSearch.addActionListener(e -> loadData());
         cbPosition.addActionListener(e -> loadData());
@@ -173,7 +172,6 @@ public class EmployeeManagementPanel extends JPanel {
 
         btnEdit.addActionListener(e -> editEmployee());
         btnDelete.addActionListener(e -> deleteEmployee());
-        btnViewAccount.addActionListener(e -> navigateToLinkedAccount());
 
         return bar;
     }
@@ -227,14 +225,6 @@ public class EmployeeManagementPanel extends JPanel {
         th.setForeground(Color.WHITE);
         th.setFont(FONT_BOLD);
 
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    navigateToLinkedAccount();
-                }
-            }
-        });
-
         return new JScrollPane(table);
     }
 
@@ -281,32 +271,6 @@ public class EmployeeManagementPanel extends JPanel {
         }
 
         rowCountLabel.setText(count + " nhân viên");
-    }
-
-    /* ================= NAVIGATION ================= */
-    private void navigateToLinkedAccount() {
-        int row = table.getSelectedRow();
-        if (row == -1) return;
-
-        int modelRow = table.convertRowIndexToModel(row);
-        int empId = (int) model.getValueAt(modelRow, 0);
-        Employee emp = controller.findById(empId);
-
-        if (emp == null || emp.getAccountId() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Nhân viên này chưa liên kết tài khoản nào!",
-                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        MainFrame mainFrame = MainFrame.getInstance();
-        if (mainFrame != null) {
-            mainFrame.showScreen(
-                    MainFrame.SCREEN_ACCOUNTS,
-                    "Quản Lý Tài Khoản",
-                    "Quản Lý Tài Khoản"
-            );
-        }
     }
 
     /* ================= CRUD ================= */
