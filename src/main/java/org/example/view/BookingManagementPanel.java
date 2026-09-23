@@ -1,8 +1,11 @@
 package org.example.view;
 
 import org.example.controller.ReservationController;
+import org.example.controller.TableController;
 import org.example.entity.Customer;
 import org.example.entity.Reservation;
+import org.example.entity.TableSeat;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.CustomerRepository;
 import org.example.repository.impl.CustomerRepositoryImpl;
 
@@ -41,6 +44,8 @@ public class BookingManagementPanel extends JPanel {
 
     private final ReservationController controller = new ReservationController();
     private final CustomerRepository customerRepository = new CustomerRepositoryImpl();
+    private final TableController tableController = new TableController();
+    private final DataChangeEventBus.DataChangeListener dataListener = this::loadData;
 
     private JTable table;
     private DefaultTableModel model;
@@ -56,6 +61,11 @@ public class BookingManagementPanel extends JPanel {
         add(buildCenter(), BorderLayout.CENTER);
 
         loadData();
+        DataChangeEventBus.onRegister(dataListener);
+    }
+
+    public void cleanup() {
+        DataChangeEventBus.onUnregister(dataListener);
     }
 
     /* ================= HEADER ================= */
@@ -85,6 +95,7 @@ public class BookingManagementPanel extends JPanel {
 
         p.add(buildControl(), BorderLayout.NORTH);
         p.add(buildTable(), BorderLayout.CENTER);
+        p.add(buildBottomButtons(), BorderLayout.SOUTH);
 
         return p;
     }
@@ -110,23 +121,28 @@ public class BookingManagementPanel extends JPanel {
         left.add(cbStatus);
         left.add(btnSearch);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        right.setOpaque(false);
+        bar.add(left, BorderLayout.WEST);
+
+        btnSearch.addActionListener(e -> loadData());
+
+        return bar;
+    }
+
+    /* ================= BOTTOM BUTTONS ================= */
+    private JPanel buildBottomButtons() {
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
+        bar.setOpaque(false);
 
         JButton btnAdd = createButton("＋ Thêm", BTN_GREEN);
         JButton btnEdit = createButton("✎ Sửa", BTN_AMBER);
         JButton btnDelete = createButton("✕ Xóa", BTN_RED);
-        JButton btnRefresh = createButton("↻", BTN_GRAY);
+        JButton btnRefresh = createButton("↻ Làm mới", BTN_GRAY);
 
-        right.add(btnAdd);
-        right.add(btnEdit);
-        right.add(btnDelete);
-        right.add(btnRefresh);
+        bar.add(btnAdd);
+        bar.add(btnEdit);
+        bar.add(btnDelete);
+        bar.add(btnRefresh);
 
-        bar.add(left, BorderLayout.WEST);
-        bar.add(right, BorderLayout.EAST);
-
-        btnSearch.addActionListener(e -> loadData());
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             cbStatus.setSelectedIndex(0);
@@ -289,67 +305,219 @@ public class BookingManagementPanel extends JPanel {
     /* ================= ADD DIALOG ================= */
     private void showAddDialog() {
         List<Customer> customers = customerRepository.findAll();
-        if (customers.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Không có khách hàng nào trong hệ thống!\nVui lòng thêm khách hàng trước.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        List<TableSeat> allTables = tableController.getAllTables();
+        List<TableSeat> availableTables = allTables.stream()
+                .filter(t -> "Trống".equals(t.getStatus()))
+                .toList();
 
         Window window = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Thêm đặt bàn mới", true);
-        dialog.setSize(480, 380);
+        dialog.setSize(550, 520);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(10, 10));
 
-        JPanel form = new JPanel(new GridLayout(0, 2, 10, 10));
-        form.setBorder(new EmptyBorder(20, 20, 10, 20));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(16, 20, 10, 20));
+
+        // ── Customer source selection ──
+        JRadioButton rbExisting = new JRadioButton("Chọn khách hàng có sẵn", true);
+        JRadioButton rbNew = new JRadioButton("Nhập thông tin khách mới");
+        ButtonGroup bgCustomer = new ButtonGroup();
+        bgCustomer.add(rbExisting);
+        bgCustomer.add(rbNew);
+        rbExisting.setFont(FONT_BODY);
+        rbNew.setFont(FONT_BODY);
+
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        radioPanel.setOpaque(false);
+        radioPanel.add(rbExisting);
+        radioPanel.add(rbNew);
+        radioPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        mainPanel.add(radioPanel);
+
+        // ── Existing customer panel ──
+        JPanel existingPanel = new JPanel(new GridLayout(0, 2, 8, 8));
+        existingPanel.setOpaque(false);
+        existingPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
         JComboBox<String> cbCustomer = new JComboBox<>();
+        cbCustomer.addItem("-- Chọn khách hàng --");
         for (Customer c : customers) {
             cbCustomer.addItem(c.getCode() + " - " + c.getName());
         }
         cbCustomer.setFont(FONT_BODY);
 
-        JTextField txtTable = new JTextField();
-        JTextField txtDateTime = new JTextField(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
-        JTextField txtNote = new JTextField();
+        existingPanel.add(new JLabel("Khách hàng:"));
+        existingPanel.add(cbCustomer);
+        mainPanel.add(existingPanel);
 
-        txtTable.setFont(FONT_BODY);
+        // ── New customer panel ──
+        JPanel newCustomerPanel = new JPanel(new GridLayout(0, 2, 8, 8));
+        newCustomerPanel.setOpaque(false);
+        newCustomerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 132));
+
+        JTextField txtNewName = new JTextField();
+        JTextField txtNewPhone = new JTextField();
+        JTextField txtNewEmail = new JTextField();
+        txtNewName.setFont(FONT_BODY);
+        txtNewPhone.setFont(FONT_BODY);
+        txtNewEmail.setFont(FONT_BODY);
+
+        newCustomerPanel.add(new JLabel("Tên khách:"));
+        newCustomerPanel.add(txtNewName);
+        newCustomerPanel.add(new JLabel("Số điện thoại:"));
+        newCustomerPanel.add(txtNewPhone);
+        newCustomerPanel.add(new JLabel("Email (có thể bỏ trống):"));
+        newCustomerPanel.add(txtNewEmail);
+        newCustomerPanel.setVisible(false);
+        mainPanel.add(newCustomerPanel);
+
+        rbExisting.addActionListener(e -> {
+            existingPanel.setVisible(true);
+            newCustomerPanel.setVisible(false);
+            dialog.pack();
+        });
+        rbNew.addActionListener(e -> {
+            existingPanel.setVisible(false);
+            newCustomerPanel.setVisible(true);
+            dialog.pack();
+        });
+
+        // ── Table selection - show only available tables ──
+        JPanel tablePanel = new JPanel(new BorderLayout(0, 6));
+        tablePanel.setOpaque(false);
+        tablePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+
+        JLabel lblTableTitle = new JLabel("Chọn bàn trống:");
+        lblTableTitle.setFont(FONT_BOLD);
+        tablePanel.add(lblTableTitle, BorderLayout.NORTH);
+
+        JComboBox<String> cbTable = new JComboBox<>();
+        cbTable.setFont(FONT_BODY);
+
+        List<TableSeat> floor1Available = allTables.stream()
+                .filter(t -> t.getFloor() == 1 && "Trống".equals(t.getStatus()))
+                .toList();
+        List<TableSeat> floor2Available = allTables.stream()
+                .filter(t -> t.getFloor() == 2 && "Trống".equals(t.getStatus()))
+                .toList();
+
+        if (floor1Available.isEmpty() && floor2Available.isEmpty()) {
+            cbTable.addItem("Không có bàn trống nào");
+        } else {
+            if (!floor1Available.isEmpty()) {
+                cbTable.addItem("── Tầng 1 ──");
+                for (TableSeat t : floor1Available) {
+                    cbTable.addItem(t.getTableNumber() + " - " + t.getName() + " (" + t.getCapacity() + " chỗ)");
+                }
+            }
+            if (!floor2Available.isEmpty()) {
+                cbTable.addItem("── Tầng 2 ──");
+                for (TableSeat t : floor2Available) {
+                    cbTable.addItem(t.getTableNumber() + " - " + t.getName() + " (" + t.getCapacity() + " chỗ)");
+                }
+            }
+        }
+
+        tablePanel.add(cbTable, BorderLayout.CENTER);
+        mainPanel.add(tablePanel);
+
+        // ── Date time ──
+        JPanel datePanel = new JPanel(new GridLayout(0, 2, 8, 8));
+        datePanel.setOpaque(false);
+        datePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+
+        JTextField txtDateTime = new JTextField(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
         txtDateTime.setFont(FONT_BODY);
+
+        datePanel.add(new JLabel("Ngày giờ (dd-MM-yyyy HH:mm):"));
+        datePanel.add(txtDateTime);
+        mainPanel.add(datePanel);
+
+        // ── Note ──
+        JPanel notePanel = new JPanel(new GridLayout(0, 2, 8, 8));
+        notePanel.setOpaque(false);
+        notePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+
+        JTextField txtNote = new JTextField();
         txtNote.setFont(FONT_BODY);
 
-        form.add(new JLabel("Khách hàng:"));  form.add(cbCustomer);
-        form.add(new JLabel("Số bàn:"));       form.add(txtTable);
-        form.add(new JLabel("Ngày giờ (dd-MM-yyyy HH:mm):")); form.add(txtDateTime);
-        form.add(new JLabel("Ghi chú:"));      form.add(txtNote);
+        notePanel.add(new JLabel("Ghi chú:"));
+        notePanel.add(txtNote);
+        mainPanel.add(notePanel);
 
+        // ── Buttons ──
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
         JButton btnSave = createButton("Lưu", BTN_GREEN);
         JButton btnCancel = createButton("Hủy", BTN_RED);
         btnPanel.add(btnSave);
         btnPanel.add(btnCancel);
 
-        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(mainPanel, BorderLayout.CENTER);
         dialog.add(btnPanel, BorderLayout.SOUTH);
 
         btnSave.addActionListener(e -> {
             try {
-                int custIdx = cbCustomer.getSelectedIndex();
-                if (custIdx < 0) {
-                    JOptionPane.showMessageDialog(dialog, "Vui lòng chọn khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Customer selectedCust = customers.get(custIdx);
+                String customerName = null;
+                Integer customerId = null;
 
-                String tableStr = txtTable.getText().trim();
-                if (tableStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Số bàn không được trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                if (rbExisting.isSelected()) {
+                    int custIdx = cbCustomer.getSelectedIndex();
+                    if (custIdx <= 0) {
+                        JOptionPane.showMessageDialog(dialog, "Vui lòng chọn khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    Customer selectedCust = customers.get(custIdx - 1);
+                    customerName = selectedCust.getName();
+                    customerId = selectedCust.getId();
+                } else {
+                    String name = txtNewName.getText().trim();
+                    String phone = txtNewPhone.getText().trim();
+                    if (name.isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog, "Tên khách không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    if (phone.isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog, "Số điện thoại không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    customerName = name;
+                }
+
+                // Parse selected table - find the actual table object
+                int tableIdx = cbTable.getSelectedIndex();
+                if (tableIdx < 0) {
+                    JOptionPane.showMessageDialog(dialog, "Vui lòng chọn bàn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+
+                String selectedStr = (String) cbTable.getSelectedItem();
+                if (selectedStr == null || selectedStr.startsWith("──") || selectedStr.startsWith("Không có")) {
+                    JOptionPane.showMessageDialog(dialog, "Vui lòng chọn một bàn hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Extract table number from string like "1 - Bàn 1 (4 chỗ) [✓]"
                 int tableNumber;
                 try {
-                    tableNumber = Integer.parseInt(tableStr);
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(dialog, "Số bàn phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    tableNumber = Integer.parseInt(selectedStr.split(" - ")[0].trim());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Lỗi chọn bàn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Find the table object
+                TableSeat selectedTable = allTables.stream()
+                        .filter(t -> t.getTableNumber() == tableNumber)
+                        .findFirst().orElse(null);
+                if (selectedTable == null) {
+                    JOptionPane.showMessageDialog(dialog, "Không tìm thấy bàn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (!"Trống".equals(selectedTable.getStatus())) {
+                    JOptionPane.showMessageDialog(dialog, "Bàn này đang không trống!\nVui lòng chọn bàn có dấu ✓", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -363,10 +531,12 @@ public class BookingManagementPanel extends JPanel {
 
                 String note = txtNote.getText().trim();
 
-                Reservation reservation = new Reservation(selectedCust.getName(), tableNumber, dateTime, "Đang đặt", note);
-                reservation.setCustomerId(selectedCust.getId());
+                Reservation reservation = new Reservation(customerName, selectedTable.getTableNumber(), dateTime, "Đang đặt", note);
+                reservation.setCustomerId(customerId);
 
                 controller.addReservation(reservation);
+                updateTableStatus(selectedTable.getTableNumber(), "Đang sử dụng");
+                DataChangeEventBus.notifyChange();
                 loadData();
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "Thêm đặt bàn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -398,14 +568,11 @@ public class BookingManagementPanel extends JPanel {
         }
 
         List<Customer> customers = customerRepository.findAll();
-        if (customers.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Không có khách hàng nào trong hệ thống!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        List<TableSeat> allTables = tableController.getAllTables();
 
         Window window = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(window instanceof Frame ? (Frame) window : null, "Sửa đặt bàn", true);
-        dialog.setSize(480, 400);
+        dialog.setSize(520, 420);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(10, 10));
 
@@ -413,27 +580,38 @@ public class BookingManagementPanel extends JPanel {
         form.setBorder(new EmptyBorder(20, 20, 10, 20));
 
         JComboBox<String> cbCustomer = new JComboBox<>();
-        int selectedIdx = 0;
+        cbCustomer.addItem("-- Chọn khách hàng --");
+        int selectedCustIdx = 0;
         for (int i = 0; i < customers.size(); i++) {
             Customer c = customers.get(i);
             cbCustomer.addItem(c.getCode() + " - " + c.getName());
             if (r.getCustomerId() != null && c.getId() == r.getCustomerId()) {
-                selectedIdx = i + 1;
+                selectedCustIdx = i + 1;
             }
         }
-        cbCustomer.setSelectedIndex(selectedIdx);
+        cbCustomer.setSelectedIndex(selectedCustIdx);
         cbCustomer.setFont(FONT_BODY);
 
-        JTextField txtTable = new JTextField(String.valueOf(r.getTableNumber()));
+        JComboBox<String> cbTable = new JComboBox<>();
+        int selectedTableIdx = 0;
+        for (int i = 0; i < allTables.size(); i++) {
+            TableSeat t = allTables.get(i);
+            cbTable.addItem(t.getTableNumber() + " - " + t.getName() + " (Tầng " + t.getFloor() + ", " + t.getCapacity() + " chỗ)");
+            if (t.getTableNumber() == r.getTableNumber()) {
+                selectedTableIdx = i;
+            }
+        }
+        cbTable.setSelectedIndex(selectedTableIdx);
+        cbTable.setFont(FONT_BODY);
+
         JTextField txtDateTime = new JTextField(r.getTime() != null ? r.getTime().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")) : "");
         JTextField txtNote = new JTextField(r.getNote() != null ? r.getNote() : "");
 
-        txtTable.setFont(FONT_BODY);
         txtDateTime.setFont(FONT_BODY);
         txtNote.setFont(FONT_BODY);
 
         form.add(new JLabel("Khách hàng:"));  form.add(cbCustomer);
-        form.add(new JLabel("Số bàn:"));       form.add(txtTable);
+        form.add(new JLabel("Chọn bàn:"));     form.add(cbTable);
         form.add(new JLabel("Ngày giờ (dd-MM-yyyy HH:mm):")); form.add(txtDateTime);
         form.add(new JLabel("Ghi chú:"));      form.add(txtNote);
 
@@ -449,24 +627,18 @@ public class BookingManagementPanel extends JPanel {
         btnSave.addActionListener(e -> {
             try {
                 int custIdx = cbCustomer.getSelectedIndex();
-                if (custIdx < 0) {
+                if (custIdx <= 0) {
                     JOptionPane.showMessageDialog(dialog, "Vui lòng chọn khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                Customer selectedCust = customers.get(custIdx);
+                Customer selectedCust = customers.get(custIdx - 1);
 
-                String tableStr = txtTable.getText().trim();
-                if (tableStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Số bàn không được trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                int tableIdx = cbTable.getSelectedIndex();
+                if (tableIdx < 0) {
+                    JOptionPane.showMessageDialog(dialog, "Vui lòng chọn bàn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                int tableNumber;
-                try {
-                    tableNumber = Integer.parseInt(tableStr);
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(dialog, "Số bàn phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+                TableSeat selectedTable = allTables.get(tableIdx);
 
                 LocalDateTime dateTime;
                 try {
@@ -478,13 +650,19 @@ public class BookingManagementPanel extends JPanel {
 
                 String note = txtNote.getText().trim();
 
+                int oldTableNumber = r.getTableNumber();
                 r.setCustomerName(selectedCust.getName());
                 r.setCustomerId(selectedCust.getId());
-                r.setTableNumber(tableNumber);
+                r.setTableNumber(selectedTable.getTableNumber());
                 r.setTime(dateTime);
                 r.setNote(note);
 
                 controller.updateReservation(r);
+                if (oldTableNumber != selectedTable.getTableNumber()) {
+                    updateTableStatus(oldTableNumber, "Trống");
+                    updateTableStatus(selectedTable.getTableNumber(), "Đang sử dụng");
+                }
+                DataChangeEventBus.notifyChange();
                 loadData();
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -512,8 +690,25 @@ public class BookingManagementPanel extends JPanel {
         int modelRow = table.convertRowIndexToModel(row);
         int id = (int) model.getValueAt(modelRow, 0);
 
+        Reservation r = controller.getReservationById(id);
+        if (r != null) {
+            updateTableStatus(r.getTableNumber(), "Trống");
+        }
+
         controller.deleteReservation(id);
         loadData();
+    }
+
+    /* ================= UPDATE TABLE STATUS ================= */
+    private void updateTableStatus(int tableNumber, String status) {
+        List<TableSeat> allTables = tableController.getAllTables();
+        for (TableSeat t : allTables) {
+            if (t.getTableNumber() == tableNumber) {
+                t.setStatus(status);
+                tableController.updateTable(t);
+                break;
+            }
+        }
     }
 
     /* ================= BUTTON ================= */

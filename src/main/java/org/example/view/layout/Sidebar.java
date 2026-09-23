@@ -86,7 +86,7 @@ public class Sidebar extends JScrollPane {
                 "Quản Lý Lịch Làm",
                 "Sản Phẩm",
                 "Đặt Bàn",
-//                "Quản Lý Bàn",
+                "Quản Lý Bàn",
                 "Quản Lý Tồn Kho",
                 "Đơn Hàng",
                 "Voucher"

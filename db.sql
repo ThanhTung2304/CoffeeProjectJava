@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS coffee
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
+drop database coffee;
 USE coffee;
 
 CREATE TABLE IF NOT EXISTS account (
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     status VARCHAR(50) NOT NULL,
     note VARCHAR(255)
     ) ENGINE=InnoDB;
+ALTER TABLE reservations ADD COLUMN customer_id INT NULL AFTER id;
 
 CREATE TABLE IF NOT EXISTS shift (
                                      id INT AUTO_INCREMENT PRIMARY KEY,
@@ -135,13 +137,16 @@ CREATE TABLE IF NOT EXISTS vouchers (
     note VARCHAR(255)
     ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `tables`;
 CREATE TABLE IF NOT EXISTS tables (
                                       table_number INT AUTO_INCREMENT PRIMARY KEY,
                                       name VARCHAR(100) NOT NULL,
     capacity INT NOT NULL DEFAULT 2,
+    floor INT NOT NULL DEFAULT 1,
     status VARCHAR(30) NOT NULL DEFAULT 'EMPTY',
     note VARCHAR(255)
     ) ENGINE=InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS orders (
                                       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -200,6 +205,16 @@ SELECT c.id, c.name, c.account_id, a.username, a.role, a.is_active
 FROM customer c
          LEFT JOIN account a ON a.id = c.account_id;
 
-USE coffee;
+INSERT INTO `tables` (name, capacity, floor, status, note) VALUES
+                                                               ('Bàn 1', 4, 1, 'Trống', ''), ('Bàn 2', 4, 1, 'Trống', ''), ('Bàn 3', 4, 1, 'Trống', ''),
+                                                               ('Bàn 4', 4, 1, 'Trống', ''), ('Bàn 5', 4, 1, 'Trống', ''), ('Bàn 6', 4, 1, 'Trống', ''),
+                                                               ('Bàn 7', 4, 1, 'Trống', ''), ('Bàn 8', 4, 1, 'Trống', ''), ('Bàn 9', 4, 1, 'Trống', ''),
+                                                               ('Bàn 10', 4, 1, 'Trống', ''), ('Bàn 11', 4, 1, 'Trống', ''), ('Bàn 12', 4, 1, 'Trống', ''),
+                                                               ('Bàn 13', 4, 1, 'Trống', ''), ('Bàn 14', 4, 1, 'Trống', ''), ('Bàn 15', 4, 1, 'Trống', ''),
+                                                               ('Bàn 16', 4, 2, 'Trống', ''), ('Bàn 17', 4, 2, 'Trống', ''), ('Bàn 18', 4, 2, 'Trống', ''),
+                                                               ('Bàn 19', 4, 2, 'Trống', ''), ('Bàn 20', 4, 2, 'Trống', ''), ('Bàn 21', 4, 2, 'Trống', ''),
+                                                               ('Bàn 22', 4, 2, 'Trống', ''), ('Bàn 23', 4, 2, 'Trống', ''), ('Bàn 24', 4, 2, 'Trống', ''),
+                                                               ('Bàn 25', 4, 2, 'Trống', ''), ('Bàn 26', 4, 2, 'Trống', ''), ('Bàn 27', 4, 2, 'Trống', ''),
+                                                               ('Bàn 28', 4, 2, 'Trống', ''), ('Bàn 29', 4, 2, 'Trống', ''), ('Bàn 30', 4, 2, 'Trống', '');
 
 SHOW COLUMNS FROM employee LIKE 'account_id';
