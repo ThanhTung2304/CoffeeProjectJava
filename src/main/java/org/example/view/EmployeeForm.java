@@ -189,7 +189,7 @@ public class EmployeeForm extends JDialog {
 
     private JLabel createLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         return lbl;
     }
 

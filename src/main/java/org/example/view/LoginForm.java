@@ -23,7 +23,7 @@ public class LoginForm extends JFrame {
 
         setTitle("Đăng nhập hệ thống");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(550, 450);
+        setSize(750, 500);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -43,7 +43,7 @@ public class LoginForm extends JFrame {
 
         // Logo
         ImageIcon icon = new ImageIcon(
-                Objects.requireNonNull(getClass().getResource("/logoHighland.png"))
+            Objects.requireNonNull(getClass().getResource("/logoHighland.png"))
 
         );
         Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
@@ -64,31 +64,71 @@ public class LoginForm extends JFrame {
         /* ================= FORM ================= */
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(new Color(245, 245, 250));
+        formPanel.setPreferredSize(new Dimension(650, 300));
         container.add(formPanel, BorderLayout.CENTER);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(12, 10, 12, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font labelFont = new Font("Segoe UI", Font.PLAIN, 15);
+        Font fieldFont = new Font("Segoe UI", Font.PLAIN, 14);
 
         // Username
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(new JLabel("Username:"), gbc);
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setFont(labelFont);
+        formPanel.add(lblUsername, gbc);
 
         gbc.gridx = 1;
-        username = new JTextField(18);
-        username.setPreferredSize(new Dimension(250, 35));
+        username = new JTextField(35);
+        username.setFont(fieldFont);
+        username.setPreferredSize(new Dimension(480, 44));
+        username.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210)),
+            BorderFactory.createEmptyBorder(4, 10, 4, 10)
+        ));
         formPanel.add(username, gbc);
 
         // Password
         gbc.gridx = 0;
         gbc.gridy = 1;
-        formPanel.add(new JLabel("Password:"), gbc);
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setFont(labelFont);
+        formPanel.add(lblPassword, gbc);
+
+        password = new JPasswordField(35);
+        password.setFont(fieldFont);
+        password.setPreferredSize(new Dimension(480, 44));
+        password.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 210)),
+            BorderFactory.createEmptyBorder(4, 10, 4, 10)
+        ));
 
         gbc.gridx = 1;
-        password = new JPasswordField(18);
-        password.setPreferredSize(new Dimension(250, 35));
         formPanel.add(password, gbc);
+
+        // Show password checkbox
+        JCheckBox chkShowPassword = new JCheckBox("Hiện mật khẩu");
+        chkShowPassword.setBackground(new Color(245, 245, 250));
+        chkShowPassword.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        chkShowPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        chkShowPassword.addActionListener(e -> {
+            if (chkShowPassword.isSelected()) {
+                password.setEchoChar((char) 0);
+            } else {
+                password.setEchoChar('•');
+            }
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(chkShowPassword, gbc);
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.HORIZONTAL;
 
         // Login Button
         btnLogin = new JButton("Đăng nhập");
@@ -97,7 +137,7 @@ public class LoginForm extends JFrame {
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnLogin.setPreferredSize(new Dimension(250, 40));
+        btnLogin.setPreferredSize(new Dimension(480, 44));
 
         btnLogin.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
@@ -109,7 +149,7 @@ public class LoginForm extends JFrame {
         });
 
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         gbc.anchor = GridBagConstraints.CENTER;
         formPanel.add(btnLogin, gbc);
 
@@ -126,7 +166,7 @@ public class LoginForm extends JFrame {
             }
         });
 
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         formPanel.add(linkRegister, gbc);
 
         btnLogin.addActionListener(e -> onLogin());
@@ -136,36 +176,35 @@ public class LoginForm extends JFrame {
     private void onLogin() {
         try {
             Account account = authController.onLogin(
-                    username.getText().trim(),
-                    new String(password.getPassword()).trim()
+                username.getText().trim(),
+                new String(password.getPassword()).trim()
             );
 
             JOptionPane.showMessageDialog(this,
-                    "Đăng nhập thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
+                                          "Đăng nhập thành công!",
+                                          "Thông báo",
+                                          JOptionPane.INFORMATION_MESSAGE);
 
             new MainFrame(
-                    account.getUsername(),
-                    account.getRole()
+                account.getUsername(),
+                account.getRole()
             ).setVisible(true);
 
             dispose();
 
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this,
-                    e.getMessage(),
-                    "Thiếu thông tin",
-                    JOptionPane.WARNING_MESSAGE);
+                                          e.getMessage(),
+                                          "Thiếu thông tin",
+                                          JOptionPane.WARNING_MESSAGE);
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
-                    "Sai tài khoản hoặc mật khẩu!",
-                    "Lỗi đăng nhập",
-                    JOptionPane.ERROR_MESSAGE);
+                                          "Sai tài khoản hoặc mật khẩu!",
+                                          "Lỗi đăng nhập",
+                                          JOptionPane.ERROR_MESSAGE);
         }
     }
 
 
 }
-

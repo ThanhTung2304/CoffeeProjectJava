@@ -4,6 +4,7 @@ public class TableSeat {
     private int tableNumber;
     private String name;
     private int capacity;
+    private int floor;
     private String status;
     private String note;
 
@@ -16,6 +17,9 @@ public class TableSeat {
 
     public int getCapacity() { return capacity; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
+
+    public int getFloor() { return floor; }
+    public void setFloor(int floor) { this.floor = floor; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

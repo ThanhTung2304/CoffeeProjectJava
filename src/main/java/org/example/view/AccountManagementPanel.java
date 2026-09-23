@@ -51,6 +51,10 @@ public class AccountManagementPanel extends JPanel {
     private static final Font FONT_BOLD   = new Font("Segoe UI", Font.BOLD, 13);
     private static final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 13);
 
+    // Font/size dùng riêng cho các form popup (Thêm / Sửa) để các ô input gọn hơn
+    private static final Font FORM_FIELD_FONT = new Font("Segoe UI", Font.PLAIN, 12);
+    private static final Dimension FORM_FIELD_SIZE = new Dimension(220, 26);
+
     // ── Fields ────────────────────────────────────────────────────────────────
     private final AccountController controller = new AccountController();
     private final EmployeeRepository employeeRepository = new EmployeeRepositoryImpl();
@@ -196,7 +200,7 @@ public class AccountManagementPanel extends JPanel {
     // ── Table ─────────────────────────────────────────────────────────────────
     private JScrollPane buildTable() {
         tableModel = new DefaultTableModel(
-                new String[]{"ID", "STT", "Username", "Phân Quyền", "Tên Nhân Viên", "SĐT NV", "Chức Vụ", "Trạng Thái"}, 0
+            new String[]{"ID", "STT", "Username", "Phân Quyền", "Tên Nhân Viên", "SĐT NV", "Chức Vụ", "Trạng Thái"}, 0
         ) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -218,8 +222,8 @@ public class AccountManagementPanel extends JPanel {
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
-                    JTable t, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int col) {
+                JTable t, Object value, boolean isSelected,
+                boolean hasFocus, int row, int col) {
 
                 if (col == 6 && value != null) {
                     boolean active = value.toString().equals("Hoạt động");
@@ -267,28 +271,28 @@ public class AccountManagementPanel extends JPanel {
         int stt = 1;
         for (Account a : accounts) {
             Employee emp = allEmployees.stream()
-                    .filter(e -> e.getAccountId() != null && e.getAccountId() == a.getId())
-                    .findFirst()
-                    .orElse(null);
+                                       .filter(e -> e.getAccountId() != null && e.getAccountId() == a.getId())
+                                       .findFirst()
+                                       .orElse(null);
 
             Customer customer = customerRepository.findAll().stream()
-                    .filter(c -> c.getAccountId() != null && c.getAccountId() == a.getId())
-                    .findFirst()
-                    .orElse(null);
+                                                  .filter(c -> c.getAccountId() != null && c.getAccountId() == a.getId())
+                                                  .findFirst()
+                                                  .orElse(null);
 
             String empName   = emp != null ? emp.getName() : customer != null ? customer.getName() : "";
             String empPhone  = emp != null ? emp.getPhone() : customer != null ? customer.getPhone() : "";
             String empPos    = emp != null ? emp.getPosition() : customer != null ? "CUSTOMER" : "";
 
             tableModel.addRow(new Object[]{
-                    a.getId(),
-                    stt++,
-                    a.getUsername(),
-                    a.getRole(),
-                    empName,
-                    empPhone,
-                    empPos,
-                    a.isActive() ? "Hoạt động" : "Khóa"
+                a.getId(),
+                stt++,
+                a.getUsername(),
+                a.getRole(),
+                empName,
+                empPhone,
+                empPos,
+                a.isActive() ? "Hoạt động" : "Khóa"
             });
         }
 
@@ -306,17 +310,32 @@ public class AccountManagementPanel extends JPanel {
         JTextField empPhone    = new JTextField();
         JTextField empPosition = new JTextField();
 
+        styleFormField(user);
+        styleFormField(pass);
+        styleFormField(role);
+        styleFormField(empName);
+        styleFormField(empPhone);
+        styleFormField(empPosition);
+
         JPanel p = createForm();
         addField(p, "Username:",      user);
         addField(p, "Password:",      pass);
         addField(p, "Phân quyền:",    role);
         addField(p, "Trạng thái:",    active);
-        addField(p, "── Thông tin NV ──", new JLabel(""));
-        addField(p, "Tên nhân viên:", empName);
-        addField(p, "SĐT nhân viên:", empPhone);
-        addField(p, "Chức vụ:",       empPosition);
 
-        if (JOptionPane.showConfirmDialog(this, p, "＋ Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+        JPanel entityPanel = createForm();
+        addField(entityPanel, "── Thông tin NV ──", new JLabel(""));
+        addField(entityPanel, "Tên nhân viên:", empName);
+        addField(entityPanel, "SĐT nhân viên:", empPhone);
+        addField(entityPanel, "Chức vụ:",       empPosition);
+
+        JPanel container = new JPanel();
+        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBackground(Color.WHITE);
+        container.add(p);
+        container.add(entityPanel);
+
+        if (JOptionPane.showConfirmDialog(this, container, "＋ Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
             String selectedRole = Objects.requireNonNull(role.getSelectedItem()).toString();
             controller.add(user.getText(), new String(pass.getPassword()), selectedRole, active.isSelected());
 
@@ -371,14 +390,14 @@ public class AccountManagementPanel extends JPanel {
         }
 
         Employee existingEmp = employeeRepository.findAll().stream()
-                .filter(e -> e.getAccountId() != null && e.getAccountId() == acc.getId())
-                .findFirst()
-                .orElse(null);
+                                                 .filter(e -> e.getAccountId() != null && e.getAccountId() == acc.getId())
+                                                 .findFirst()
+                                                 .orElse(null);
 
         Customer existingCust = customerRepository.findAll().stream()
-                .filter(c -> c.getAccountId() != null && c.getAccountId() == acc.getId())
-                .findFirst()
-                .orElse(null);
+                                                  .filter(c -> c.getAccountId() != null && c.getAccountId() == acc.getId())
+                                                  .findFirst()
+                                                  .orElse(null);
 
         JTextField    user  = new JTextField(acc.getUsername());
         JPasswordField pass = new JPasswordField();
@@ -386,6 +405,12 @@ public class AccountManagementPanel extends JPanel {
         role.setSelectedItem(acc.getRole());
         JCheckBox active = new JCheckBox("Hoạt động", acc.isActive());
 
+        styleFormField(user);
+        styleFormField(pass);
+        styleFormField(role);
+
+        // Form chính (Username / Password / Phân quyền / Trạng thái) — panel RIÊNG,
+        // không chứa entityPanel, nên GridLayout của nó không bị kéo giãn theo entityPanel.
         JPanel p = createForm();
         addField(p, "Username:",      user);
         addField(p, "Password:",      pass);
@@ -393,8 +418,10 @@ public class AccountManagementPanel extends JPanel {
         addField(p, "Trạng thái:",    active);
 
         String selectedInitial = Objects.requireNonNull(role.getSelectedItem()).toString();
-        JPanel entityPanel = new JPanel(new GridLayout(0, 2, 10, 12));
-        entityPanel.setBackground(Color.WHITE);
+
+        // entityPanel là panel RIÊNG cho phần thông tin NV/KH — GridLayout của nó
+        // chỉ tự co giãn theo các ô bên trong chính nó, không ảnh hưởng tới form phía trên.
+        JPanel entityPanel = createForm();
 
         JTextField empName = new JTextField();
         JTextField empPhone = new JTextField();
@@ -402,6 +429,13 @@ public class AccountManagementPanel extends JPanel {
         JTextField custName = new JTextField();
         JTextField custPhone = new JTextField();
         JTextField custEmail = new JTextField();
+
+        styleFormField(empName);
+        styleFormField(empPhone);
+        styleFormField(empPosition);
+        styleFormField(custName);
+        styleFormField(custPhone);
+        styleFormField(custEmail);
 
         if ("ADMIN".equalsIgnoreCase(selectedInitial) || "STAFF".equalsIgnoreCase(selectedInitial)) {
             empName.setText(existingEmp != null ? existingEmp.getName() : "");
@@ -421,7 +455,13 @@ public class AccountManagementPanel extends JPanel {
             addField(entityPanel, "Email:",          custEmail);
         }
 
-        p.add(entityPanel);
+        // Container xếp p và entityPanel CHỒNG THEO CHIỀU DỌC (BoxLayout),
+        // thay vì nhét entityPanel làm 1 ô trong GridLayout của p như bản cũ.
+        JPanel container = new JPanel();
+        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBackground(Color.WHITE);
+        container.add(p);
+        container.add(entityPanel);
 
         role.addActionListener(e -> {
             String newRole = Objects.requireNonNull(role.getSelectedItem()).toString();
@@ -447,7 +487,7 @@ public class AccountManagementPanel extends JPanel {
             entityPanel.repaint();
         });
 
-        if (JOptionPane.showConfirmDialog(this, p, "✎ Sửa tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+        if (JOptionPane.showConfirmDialog(this, container, "✎ Sửa tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
             String newPass = new String(pass.getPassword());
             if (newPass.isEmpty()) {
                 newPass = acc.getPassword();
@@ -535,7 +575,7 @@ public class AccountManagementPanel extends JPanel {
     }
 
     private JPanel createForm() {
-        JPanel p = new JPanel(new GridLayout(0, 2, 10, 12));
+        JPanel p = new JPanel(new GridLayout(0, 2, 10, 8));
         p.setBorder(new EmptyBorder(12, 12, 12, 12));
         p.setBackground(Color.WHITE);
         return p;
@@ -546,5 +586,14 @@ public class AccountManagementPanel extends JPanel {
         lbl.setFont(FONT_BOLD);
         p.add(lbl);
         p.add(comp);
+    }
+
+    /**
+     * Áp dụng kích thước/font gọn cho các ô nhập liệu trong dialog Thêm/Sửa,
+     * để chúng không bị các nút mặc định của Swing (hoặc panel lớn hơn kéo giãn) làm to ra.
+     */
+    private void styleFormField(JComponent comp) {
+        comp.setFont(FORM_FIELD_FONT);
+        comp.setPreferredSize(FORM_FIELD_SIZE);
     }
 }
