@@ -196,6 +196,9 @@ public class EmployeeManagementPanel extends JPanel {
         table.setAutoCreateRowSorter(true);
 
         table.removeColumn(table.getColumnModel().getColumn(0));
+        table.getColumn("STT").setPreferredWidth(45);
+        table.getColumn("STT").setMinWidth(40);
+        table.getColumn("STT").setMaxWidth(55);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             public Component getTableCellRendererComponent(

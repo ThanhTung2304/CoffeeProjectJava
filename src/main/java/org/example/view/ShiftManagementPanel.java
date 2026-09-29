@@ -140,6 +140,9 @@ public class ShiftManagementPanel extends JPanel {
         table.setShowVerticalLines(false);
 
         table.setAutoCreateRowSorter(true);
+        table.getColumn("STT").setPreferredWidth(45);
+        table.getColumn("STT").setMinWidth(40);
+        table.getColumn("STT").setMaxWidth(55);
 
         // Zebra + style
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {

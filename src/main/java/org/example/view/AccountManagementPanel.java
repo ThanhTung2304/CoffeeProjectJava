@@ -218,6 +218,9 @@ public class AccountManagementPanel extends JPanel {
         table.setAutoCreateRowSorter(true);
 
         table.removeColumn(table.getColumnModel().getColumn(0));
+        table.getColumn("STT").setPreferredWidth(45);
+        table.getColumn("STT").setMinWidth(40);
+        table.getColumn("STT").setMaxWidth(55);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -313,13 +316,21 @@ public class AccountManagementPanel extends JPanel {
         styleFormField(user);
         styleFormField(pass);
         styleFormField(role);
+
+        JPanel passwordPanel = new JPanel(new BorderLayout(6, 0));
+        passwordPanel.setBackground(Color.WHITE);
+        passwordPanel.add(pass, BorderLayout.CENTER);
+        JCheckBox showPassword = new JCheckBox("Hiện");
+        showPassword.setOpaque(false);
+        showPassword.addActionListener(e -> pass.setEchoChar(showPassword.isSelected() ? (char) 0 : '•'));
+        passwordPanel.add(showPassword, BorderLayout.EAST);
         styleFormField(empName);
         styleFormField(empPhone);
         styleFormField(empPosition);
 
         JPanel p = createForm();
         addField(p, "Username:",      user);
-        addField(p, "Password:",      pass);
+        addField(p, "Password:",      passwordPanel);
         addField(p, "Phân quyền:",    role);
         addField(p, "Trạng thái:",    active);
 
@@ -335,7 +346,7 @@ public class AccountManagementPanel extends JPanel {
         container.add(p);
         container.add(entityPanel);
 
-        if (JOptionPane.showConfirmDialog(this, container, "＋ Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+        if (showResizableForm(container, "＋ Thêm tài khoản") == JOptionPane.OK_OPTION) {
             String selectedRole = Objects.requireNonNull(role.getSelectedItem()).toString();
             controller.add(user.getText(), new String(pass.getPassword()), selectedRole, active.isSelected());
 
@@ -409,11 +420,19 @@ public class AccountManagementPanel extends JPanel {
         styleFormField(pass);
         styleFormField(role);
 
+        JPanel editPasswordPanel = new JPanel(new BorderLayout(6, 0));
+        editPasswordPanel.setBackground(Color.WHITE);
+        editPasswordPanel.add(pass, BorderLayout.CENTER);
+        JCheckBox showEditPassword = new JCheckBox("Hiện");
+        showEditPassword.setOpaque(false);
+        showEditPassword.addActionListener(e -> pass.setEchoChar(showEditPassword.isSelected() ? (char) 0 : '•'));
+        editPasswordPanel.add(showEditPassword, BorderLayout.EAST);
+
         // Form chính (Username / Password / Phân quyền / Trạng thái) — panel RIÊNG,
         // không chứa entityPanel, nên GridLayout của nó không bị kéo giãn theo entityPanel.
         JPanel p = createForm();
         addField(p, "Username:",      user);
-        addField(p, "Password:",      pass);
+        addField(p, "Password:",      editPasswordPanel);
         addField(p, "Phân quyền:",    role);
         addField(p, "Trạng thái:",    active);
 
@@ -487,7 +506,7 @@ public class AccountManagementPanel extends JPanel {
             entityPanel.repaint();
         });
 
-        if (JOptionPane.showConfirmDialog(this, container, "✎ Sửa tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == 0) {
+        if (showResizableForm(container, "✎ Sửa tài khoản") == JOptionPane.OK_OPTION) {
             String newPass = new String(pass.getPassword());
             if (newPass.isEmpty()) {
                 newPass = acc.getPassword();
@@ -550,6 +569,17 @@ public class AccountManagementPanel extends JPanel {
             controller.delete(id);
             loadData();
         }
+    }
+
+    private int showResizableForm(JComponent content, String title) {
+        JOptionPane pane = new JOptionPane(content, JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION);
+        JDialog dialog = pane.createDialog(this, title);
+        dialog.setResizable(true);
+        dialog.setMinimumSize(new Dimension(520, 360));
+        dialog.setVisible(true);
+        Object value = pane.getValue();
+        return value instanceof Integer ? (Integer) value : JOptionPane.CLOSED_OPTION;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

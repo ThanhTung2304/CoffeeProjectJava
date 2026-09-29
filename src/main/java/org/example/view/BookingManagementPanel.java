@@ -172,6 +172,9 @@ public class BookingManagementPanel extends JPanel {
         table.setAutoCreateRowSorter(true);
 
         table.removeColumn(table.getColumnModel().getColumn(0));
+        table.getColumn("STT").setPreferredWidth(45);
+        table.getColumn("STT").setMinWidth(40);
+        table.getColumn("STT").setMaxWidth(55);
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             public Component getTableCellRendererComponent(
@@ -596,9 +599,14 @@ public class BookingManagementPanel extends JPanel {
         int selectedTableIdx = 0;
         for (int i = 0; i < allTables.size(); i++) {
             TableSeat t = allTables.get(i);
+            // Do not offer reserved or occupied tables, except the table
+            // currently attached to this reservation so it can be kept.
+            if (!"Trống".equals(t.getStatus()) && t.getTableNumber() != r.getTableNumber()) {
+                continue;
+            }
             cbTable.addItem(t.getTableNumber() + " - " + t.getName() + " (Tầng " + t.getFloor() + ", " + t.getCapacity() + " chỗ)");
             if (t.getTableNumber() == r.getTableNumber()) {
-                selectedTableIdx = i;
+                selectedTableIdx = cbTable.getItemCount() - 1;
             }
         }
         cbTable.setSelectedIndex(selectedTableIdx);
@@ -638,7 +646,11 @@ public class BookingManagementPanel extends JPanel {
                     JOptionPane.showMessageDialog(dialog, "Vui lòng chọn bàn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                TableSeat selectedTable = allTables.get(tableIdx);
+                String selectedItem = (String) cbTable.getSelectedItem();
+                int selectedTableNumber = Integer.parseInt(selectedItem.split(" - ")[0].trim());
+                TableSeat selectedTable = allTables.stream()
+                        .filter(t -> t.getTableNumber() == selectedTableNumber)
+                        .findFirst().orElse(null);
 
                 LocalDateTime dateTime;
                 try {

@@ -5,6 +5,7 @@ import org.example.controller.ProductController;
 import org.example.entity.Order;
 import org.example.entity.OrderDetail;
 import org.example.entity.Product;
+import org.example.event.DataChangeEventBus;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -43,6 +44,9 @@ public class OrderManagementPanel extends JPanel {
     private static final NumberFormat VND =
             NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
+    private final DataChangeEventBus.DataChangeListener dataChangeListener =
+            () -> SwingUtilities.invokeLater(this::loadOrders);
+
     public OrderManagementPanel() {
         setLayout(new BorderLayout());
         setBackground(BG);
@@ -50,6 +54,7 @@ public class OrderManagementPanel extends JPanel {
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
 
+        DataChangeEventBus.onRegister(dataChangeListener);
         loadOrders();
     }
 

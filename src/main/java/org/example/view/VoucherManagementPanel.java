@@ -236,8 +236,7 @@ public class VoucherManagementPanel extends JPanel {
     /* ===== FORM DIALOG ===== */
     private Voucher showForm(Voucher v0) {
         JTextField txtCode = new JTextField(v0 != null ? v0.getCode() : "");
-        JComboBox<String> cbType = new JComboBox<>(new String[]{"PERCENT", "AMOUNT"});
-        if (v0 != null) cbType.setSelectedItem(v0.getDiscountType());
+        JComboBox<String> cbType = new JComboBox<>(new String[]{"PERCENT"});
 
         JTextField txtValue = new JTextField(v0 != null ? String.valueOf(v0.getDiscountValue()) : "");
         JTextField txtLimit = new JTextField(v0 != null ? String.valueOf(v0.getUsageLimit()) : "100");
