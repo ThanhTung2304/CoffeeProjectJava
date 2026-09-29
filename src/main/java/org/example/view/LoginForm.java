@@ -180,17 +180,7 @@ public class LoginForm extends JFrame {
                 new String(password.getPassword()).trim()
             );
 
-            JOptionPane.showMessageDialog(this,
-                                          "Đăng nhập thành công!",
-                                          "Thông báo",
-                                          JOptionPane.INFORMATION_MESSAGE);
-
-            new MainFrame(
-                account.getUsername(),
-                account.getRole()
-            ).setVisible(true);
-
-            dispose();
+            showSuccessAndOpenMain(account);
 
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this,
@@ -204,6 +194,25 @@ public class LoginForm extends JFrame {
                                           "Lỗi đăng nhập",
                                           JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void showSuccessAndOpenMain(Account account) {
+        JDialog successDialog = new JDialog(this, "Thông báo", true);
+        JLabel message = new JLabel("Đăng nhập thành công!", SwingConstants.CENTER);
+        message.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        message.setBorder(BorderFactory.createEmptyBorder(18, 28, 18, 28));
+        successDialog.add(message);
+        successDialog.pack();
+        successDialog.setLocationRelativeTo(this);
+
+        Timer timer = new Timer(2000, e -> {
+            successDialog.dispose();
+            new MainFrame(account.getUsername(), account.getRole()).setVisible(true);
+            dispose();
+        });
+        timer.setRepeats(false);
+        timer.start();
+        successDialog.setVisible(true);
     }
 
 

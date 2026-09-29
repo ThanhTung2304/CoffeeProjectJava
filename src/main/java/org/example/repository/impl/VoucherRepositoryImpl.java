@@ -20,10 +20,6 @@ public class VoucherRepositoryImpl implements VoucherRepository {
     }
 
     private String normalizeDiscountType(String type) {
-        if (type == null) return "Phần trăm";
-        String t = type.trim().toUpperCase();
-        if (t.equals("PERCENT") || t.contains("PHẦN TRĂM")) return "Phần trăm";
-        if (t.equals("AMOUNT") || t.contains("CỐ ĐỊNH") || t.contains("SỐ TIỀN")) return "Số tiền";
         return "Phần trăm";
     }
 

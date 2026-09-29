@@ -294,7 +294,7 @@ public class TableManagementPanel extends JPanel {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Thông Tin Bàn", true);
         dialog.setSize(400, 380);
         dialog.setLocationRelativeTo(this);
-        dialog.setResizable(false);
+        dialog.setResizable(true);
 
         JPanel content = new JPanel(new BorderLayout(0, 12));
         content.setBorder(new EmptyBorder(16, 16, 16, 16));

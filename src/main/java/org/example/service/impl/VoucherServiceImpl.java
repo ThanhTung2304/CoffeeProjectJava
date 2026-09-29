@@ -60,6 +60,9 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucher.getEndDate().isBefore(voucher.getStartDate())) {
             throw new IllegalArgumentException("Ngày kết thúc phải sau ngày bắt đầu");
         }
+        if (voucher.getDiscountValue() < 0 || voucher.getDiscountValue() > 100) {
+            throw new IllegalArgumentException("Mức giảm phần trăm phải từ 0 đến 100");
+        }
 
         if (repo.findByCode(voucher.getCode()) != null) {
             throw new RuntimeException("Mã Voucher này đã tồn tại trên hệ thống!");
@@ -71,6 +74,9 @@ public class VoucherServiceImpl implements VoucherService {
     public void update(Voucher voucher) {
         if (voucher == null) {
             throw new IllegalArgumentException("Voucher không được null");
+        }
+        if (voucher.getDiscountValue() < 0 || voucher.getDiscountValue() > 100) {
+            throw new IllegalArgumentException("Mức giảm phần trăm phải từ 0 đến 100");
         }
         repo.update(voucher);
     }

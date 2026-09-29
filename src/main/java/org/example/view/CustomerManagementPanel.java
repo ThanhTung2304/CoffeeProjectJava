@@ -208,6 +208,9 @@ public class CustomerManagementPanel extends JPanel {
         table.setFocusable(false);
         table.setIntercellSpacing(new Dimension(0, 0));
         table.setAutoCreateRowSorter(true);
+        table.getColumn("STT").setPreferredWidth(45);
+        table.getColumn("STT").setMinWidth(40);
+        table.getColumn("STT").setMaxWidth(55);
 
         table.removeColumn(table.getColumnModel().getColumn(0)); // Hide ID column
 
@@ -315,7 +318,9 @@ public class CustomerManagementPanel extends JPanel {
 
     /* ================= CRUD OPERATIONS ================= */
     private void openAddDialog() {
-        JTextField txtCode = new JTextField();
+        JTextField txtCode = new JTextField("CUS-" + System.currentTimeMillis());
+        txtCode.setEditable(false);
+        txtCode.setBackground(new Color(0xF1F5F9));
         JTextField txtName = new JTextField();
         JTextField txtPhone = new JTextField();
         JTextField txtEmail = new JTextField();
@@ -332,8 +337,7 @@ public class CustomerManagementPanel extends JPanel {
         addField(formPanel, "Password:", txtPassword);
         addField(formPanel, "Trạng thái:", chkActive);
 
-        int result = JOptionPane.showConfirmDialog(this, formPanel, "➕ Thêm khách hàng",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = showResizableForm(formPanel, "➕ Thêm khách hàng");
 
         if (result == JOptionPane.OK_OPTION) {
             try {
@@ -392,8 +396,7 @@ public class CustomerManagementPanel extends JPanel {
         addField(formPanel, "Email:", txtEmail);
         addField(formPanel, "Trạng thái:", chkActive);
 
-        int result = JOptionPane.showConfirmDialog(this, formPanel, "✎ Sửa khách hàng",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = showResizableForm(formPanel, "✎ Sửa khách hàng");
 
         if (result == JOptionPane.OK_OPTION) {
             try {
@@ -439,6 +442,17 @@ public class CustomerManagementPanel extends JPanel {
     }
 
     /* ================= UI HELPER METHODS ================= */
+    private int showResizableForm(JComponent content, String title) {
+        JOptionPane pane = new JOptionPane(content, JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION);
+        JDialog dialog = pane.createDialog(this, title);
+        dialog.setResizable(true);
+        dialog.setMinimumSize(new Dimension(520, 360));
+        dialog.setVisible(true);
+        Object value = pane.getValue();
+        return value instanceof Integer ? (Integer) value : JOptionPane.CLOSED_OPTION;
+    }
+
     private JPanel createFormPanel() {
         JPanel p = new JPanel(new GridLayout(0, 2, 10, 12));
         p.setBorder(new EmptyBorder(12, 12, 12, 12));

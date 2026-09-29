@@ -2,6 +2,7 @@ package org.example.service.impl;
 
 import org.example.entity.Order;
 import org.example.entity.OrderDetail;
+import org.example.event.DataChangeEventBus;
 import org.example.repository.OrderDetailRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.impl.OrderDetailRepositoryImpl;
@@ -43,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
         detailRepo.saveAll(details);
 
         order.setDetails(details);
+        DataChangeEventBus.notifyChange();
         return order;
     }
 
@@ -56,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
         if ("CANCELLED".equals(order.getStatus()))
             throw new IllegalStateException("Đơn hàng đã bị hủy trước đó");
         orderRepo.updateStatus(orderId, "CANCELLED");
+        DataChangeEventBus.notifyChange();
     }
 
     @Override
@@ -68,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
         if ("COMPLETED".equals(order.getStatus()))
             throw new IllegalStateException("Đơn hàng đã hoàn thành trước đó");
         orderRepo.updateStatus(orderId, "COMPLETED");
+        DataChangeEventBus.notifyChange();
     }
 
     @Override

@@ -318,7 +318,10 @@ public class ProductManagementPanel extends JPanel {
         summaryScroll.setPreferredSize(new Dimension(560, 130));
         summaryScroll.setBorder(BorderFactory.createTitledBorder("Chi tiết đơn hàng"));
 
-        List<TableSeat> tables = tableController.getAllTables();
+        // Only empty tables can be selected for a new order.
+        List<TableSeat> tables = tableController.getAllTables().stream()
+                .filter(t -> "Trống".equals(t.getStatus()))
+                .toList();
         String[] tableNames = tables.stream()
                 .map(t -> t.getName() + " (Bàn " + t.getTableNumber() + ")")
                 .toArray(String[]::new);
@@ -355,8 +358,24 @@ public class ProductManagementPanel extends JPanel {
             dialog.revalidate(); dialog.repaint();
         });
 
-        JTextField txtVoucherCode = new JTextField();
-        txtVoucherCode.setPreferredSize(new Dimension(180, 30));
+        List<Voucher> availableVouchers = voucherController.getAll("", "ACTIVE").stream()
+                .filter(v -> v.getStartDate() == null || !LocalDate.now().isBefore(v.getStartDate()))
+                .filter(v -> v.getEndDate() == null || !LocalDate.now().isAfter(v.getEndDate()))
+                .toList();
+        JComboBox<Voucher> cbVoucher = new JComboBox<>(availableVouchers.toArray(new Voucher[0]));
+        cbVoucher.setPreferredSize(new Dimension(300, 30));
+        cbVoucher.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                           boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Voucher v) {
+                    String discount = String.format("%.0f%%", v.getDiscountValue());
+                    setText(v.getCode() + " - giảm " + discount);
+                }
+                return this;
+            }
+        });
         JButton btnApplyVoucher   = createButton("Áp dụng", BTN_BLUE);
         btnApplyVoucher.setPreferredSize(new Dimension(100, 30));
         JLabel lblVoucherInfo     = new JLabel("Chưa áp dụng voucher");
@@ -365,8 +384,8 @@ public class ProductManagementPanel extends JPanel {
 
         JPanel voucherInputRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         voucherInputRow.setOpaque(false);
-        voucherInputRow.add(new JLabel("  Mã voucher:"));
-        voucherInputRow.add(txtVoucherCode);
+        voucherInputRow.add(new JLabel("  Chọn voucher:"));
+        voucherInputRow.add(cbVoucher);
         voucherInputRow.add(btnApplyVoucher);
 
         JPanel voucherPanel = new JPanel(new BorderLayout(0, 4));
@@ -400,29 +419,22 @@ public class ProductManagementPanel extends JPanel {
         final double[]  finalTotal     = {subtotal};
 
         btnApplyVoucher.addActionListener(e -> {
-            String code = txtVoucherCode.getText().trim();
-            if (code.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Vui lòng nhập mã voucher!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            Voucher v = (Voucher) cbVoucher.getSelectedItem();
+            if (v == null) {
+                JOptionPane.showMessageDialog(dialog, "Hiện không có voucher khả dụng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             try {
-                Voucher v = voucherController.getByCode(code);
-                if (v == null) {
-                    lblVoucherInfo.setText("❌ Mã voucher không tồn tại!");
-                    lblVoucherInfo.setForeground(BTN_RED);
-                    appliedVoucher[0] = null; discountAmount[0] = 0; finalTotal[0] = subtotalRef[0];
-                } else if (!"ACTIVE".equals(v.getStatus())) {
+                // VoucherRepository normalizes ACTIVE to the Vietnamese label
+                // "Còn hiệu lực" when mapping data from the database.
+                if (!"ACTIVE".equalsIgnoreCase(v.getStatus())
+                        && !"Còn hiệu lực".equalsIgnoreCase(v.getStatus())) {
                     lblVoucherInfo.setText("❌ Voucher không khả dụng!");
                     lblVoucherInfo.setForeground(BTN_RED);
                     appliedVoucher[0] = null; discountAmount[0] = 0; finalTotal[0] = subtotalRef[0];
                 } else {
-                    if ("PERCENT".equals(v.getDiscountType())) {
-                        discountAmount[0] = subtotalRef[0] * v.getDiscountValue() / 100.0;
-                        lblVoucherInfo.setText(String.format("✅ Giảm %.0f%% → -  %,.0f đ", v.getDiscountValue(), discountAmount[0]));
-                    } else {
-                        discountAmount[0] = Math.min(v.getDiscountValue(), subtotalRef[0]);
-                        lblVoucherInfo.setText(String.format("✅ Giảm trực tiếp: - %,.0f đ", discountAmount[0]));
-                    }
+                    discountAmount[0] = subtotalRef[0] * v.getDiscountValue() / 100.0;
+                    lblVoucherInfo.setText(String.format("✅ Giảm %.0f%% → -  %,.0f đ", v.getDiscountValue(), discountAmount[0]));
                     finalTotal[0] = Math.max(0, subtotalRef[0] - discountAmount[0]);
                     appliedVoucher[0] = v;
                     lblVoucherInfo.setForeground(BTN_GREEN);
@@ -489,6 +501,15 @@ public class ProductManagementPanel extends JPanel {
 
                 Order order = orderController.createOrder(details, fullNote.toString());
                 orderController.completeOrder(order.getId());
+
+                // Mark the selected table as occupied after payment succeeds.
+                if (tableIndex >= 0 && tableIndex < tables.size()) {
+                    TableSeat paidTable = tables.get(tableIndex);
+                    paidTable.setStatus("Đang sử dụng");
+                    tableController.updateTable(paidTable);
+                }
+                // Refresh the Order screen immediately after successful payment.
+                org.example.event.DataChangeEventBus.notifyChange();
 
                 JOptionPane.showMessageDialog(dialog, "✅ Thanh toán thành công!\nTổng cộng: " + String.format("%,.0f đ", finalTotal[0]), "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 cartTableModel.setRowCount(0); updateTotal(); dialog.dispose();

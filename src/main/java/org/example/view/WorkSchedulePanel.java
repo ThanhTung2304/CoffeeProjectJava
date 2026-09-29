@@ -4,9 +4,11 @@ import org.example.controller.EmployeeController;
 import org.example.controller.EmployeeShiftController;
 import org.example.controller.ShiftController;
 import org.example.controller.WorkScheduleController;
+import org.example.controller.AccountController;
 import org.example.entity.Employee;
 import org.example.entity.Shift;
 import org.example.entity.WorkSchedule;
+import org.example.session.UserSession;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -61,6 +63,7 @@ public class WorkSchedulePanel extends JPanel {
     private LocalDate weekStart;
 
     private final EmployeeController employeeController = new EmployeeController();
+    private final AccountController accountController = new AccountController();
     private final ShiftController shiftController = new ShiftController();
     private final WorkScheduleController workScheduleController = new WorkScheduleController();
     private final EmployeeShiftController employeeShiftController = new EmployeeShiftController();
@@ -345,6 +348,12 @@ public class WorkSchedulePanel extends JPanel {
         if (row < 0 || row >= employees.size()) return;
 
         Employee emp = employees.get(row);
+        if (!canEditEmployee(emp)) {
+            JOptionPane.showMessageDialog(this,
+                    "Bạn chỉ được chỉnh sửa lịch làm của chính mình.",
+                    "Không có quyền", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         LocalDate workDate = weekStart.plusDays(col - 1);
 
         WorkSchedule existing = scheduleMap.get(emp.getId() + "_" + workDate);
@@ -436,6 +445,9 @@ public class WorkSchedulePanel extends JPanel {
         if (row < 0 || col < 1 || col > 7) return;
 
         Employee emp = employees.get(row);
+        if (!canEditEmployee(emp)) {
+            return;
+        }
         LocalDate workDate = weekStart.plusDays(col - 1);
         WorkSchedule existing = scheduleMap.get(emp.getId() + "_" + workDate);
 
@@ -475,6 +487,17 @@ public class WorkSchedulePanel extends JPanel {
         }
 
         menu.show(table, e.getX(), e.getY());
+    }
+
+    /** Admin được sửa mọi nhân viên; nhân viên chỉ được sửa lịch của tài khoản mình. */
+    private boolean canEditEmployee(Employee employee) {
+        if (UserSession.getInstance().isAdmin()) return true;
+
+        String username = UserSession.getInstance().getUsername();
+        if (username == null || employee == null || employee.getAccountId() == null) return false;
+
+        var account = accountController.findByUsername(username);
+        return account != null && account.getId() == employee.getAccountId();
     }
 
     // ── Load data ─────────────────────────────────────────────────────────────
