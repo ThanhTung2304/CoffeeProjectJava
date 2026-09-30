@@ -16,6 +16,10 @@ public class OrderController {
         return orderService.createOrder(details, note);
     }
 
+    public void updateFinancials(int orderId, double subtotalAmount, double discountAmount, String voucherCode) {
+        orderService.updateFinancials(orderId, subtotalAmount, discountAmount, voucherCode);
+    }
+
     /** Lấy đơn hàng kèm chi tiết để in hóa đơn */
     public Order getOrderWithDetails(int orderId) {
         return orderService.getOrderWithDetails(orderId);

@@ -319,6 +319,11 @@ public class OrderManagementPanel extends JPanel {
         }
         
         sb.append("--------------------------------------\n");
+        if (order.getVoucherCode() != null && !order.getVoucherCode().isBlank()) {
+            sb.append("Voucher: ").append(order.getVoucherCode()).append("\n");
+            sb.append("Giảm giá: ").append(VND.format(order.getDiscountAmount())).append(" ₫\n");
+            sb.append("Tạm tính: ").append(VND.format(order.getSubtotalAmount())).append(" ₫\n");
+        }
         sb.append("TỔNG CỘNG:            ").append(VND.format(order.getTotalAmount())).append(" ₫\n");
         sb.append("--------------------------------------\n");
         sb.append("Ghi chú: ").append(order.getNote() != null ? order.getNote() : "").append("\n\n");

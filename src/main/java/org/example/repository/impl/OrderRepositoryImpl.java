@@ -35,6 +35,14 @@ public class OrderRepositoryImpl implements OrderRepository {
             throw new RuntimeException("Lỗi khi lưu order", e);
         }
     }
+    @Override
+    public void updateFinancials(int orderId, double subtotalAmount, double discountAmount, String voucherCode) {
+        String sql = "UPDATE orders SET subtotal_amount=?, discount_amount=?, voucher_code=?, total_amount=? WHERE id=?";
+        try (Connection con = DatabaseConfig.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDouble(1, subtotalAmount); ps.setDouble(2, discountAmount); ps.setString(3, voucherCode);
+            ps.setDouble(4, Math.max(0, subtotalAmount - discountAmount)); ps.setInt(5, orderId); ps.executeUpdate();
+        } catch (SQLException e) { throw new RuntimeException("Lỗi khi lưu thông tin voucher", e); }
+    }
 
     @Override
     public void updateStatus(int orderId, String status) {
@@ -124,6 +132,9 @@ public class OrderRepositoryImpl implements OrderRepository {
         o.setId(rs.getInt("id"));
         o.setOrderCode(rs.getString("order_code"));
         o.setTotalAmount(rs.getDouble("total_amount"));
+        o.setSubtotalAmount(rs.getDouble("subtotal_amount"));
+        o.setDiscountAmount(rs.getDouble("discount_amount"));
+        o.setVoucherCode(rs.getString("voucher_code"));
         o.setStatus(rs.getString("status"));
         o.setNote(rs.getString("note"));
         Timestamp created = rs.getTimestamp("createdTime");

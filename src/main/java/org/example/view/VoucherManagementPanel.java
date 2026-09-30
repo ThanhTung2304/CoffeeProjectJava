@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.controller.VoucherController;
 import org.example.entity.Voucher;
+import org.example.session.UserSession;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -48,6 +49,7 @@ public class VoucherManagementPanel extends JPanel {
     }
 
     private void initUI() {
+        boolean canManage = UserSession.getInstance().isAdmin();
         /* ===== HEADER (BANNER) ===== */
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(HEADER_BG);
@@ -115,9 +117,11 @@ public class VoucherManagementPanel extends JPanel {
         JButton btnDelete  = createButton("✕ Xóa",     BTN_RED);
         JButton btnRefresh = createButton("↻ Làm mới", BTN_SLATE);
 
-        actionGroup.add(btnAdd);
-        actionGroup.add(btnEdit);
-        actionGroup.add(btnDelete);
+        if (canManage) {
+            actionGroup.add(btnAdd);
+            actionGroup.add(btnEdit);
+            actionGroup.add(btnDelete);
+        }
         actionGroup.add(btnRefresh);
 
         controlBar.add(searchGroup, BorderLayout.WEST);
@@ -301,3 +305,4 @@ public class VoucherManagementPanel extends JPanel {
         return btn;
     }
 }
+
