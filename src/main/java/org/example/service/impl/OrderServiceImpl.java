@@ -47,6 +47,10 @@ public class OrderServiceImpl implements OrderService {
         DataChangeEventBus.notifyChange();
         return order;
     }
+    @Override
+    public void updateFinancials(int orderId, double subtotalAmount, double discountAmount, String voucherCode) {
+        orderRepo.updateFinancials(orderId, subtotalAmount, discountAmount, voucherCode);
+    }
 
     @Override
     public void cancelOrder(int orderId) {

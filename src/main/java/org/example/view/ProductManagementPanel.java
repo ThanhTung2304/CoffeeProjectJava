@@ -326,13 +326,16 @@ public class ProductManagementPanel extends JPanel {
                 .map(t -> t.getName() + " (Bàn " + t.getTableNumber() + ")")
                 .toArray(String[]::new);
         JComboBox<String> cbTable   = new JComboBox<>(tableNames);
+        JCheckBox cbTakeaway = new JCheckBox("Mang về");
+        cbTakeaway.setOpaque(false);
         JComboBox<String> cbPayment = new JComboBox<>(new String[]{"Tiền mặt", "Chuyển khoản"});
         JTextField txtNote = new JTextField();
 
-        JPanel orderInfoPanel = new JPanel(new GridLayout(3, 2, 10, 8));
+        JPanel orderInfoPanel = new JPanel(new GridLayout(4, 2, 10, 8));
         orderInfoPanel.setOpaque(false);
         orderInfoPanel.setBorder(BorderFactory.createTitledBorder("Thông tin đơn hàng"));
         orderInfoPanel.add(new JLabel("  Chọn bàn:"));       orderInfoPanel.add(cbTable);
+        orderInfoPanel.add(new JLabel("  Hình thức:"));      orderInfoPanel.add(cbTakeaway);
         orderInfoPanel.add(new JLabel("  Phương thức TT:")); orderInfoPanel.add(cbPayment);
         orderInfoPanel.add(new JLabel("  Ghi chú:"));        orderInfoPanel.add(txtNote);
 
@@ -352,6 +355,11 @@ public class ProductManagementPanel extends JPanel {
         bankPanel.add(new JLabel("  Tên tài khoản:")); bankPanel.add(txtAccountName);
         bankPanel.add(new JLabel("  Nội dung CK:"));   bankPanel.add(txtTransferContent);
         bankPanel.setVisible(false);
+
+        cbTakeaway.addActionListener(e -> {
+            cbTable.setEnabled(!cbTakeaway.isSelected());
+            if (cbTakeaway.isSelected()) cbTable.setSelectedIndex(-1);
+        });
 
         cbPayment.addActionListener(e -> {
             bankPanel.setVisible("Chuyển khoản".equals(cbPayment.getSelectedItem()));
@@ -481,7 +489,8 @@ public class ProductManagementPanel extends JPanel {
                 }
                 int tableIndex = cbTable.getSelectedIndex();
                 String paymentMethod = (String) cbPayment.getSelectedItem();
-                String selectedTable = tableIndex >= 0 ? tables.get(tableIndex).getName() : "Không xác định";
+                if (!cbTakeaway.isSelected() && tableIndex < 0) { JOptionPane.showMessageDialog(dialog, "Vui lòng chọn bàn hoặc tích Mang về!"); return; }
+                String selectedTable = cbTakeaway.isSelected() ? "Mang về" : tables.get(tableIndex).getName();
 
                 StringBuilder fullNote = new StringBuilder();
                 fullNote.append("Bàn: ").append(selectedTable).append(" | TT: ").append(paymentMethod);
@@ -500,10 +509,11 @@ public class ProductManagementPanel extends JPanel {
                 }
 
                 Order order = orderController.createOrder(details, fullNote.toString());
+                orderController.updateFinancials(order.getId(), subtotalRef[0], discountAmount[0], appliedVoucher[0] == null ? null : appliedVoucher[0].getCode());
                 orderController.completeOrder(order.getId());
 
                 // Mark the selected table as occupied after payment succeeds.
-                if (tableIndex >= 0 && tableIndex < tables.size()) {
+                if (!cbTakeaway.isSelected() && tableIndex >= 0 && tableIndex < tables.size()) {
                     TableSeat paidTable = tables.get(tableIndex);
                     paidTable.setStatus("Đang sử dụng");
                     tableController.updateTable(paidTable);

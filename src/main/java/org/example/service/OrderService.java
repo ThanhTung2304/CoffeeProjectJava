@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface OrderService {
     Order createOrder(List<OrderDetail> details, String note);
+    void updateFinancials(int orderId, double subtotalAmount, double discountAmount, String voucherCode);
     void cancelOrder(int orderId);
     void completeOrder(int orderId);
     Order getOrderWithDetails(int orderId);

@@ -9,6 +9,9 @@ public class Order {
     private int id;
     private String orderCode;
     private double totalAmount;
+    private double subtotalAmount;
+    private double discountAmount;
+    private String voucherCode;
     private String status;          // PENDING | COMPLETED | CANCELLED
     private String note;
     private LocalDateTime createdTime;
@@ -35,6 +38,13 @@ public class Order {
 
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+
+    public double getSubtotalAmount() { return subtotalAmount; }
+    public void setSubtotalAmount(double value) { this.subtotalAmount = value; }
+    public double getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(double value) { this.discountAmount = value; }
+    public String getVoucherCode() { return voucherCode; }
+    public void setVoucherCode(String value) { this.voucherCode = value; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

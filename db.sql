@@ -158,6 +158,11 @@ CREATE TABLE IF NOT EXISTS orders (
     updatedTime TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB;
 
+ALTER TABLE orders
+    ADD COLUMN subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    ADD COLUMN voucher_code VARCHAR(50) NULL;
+
 CREATE TABLE IF NOT EXISTS order_detail (
                                             id INT AUTO_INCREMENT PRIMARY KEY,
                                             order_id INT NOT NULL,
@@ -216,5 +221,343 @@ INSERT INTO `tables` (name, capacity, floor, status, note) VALUES
                                                                ('Bàn 22', 4, 2, 'Trống', ''), ('Bàn 23', 4, 2, 'Trống', ''), ('Bàn 24', 4, 2, 'Trống', ''),
                                                                ('Bàn 25', 4, 2, 'Trống', ''), ('Bàn 26', 4, 2, 'Trống', ''), ('Bàn 27', 4, 2, 'Trống', ''),
                                                                ('Bàn 28', 4, 2, 'Trống', ''), ('Bàn 29', 4, 2, 'Trống', ''), ('Bàn 30', 4, 2, 'Trống', '');
+
+INSERT INTO product (name, price, is_active)
+VALUES
+    ('Espresso', 30000, 1),
+    ('Americano', 35000, 1),
+    ('Cappuccino', 45000, 1),
+    ('Latte', 45000, 1),
+    ('Mocha', 50000, 1),
+    ('Caramel Macchiato', 55000, 1),
+    ('Cold Brew', 45000, 1),
+    ('Cold Brew Sữa Tươi', 50000, 1),
+    ('Cà Phê Đen', 25000, 1),
+    ('Cà Phê Sữa', 30000, 1),
+    ('Bạc Xỉu', 35000, 1),
+    ('Cà Phê Muối', 40000, 1),
+    ('Trà Đào Cam Sả', 45000, 1),
+    ('Trà Vải', 40000, 1),
+    ('Trà Chanh', 30000, 1),
+    ('Matcha Latte', 50000, 1),
+    ('Chocolate Đá Xay', 55000, 1),
+    ('Matcha Đá Xay', 55000, 1),
+    ('Sinh Tố Xoài', 45000, 1),
+    ('Nước Cam Ép', 40000, 1);
+
+-- =========================================================
+-- CÔNG THỨC PHA CHẾ 20 SẢN PHẨM
+-- =========================================================
+
+-- 1. ESPRESSO
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê Espresso', 18, 'g'
+FROM product WHERE name = 'Espresso';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước nóng', 30, 'ml'
+FROM product WHERE name = 'Espresso';
+
+
+-- 2. AMERICANO
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Espresso', 30, 'ml'
+FROM product WHERE name = 'Americano';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước nóng', 120, 'ml'
+FROM product WHERE name = 'Americano';
+
+
+-- 3. CAPPUCCINO
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Espresso', 30, 'ml'
+FROM product WHERE name = 'Cappuccino';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 100, 'ml'
+FROM product WHERE name = 'Cappuccino';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Bọt sữa', 50, 'ml'
+FROM product WHERE name = 'Cappuccino';
+
+
+-- 4. LATTE
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Espresso', 30, 'ml'
+FROM product WHERE name = 'Latte';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 180, 'ml'
+FROM product WHERE name = 'Latte';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Bọt sữa', 20, 'ml'
+FROM product WHERE name = 'Latte';
+
+
+-- 5. MOCHA
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Espresso', 30, 'ml'
+FROM product WHERE name = 'Mocha';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 150, 'ml'
+FROM product WHERE name = 'Mocha';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sốt Chocolate', 25, 'ml'
+FROM product WHERE name = 'Mocha';
+
+
+-- 6. CARAMEL MACCHIATO
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Espresso', 30, 'ml'
+FROM product WHERE name = 'Caramel Macchiato';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 150, 'ml'
+FROM product WHERE name = 'Caramel Macchiato';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Syrup Caramel', 20, 'ml'
+FROM product WHERE name = 'Caramel Macchiato';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sốt Caramel', 10, 'ml'
+FROM product WHERE name = 'Caramel Macchiato';
+
+
+-- 7. COLD BREW
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê Cold Brew', 100, 'ml'
+FROM product WHERE name = 'Cold Brew';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước lọc', 50, 'ml'
+FROM product WHERE name = 'Cold Brew';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Cold Brew';
+
+
+-- 8. COLD BREW SỮA TƯƠI
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê Cold Brew', 100, 'ml'
+FROM product WHERE name = 'Cold Brew Sữa Tươi';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 80, 'ml'
+FROM product WHERE name = 'Cold Brew Sữa Tươi';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Cold Brew Sữa Tươi';
+
+
+-- 9. CÀ PHÊ ĐEN
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê rang xay', 25, 'g'
+FROM product WHERE name = 'Cà Phê Đen';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước nóng', 80, 'ml'
+FROM product WHERE name = 'Cà Phê Đen';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đường', 10, 'g'
+FROM product WHERE name = 'Cà Phê Đen';
+
+
+-- 10. CÀ PHÊ SỮA
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê rang xay', 25, 'g'
+FROM product WHERE name = 'Cà Phê Sữa';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước nóng', 80, 'ml'
+FROM product WHERE name = 'Cà Phê Sữa';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 30, 'ml'
+FROM product WHERE name = 'Cà Phê Sữa';
+
+
+-- 11. BẠC XỈU
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê', 20, 'ml'
+FROM product WHERE name = 'Bạc Xỉu';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 30, 'ml'
+FROM product WHERE name = 'Bạc Xỉu';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 120, 'ml'
+FROM product WHERE name = 'Bạc Xỉu';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Bạc Xỉu';
+
+
+-- 12. CÀ PHÊ MUỐI
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cà phê', 40, 'ml'
+FROM product WHERE name = 'Cà Phê Muối';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 25, 'ml'
+FROM product WHERE name = 'Cà Phê Muối';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Kem béo', 40, 'ml'
+FROM product WHERE name = 'Cà Phê Muối';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Muối', 1, 'g'
+FROM product WHERE name = 'Cà Phê Muối';
+
+
+-- 13. TRÀ ĐÀO CAM SẢ
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Trà đào', 150, 'ml'
+FROM product WHERE name = 'Trà Đào Cam Sả';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Syrup đào', 20, 'ml'
+FROM product WHERE name = 'Trà Đào Cam Sả';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đào miếng', 40, 'g'
+FROM product WHERE name = 'Trà Đào Cam Sả';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cam', 30, 'g'
+FROM product WHERE name = 'Trà Đào Cam Sả';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sả', 10, 'g'
+FROM product WHERE name = 'Trà Đào Cam Sả';
+
+
+-- 14. TRÀ VẢI
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Trà', 150, 'ml'
+FROM product WHERE name = 'Trà Vải';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Syrup vải', 25, 'ml'
+FROM product WHERE name = 'Trà Vải';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Vải', 40, 'g'
+FROM product WHERE name = 'Trà Vải';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Trà Vải';
+
+
+-- 15. TRÀ CHANH
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Trà', 150, 'ml'
+FROM product WHERE name = 'Trà Chanh';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Nước cốt chanh', 20, 'ml'
+FROM product WHERE name = 'Trà Chanh';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đường', 20, 'g'
+FROM product WHERE name = 'Trà Chanh';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Trà Chanh';
+
+
+-- 16. MATCHA LATTE
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Bột Matcha', 5, 'g'
+FROM product WHERE name = 'Matcha Latte';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 180, 'ml'
+FROM product WHERE name = 'Matcha Latte';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Syrup đường', 20, 'ml'
+FROM product WHERE name = 'Matcha Latte';
+
+
+-- 17. CHOCOLATE ĐÁ XAY
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Bột Chocolate', 20, 'g'
+FROM product WHERE name = 'Chocolate Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 120, 'ml'
+FROM product WHERE name = 'Chocolate Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 20, 'ml'
+FROM product WHERE name = 'Chocolate Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 150, 'g'
+FROM product WHERE name = 'Chocolate Đá Xay';
+
+
+-- 18. MATCHA ĐÁ XAY
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Bột Matcha', 6, 'g'
+FROM product WHERE name = 'Matcha Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 120, 'ml'
+FROM product WHERE name = 'Matcha Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 20, 'ml'
+FROM product WHERE name = 'Matcha Đá Xay';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 150, 'g'
+FROM product WHERE name = 'Matcha Đá Xay';
+
+
+-- 19. SINH TỐ XOÀI
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Xoài', 150, 'g'
+FROM product WHERE name = 'Sinh Tố Xoài';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa tươi', 80, 'ml'
+FROM product WHERE name = 'Sinh Tố Xoài';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Sữa đặc', 20, 'ml'
+FROM product WHERE name = 'Sinh Tố Xoài';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Sinh Tố Xoài';
+
+
+-- 20. NƯỚC CAM ÉP
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Cam tươi', 250, 'g'
+FROM product WHERE name = 'Nước Cam Ép';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đường', 10, 'g'
+FROM product WHERE name = 'Nước Cam Ép';
+
+INSERT INTO recipe (product_id, ingredient_name, amount, unit)
+SELECT id, 'Đá viên', 100, 'g'
+FROM product WHERE name = 'Nước Cam Ép';
 
 SHOW COLUMNS FROM employee LIKE 'account_id';

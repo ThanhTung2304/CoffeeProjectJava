@@ -4,6 +4,7 @@ import org.example.controller.ProductController;
 import org.example.controller.RecipeController;
 import org.example.entity.Product;
 import org.example.entity.Recipe;
+import org.example.session.UserSession;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -100,9 +101,11 @@ public class RecipeManagementPanel extends JPanel {
         JButton btnDelete = createButton("Xóa", new Color(220, 53, 69));
         JButton btnRefresh = createButton("Làm mới", new Color(108, 117, 125));
 
-        bottom.add(btnAdd);
-        bottom.add(btnEdit);
-        bottom.add(btnDelete);
+        if (UserSession.getInstance().isAdmin()) {
+            bottom.add(btnAdd);
+            bottom.add(btnEdit);
+            bottom.add(btnDelete);
+        }
         bottom.add(btnRefresh);
 
         add(bottom, BorderLayout.SOUTH);
@@ -241,3 +244,4 @@ public class RecipeManagementPanel extends JPanel {
         }
     }
 }
+
