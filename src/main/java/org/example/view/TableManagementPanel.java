@@ -24,8 +24,8 @@ public class TableManagementPanel extends JPanel {
     private static final Color STATUS_EMPTY_FG = new Color(0x166534);
     private static final Color STATUS_IN_USE   = new Color(0xFEE2E2);
     private static final Color STATUS_IN_USE_FG = new Color(0x991B1B);
-    private static final Color STATUS_RESERVED = new Color(0xFEF9C3);
-    private static final Color STATUS_RESERVED_FG = new Color(0x854D0E);
+    private static final Color STATUS_RESERVED = new Color(0xFEE2E2);
+    private static final Color STATUS_RESERVED_FG = new Color(0xB91C1C);
 
     private static final Color CARD_BG     = Color.WHITE;
     private static final Color CARD_HOVER  = new Color(0xF1F5F9);
@@ -52,7 +52,6 @@ public class TableManagementPanel extends JPanel {
     private JLabel floor2Title;
     private JLabel totalCountLabel;
     private JLabel emptyCountLabel;
-    private JLabel inUseCountLabel;
     private JLabel reservedCountLabel;
 
     private final TableController controller = new TableController();
@@ -111,15 +110,13 @@ public class TableManagementPanel extends JPanel {
 
         totalCountLabel = createStatLabel("0 Tổng");
         emptyCountLabel = createStatLabel("0 Trống");
-        inUseCountLabel = createStatLabel("0 Đang dùng");
-        reservedCountLabel = createStatLabel("0 Đặt trước");
+        reservedCountLabel = createStatLabel("0 Đặt");
 
         JButton btnRefresh = createSmallButton("↻ Làm mới", BTN_GRAY);
         btnRefresh.addActionListener(e -> loadData());
 
         right.add(totalCountLabel);
         right.add(emptyCountLabel);
-        right.add(inUseCountLabel);
         right.add(reservedCountLabel);
         right.add(btnRefresh);
 
@@ -275,11 +272,7 @@ public class TableManagementPanel extends JPanel {
                 lbl.setBackground(STATUS_EMPTY);
                 lbl.setForeground(STATUS_EMPTY_FG);
             }
-            case "Đang sử dụng" -> {
-                lbl.setBackground(STATUS_IN_USE);
-                lbl.setForeground(STATUS_IN_USE_FG);
-            }
-            case "Đặt trước" -> {
+            case "Đặt" -> {
                 lbl.setBackground(STATUS_RESERVED);
                 lbl.setForeground(STATUS_RESERVED_FG);
             }
@@ -346,8 +339,7 @@ public class TableManagementPanel extends JPanel {
         btnPanel.setOpaque(false);
 
         JButton btnEmpty = createDialogButton("Trống", STATUS_EMPTY, STATUS_EMPTY_FG);
-        JButton btnInUse = createDialogButton("Đang sử dụng", STATUS_IN_USE, STATUS_IN_USE_FG);
-        JButton btnReserved = createDialogButton("Đặt trước", STATUS_RESERVED, STATUS_RESERVED_FG);
+        JButton btnReserved = createDialogButton("Đặt", STATUS_RESERVED, STATUS_RESERVED_FG);
         JButton btnClose = createDialogButton("Đóng", new Color(0xE2E8F0), new Color(0x475569));
 
         btnEmpty.addActionListener(e -> {
@@ -358,15 +350,8 @@ public class TableManagementPanel extends JPanel {
             dialog.dispose();
         });
 
-        btnInUse.addActionListener(e -> {
-            table.setStatus("Đang sử dụng");
-            controller.updateTable(table);
-            loadData();
-            dialog.dispose();
-        });
-
         btnReserved.addActionListener(e -> {
-            table.setStatus("Đặt trước");
+            table.setStatus("Đặt");
             controller.updateTable(table);
             loadData();
             dialog.dispose();
@@ -375,7 +360,6 @@ public class TableManagementPanel extends JPanel {
         btnClose.addActionListener(e -> dialog.dispose());
 
         btnPanel.add(btnEmpty);
-        btnPanel.add(btnInUse);
         btnPanel.add(btnReserved);
         btnPanel.add(btnClose);
 
@@ -468,15 +452,13 @@ public class TableManagementPanel extends JPanel {
         for (TableSeat t : allTables) {
             switch (t.getStatus()) {
                 case "Trống" -> empty++;
-                case "Đang sử dụng" -> inUse++;
-                case "Đặt trước" -> reserved++;
+                case "Đặt" -> reserved++;
             }
         }
 
         totalCountLabel.setText(total + " Tổng");
         emptyCountLabel.setText(empty + " Trống");
-        inUseCountLabel.setText(inUse + " Đang dùng");
-        reservedCountLabel.setText(reserved + " Đặt trước");
+        reservedCountLabel.setText(reserved + " Đặt");
 
         Map<Integer, List<TableSeat>> byFloor = allTables.stream()
                 .collect(Collectors.groupingBy(TableSeat::getFloor));
