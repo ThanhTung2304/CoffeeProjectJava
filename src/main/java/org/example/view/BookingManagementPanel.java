@@ -538,7 +538,7 @@ public class BookingManagementPanel extends JPanel {
                 reservation.setCustomerId(customerId);
 
                 controller.addReservation(reservation);
-                updateTableStatus(selectedTable.getTableNumber(), "Đang sử dụng");
+                updateTableStatus(selectedTable.getTableNumber(), "Đặt");
                 DataChangeEventBus.notifyChange();
                 loadData();
                 dialog.dispose();
@@ -672,7 +672,7 @@ public class BookingManagementPanel extends JPanel {
                 controller.updateReservation(r);
                 if (oldTableNumber != selectedTable.getTableNumber()) {
                     updateTableStatus(oldTableNumber, "Trống");
-                    updateTableStatus(selectedTable.getTableNumber(), "Đang sử dụng");
+                    updateTableStatus(selectedTable.getTableNumber(), "Đặt");
                 }
                 DataChangeEventBus.notifyChange();
                 loadData();

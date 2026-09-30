@@ -515,7 +515,7 @@ public class ProductManagementPanel extends JPanel {
                 // Mark the selected table as occupied after payment succeeds.
                 if (!cbTakeaway.isSelected() && tableIndex >= 0 && tableIndex < tables.size()) {
                     TableSeat paidTable = tables.get(tableIndex);
-                    paidTable.setStatus("Đang sử dụng");
+                    paidTable.setStatus("Đặt");
                     tableController.updateTable(paidTable);
                 }
                 // Refresh the Order screen immediately after successful payment.
