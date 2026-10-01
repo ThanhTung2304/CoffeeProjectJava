@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,136 +20,156 @@ class OrderServiceImplTest {
         orderService = new OrderServiceImpl();
     }
 
+    /**
+     * Hàm phụ tạo Order phục vụ các test.
+     * Sử dụng Product ID = 1 đã tồn tại trong Database.
+     */
+    private Order createTestOrder(String note) {
+        List<OrderDetail> details = new ArrayList<>();
+
+        details.add(
+                new OrderDetail(
+                        1,
+                        "Black Coffee",
+                        20000.0,
+                        1
+                )
+        );
+
+        return orderService.createOrder(details, note);
+    }
+
+    /**
+     * TC1: Tạo đơn hàng thành công
+     */
     @Test
     @DisplayName("TC1: Tạo đơn hàng thành công")
     void testCreateOrder() {
-        List<OrderDetail> details = new ArrayList<>();
-        details.add(new OrderDetail(1, "Black Coffee", 20000.0, 2));
 
-        Order order = orderService.createOrder(details, "Test tạo đơn");
+        List<OrderDetail> details = new ArrayList<>();
+
+        details.add(
+                new OrderDetail(
+                        1,
+                        "Black Coffee",
+                        20000.0,
+                        2
+                )
+        );
+
+        Order order = assertDoesNotThrow(
+                () -> orderService.createOrder(details, "Test tạo đơn")
+        );
 
         assertNotNull(order);
         assertTrue(order.getId() > 0);
 
-        // Kiểm tra thêm
-        assertEquals("PENDING", order.getStatus());//trạng thái
-        assertNotNull(order.getDetails());//dữ liệu
-        assertFalse(order.getDetails().isEmpty());//số lượng
-        // Nếu chạy đến đây mà không lỗi thì hiện thông báo
-        System.out.println("TC1: PASS - Đã tạo đơn thành công vào Database.");
-    }
-
-
-    /**
-     * HÀM TRỢ GIÚP: Tạo đơn hàng an toàn
-     * Tự lấy ID sản phẩm có sẵn trong DB để tránh lỗi Foreign Key
-     */
-    private Order helperCreateOrder(String note) {
-        // Lấy danh sách sản phẩm hiện có trong DB (Giả sử bạn có ProductService hoặc dùng trực tiếp Repo)
-        // Nếu không, ta mặc định dùng ID 1 hoặc 2 vì bạn đã INSERT ở file SQL
-        List<OrderDetail> details = new ArrayList<>();
-
-        // Bạn đã INSERT 'Black Coffee' và 'Milk Coffee'.
-        // Mình dùng ID 1 (Black Coffee) làm mặc định.
-        details.add(new OrderDetail(1, "Black Coffee", 20000.0, 1));
-
-        // Dùng Random để tránh trùng mã ORD-timestamp khi chạy test liên tục
-        return orderService.createOrder(details, note + " #" + new Random().nextInt(1000));
-    }
-    /* ================= 2. TEST HỦY ĐƠN ================= */
-    @Test
-    @DisplayName("TC2: Hủy đơn hàng (PENDING -> CANCELLED)")
-    void cancelOrder() {
-        Order order = helperCreateOrder("Đơn để hủy");
-
-        assertNotNull(order);
         assertEquals("PENDING", order.getStatus());
 
-        orderService.cancelOrder(order.getId());
+        assertNotNull(order.getDetails());
+        assertFalse(order.getDetails().isEmpty());
+
+        assertEquals(1, order.getDetails().size());
+    }
+
+    /**
+     * TC2: Hủy đơn hàng
+     * PENDING -> CANCELLED
+     */
+    @Test
+    @DisplayName("TC2: Hủy đơn hàng")
+    void testCancelOrder() {
+
+        Order order = createTestOrder("Đơn để hủy");
+
+        assertNotNull(order);
+        assertTrue(order.getId() > 0);
+        assertEquals("PENDING", order.getStatus());
+
+        assertDoesNotThrow(
+                () -> orderService.cancelOrder(order.getId())
+        );
 
         Order updated = orderService.getOrderWithDetails(order.getId());
 
         assertNotNull(updated);
+        assertEquals(order.getId(), updated.getId());
         assertEquals("CANCELLED", updated.getStatus());
     }
 
-
-
-    // Hàm phụ để tạo đơn hàng mẫu nhanh chóng cho các bài test
-    private Order createSampleOrder(String note) {
-        List<OrderDetail> details = new ArrayList<>();
-        // Sử dụng Constructor có sẵn trong file bạn gửi
-        details.add(new OrderDetail(1, "Cà phê đen", 20000.0, 2));
-        return orderService.createOrder(details, note);
-    }
-
-    /* ================= 3. TEST HOÀN THÀNH ================= */
+    /**
+     * TC3: Hoàn thành đơn hàng
+     * PENDING -> COMPLETED
+     */
     @Test
-    @DisplayName("TC3: Hoàn thành đơn hàng (Chuyển PENDING -> COMPLETED)")
-    void completeOrder() {
-        Order order = helperCreateOrder("Đơn thanh toán");
-        int id = order.getId();
-        assertNotNull(order);
-        assertEquals("PENDING", order.getStatus());
-        orderService.completeOrder(id);
+    @DisplayName("TC3: Hoàn thành đơn hàng")
+    void testCompleteOrder() {
 
-        Order updated = orderService.getOrderWithDetails(id);
+        Order order = createTestOrder("Đơn thanh toán");
+
+        assertNotNull(order);
+        assertTrue(order.getId() > 0);
+        assertEquals("PENDING", order.getStatus());
+
+        int orderId = order.getId();
+
+        assertDoesNotThrow(
+                () -> orderService.completeOrder(orderId)
+        );
+
+        Order updated = orderService.getOrderWithDetails(orderId);
+
+        assertNotNull(updated);
+        assertEquals(orderId, updated.getId());
         assertEquals("COMPLETED", updated.getStatus());
-        System.out.println("TC3 - Đã hoàn thành đơn ID: " + id);
     }
 
-    /* ================= 4. TEST XEM CHI TIẾT (GÁN ID THỦ CÔNG) ================= */
-//    @Test
-//    @DisplayName("TC4: Hiển thị 2 đơn hàng gán ID thủ công")
-//    void getOrderWithDetails() {
-//        // --- BẠN HÃY NHÌN VÀO BẢNG orders CỦA BẠN VÀ ĐIỀN 2 ID VÀO ĐÂY ---
-//        // Ví dụ: Sau khi chạy TC1, DB sinh ra ID 17, 18 chẳng hạn
-//        int id1 = 1;
-//        int id2 = 2;
-//
-//        Order o1 = orderService.getOrderWithDetails(id1);
-//        if (o1 != null) {
-//            System.out.println(">>> CHI TIẾT ĐƠN " + id1 + ": " + o1.getOrderCode());
-//            o1.getDetails().forEach(d -> System.out.println("  + " + d.getProductName() + " | SL: " + d.getQuantity()));
-//        }
-//
-//        Order o2 = orderService.getOrderWithDetails(id2);
-//        if (o2 != null) {
-//            System.out.println(">>> CHI TIẾT ĐƠN " + id2 + ": " + o2.getOrderCode());
-//            o2.getDetails().forEach(d -> System.out.println("  + " + d.getProductName() + " | SL: " + d.getQuantity()));
-//        }
-//
-//        // Bài test này sẽ Pass nếu DB của bạn có ít nhất 1 trong 2 ID trên
-//        assertTrue(o1 != null || o2 != null, "Lỗi: Cả 2 ID " + id1 + ", " + id2 + " đều không có trong DB");
-//    }
+    /**
+     * TC4: Lấy chi tiết đơn hàng
+     */
     @Test
     @DisplayName("TC4: Lấy chi tiết đơn hàng")
     void testGetOrderWithDetails() {
-        Order order = helperCreateOrder("Test detail");//tạo dữ liệu test
 
-        Order result = orderService.getOrderWithDetails(order.getId());//gọi hàm cần test
+        Order order = createTestOrder("Test detail");
 
-        assertNotNull(result);//ktra kết quả: không được null
-        assertEquals(order.getId(), result.getId());//lấy đúng đơn hàng
-        assertNotNull(result.getDetails());//danh sách chi tiết
-        assertFalse(result.getDetails().isEmpty());//danh sách khoong rỗng
+        assertNotNull(order);
+        assertTrue(order.getId() > 0);
+
+        Order result = assertDoesNotThrow(
+                () -> orderService.getOrderWithDetails(order.getId())
+        );
+
+        assertNotNull(result);
+        assertEquals(order.getId(), result.getId());
+
+        assertNotNull(result.getDetails());
+        assertFalse(result.getDetails().isEmpty());
+
+        assertEquals(
+                order.getDetails().size(),
+                result.getDetails().size()
+        );
     }
 
-    /* ================= 5. TEST THỐNG KÊ ================= */
+    /**
+     * TC5: Lấy danh sách đơn hàng
+     */
     @Test
-    @DisplayName("TC5: Thống kê báo cáo đơn hàng")
-    void getAllOrders() {
-        List<Order> list = orderService.getAllOrders();
+    @DisplayName("TC5: Lấy danh sách đơn hàng")
+    void testGetAllOrders() {
+
+        List<Order> list = assertDoesNotThrow(
+                () -> orderService.getAllOrders()
+        );
+
         assertNotNull(list);
 
-        long pending = list.stream().filter(o -> "PENDING".equals(o.getStatus())).count();
-        long completed = list.stream().filter(o -> "COMPLETED".equals(o.getStatus())).count();
-        assertTrue(list.size() >= pending + completed);
-
-        System.out.println("\n===== BÁO CÁO COFFEE SHOP =====");
-        System.out.println("Tổng số hóa đơn: " + list.size());
-        System.out.println(" - Đang chờ: " + pending);
-        System.out.println(" - Hoàn thành: " + completed);
-        System.out.println("===============================\n");
+        // Kiểm tra các Order trả về có dữ liệu hợp lệ
+        for (Order order : list) {
+            assertNotNull(order);
+            assertTrue(order.getId() > 0);
+            assertNotNull(order.getStatus());
+        }
     }
 }
