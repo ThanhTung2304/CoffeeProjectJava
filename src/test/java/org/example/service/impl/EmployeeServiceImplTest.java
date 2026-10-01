@@ -1,7 +1,8 @@
 package org.example.service.impl;
 
-import org.example.entity.Employee;
 import org.example.config.DatabaseConfig;
+import org.example.entity.Account;
+import org.example.entity.Employee;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
@@ -15,6 +16,7 @@ class EmployeeServiceImplTest {
 
     private EmployeeServiceImpl employeeService;
     private int createdId = -1;
+    private String createdUsername = null;
 
     @BeforeEach
     void setUp() {
@@ -23,88 +25,194 @@ class EmployeeServiceImplTest {
 
     @AfterEach
     void tearDown() {
+
+        // Xóa Employee test
         if (createdId > 0) {
             try (Connection conn = DatabaseConfig.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM employee WHERE id = ?")) {
+                 PreparedStatement ps = conn.prepareStatement(
+                         "DELETE FROM employee WHERE id = ?")) {
+
                 ps.setInt(1, createdId);
                 ps.executeUpdate();
+
             } catch (SQLException e) {
-                // ignore cleanup error
+                // Ignore cleanup error
             }
+
             createdId = -1;
+        }
+
+        // Xóa Account test
+        if (createdUsername != null) {
+            try (Connection conn = DatabaseConfig.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "DELETE FROM account WHERE username = ?")) {
+
+                ps.setString(1, createdUsername);
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                // Ignore cleanup error
+            }
+
+            createdUsername = null;
         }
     }
 
-    @Test
-    @DisplayName("1. Test lấy danh sách nhân viên")
-    void findAll() {
-        List<Employee> list = employeeService.findAll();
-        assertNotNull(list);
-        System.out.println("Tổng số nhân viên: " + list.size());
+    /**
+     * Tạo Account test để Employee có account_id hợp lệ.
+     */
+    private int createTestAccount() {
+
+        String username = "test_emp_" + System.currentTimeMillis();
+
+        Account account = new Account(
+                username,
+                "pass123",
+                "STAFF",
+                true
+        );
+
+        AccountServiceImpl accountService = new AccountServiceImpl();
+
+        accountService.create(account);
+
+        Account savedAccount = accountService.findByUsername(username);
+
+        assertNotNull(savedAccount, "Account test phải được tạo thành công");
+
+        createdUsername = username;
+
+        return savedAccount.getId();
     }
 
     @Test
-    @DisplayName("2. Test thêm mới nhân viên")
-    void create() {
+    @DisplayName("Lấy tất cả danh sách - Phải trả về List không null")
+    void testFindAll() {
+
+        List<Employee> list = employeeService.findAll();
+
+        assertNotNull(list);
+    }
+
+    @Test
+    @DisplayName("Thêm mới thành công - Dữ liệu hợp lệ")
+    void testCreate_Success() {
+
+        int accountId = createTestAccount();
+
+        String uniqueName = "Test Employee " + System.currentTimeMillis();
+
         Employee emp = new Employee();
-        String uniqueName = "NV " + System.currentTimeMillis() % 1000;
+
         emp.setName(uniqueName);
         emp.setPhone("0987654321");
         emp.setPosition("Staff");
+        emp.setAccountId(accountId);
 
         assertDoesNotThrow(() -> employeeService.create(emp));
 
-        Employee latest = employeeService.findAll().stream()
-                .filter(e -> e.getName().contains(uniqueName))
-                .findFirst().orElse(null);
-        assertNotNull(latest);
-        createdId = latest.getId();
+        Employee saved = employeeService.findAll()
+                .stream()
+                .filter(e -> uniqueName.equals(e.getName()))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(saved, "Nhân viên vừa tạo phải tồn tại trong DB");
+
+        createdId = saved.getId();
+
+        assertEquals(uniqueName, saved.getName());
+        assertEquals("0987654321", saved.getPhone());
+        assertEquals("Staff", saved.getPosition());
+        assertEquals(accountId, saved.getAccountId());
     }
 
     @Test
-    @DisplayName("3. Test cập nhật thông tin nhân viên")
-    void update() {
+    @DisplayName("Cập nhật thành công - Thay đổi thông tin nhân viên")
+    void testUpdate_Success() {
+
+        int accountId = createTestAccount();
+
+        String uniqueName = "Test Update " + System.currentTimeMillis();
+
         Employee emp = new Employee();
-        emp.setName("NV UpdateTest");
+
+        emp.setName(uniqueName);
         emp.setPhone("0987654321");
         emp.setPosition("Staff");
-        employeeService.create(emp);
+        emp.setAccountId(accountId);
 
-        Employee latest = employeeService.findAll().stream()
-                .filter(e -> e.getName().equals("NV UpdateTest"))
-                .findFirst().orElse(null);
-        assertNotNull(latest, "Không tìm thấy nhân viên vừa tạo");
-        createdId = latest.getId();
+        assertDoesNotThrow(() -> employeeService.create(emp));
 
-        latest.setName("NV UpdateTest (Updated)");
-        latest.setPosition("Manager");
-        employeeService.update(latest);
+        Employee saved = employeeService.findAll()
+                .stream()
+                .filter(e -> uniqueName.equals(e.getName()))
+                .findFirst()
+                .orElse(null);
 
-        List<Employee> all = employeeService.findAll();
-        boolean found = all.stream().anyMatch(e -> e.getName().contains("(Updated)"));
-        assertTrue(found, "Tên nhân viên chưa được cập nhật trong DB");
+        assertNotNull(saved, "Không tìm thấy nhân viên vừa tạo");
+
+        createdId = saved.getId();
+
+        saved.setName(uniqueName + " Updated");
+        saved.setPosition("Manager");
+
+        assertDoesNotThrow(() -> employeeService.update(saved));
+
+        Employee updated = employeeService.findAll()
+                .stream()
+                .filter(e -> e.getId() == createdId)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(updated, "Nhân viên phải tồn tại sau khi cập nhật");
+
+        assertEquals(uniqueName + " Updated", updated.getName());
+        assertEquals("Manager", updated.getPosition());
+        assertEquals(accountId, updated.getAccountId());
     }
 
     @Test
-    @DisplayName("4. Test xóa nhân viên")
-    void deleteById() {
+    @DisplayName("Xóa thành công - Nhân viên không còn tồn tại")
+    void testDelete_Success() {
+
+        int accountId = createTestAccount();
+
+        String uniqueName = "Test Delete " + System.currentTimeMillis();
+
         Employee emp = new Employee();
-        emp.setName("NV DeleteTest");
+
+        emp.setName(uniqueName);
         emp.setPhone("0987654321");
         emp.setPosition("Staff");
-        employeeService.create(emp);
+        emp.setAccountId(accountId);
 
-        Employee latest = employeeService.findAll().stream()
-                .filter(e -> e.getName().equals("NV DeleteTest"))
-                .findFirst().orElse(null);
-        assertNotNull(latest, "Không tìm thấy nhân viên vừa tạo");
-        int targetId = latest.getId();
+        assertDoesNotThrow(() -> employeeService.create(emp));
 
-        employeeService.deleteById(targetId);
+        Employee saved = employeeService.findAll()
+                .stream()
+                .filter(e -> uniqueName.equals(e.getName()))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(saved, "Không tìm thấy nhân viên vừa tạo");
+
+        int targetId = saved.getId();
+
+        createdId = targetId;
+
+        assertDoesNotThrow(() -> employeeService.deleteById(targetId));
+
+        Employee deleted = employeeService.findAll()
+                .stream()
+                .filter(e -> e.getId() == targetId)
+                .findFirst()
+                .orElse(null);
+
+        assertNull(deleted, "Nhân viên đã xóa không được tồn tại trong DB");
+
+        // Employee đã được xóa nên không cần cleanup Employee nữa
         createdId = -1;
-
-        List<Employee> all = employeeService.findAll();
-        boolean stillExists = all.stream().anyMatch(e -> e.getId() == targetId);
-        assertFalse(stillExists, "Nhân viên vẫn còn tồn tại sau khi xóa");
     }
 }
