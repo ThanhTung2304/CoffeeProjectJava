@@ -510,7 +510,6 @@ public class ProductManagementPanel extends JPanel {
 
                 Order order = orderController.createOrder(details, fullNote.toString());
                 orderController.updateFinancials(order.getId(), subtotalRef[0], discountAmount[0], appliedVoucher[0] == null ? null : appliedVoucher[0].getCode());
-                orderController.completeOrder(order.getId());
 
                 // Mark the selected table as occupied after payment succeeds.
                 if (!cbTakeaway.isSelected() && tableIndex >= 0 && tableIndex < tables.size()) {
@@ -521,7 +520,7 @@ public class ProductManagementPanel extends JPanel {
                 // Refresh the Order screen immediately after successful payment.
                 org.example.event.DataChangeEventBus.notifyChange();
 
-                JOptionPane.showMessageDialog(dialog, "✅ Thanh toán thành công!\nTổng cộng: " + String.format("%,.0f đ", finalTotal[0]), "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "✅ Đã tạo đơn, đang chờ xử lý!\nTổng cộng: " + String.format("%,.0f đ", finalTotal[0]), "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 cartTableModel.setRowCount(0); updateTotal(); dialog.dispose();
             } catch (Exception ex) { JOptionPane.showMessageDialog(dialog, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE); }
         });
