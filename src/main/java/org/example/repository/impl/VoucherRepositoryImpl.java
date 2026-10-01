@@ -100,7 +100,6 @@ public class VoucherRepositoryImpl implements VoucherRepository {
         }
     }
 
-    @Override
     public void delete(int id) {
         String sql = "DELETE FROM vouchers WHERE id = ?";
         try (Connection con = DatabaseConfig.getConnection();
@@ -109,6 +108,22 @@ public class VoucherRepositoryImpl implements VoucherRepository {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi khi xóa voucher", e);
+        }
+    }
+
+    @Override
+    public void incrementUsedCount(int id) {
+        String sql = "UPDATE vouchers SET used_count = used_count + 1, status = CASE "
+                + "WHEN usage_limit > 0 AND used_count + 1 >= usage_limit THEN 'Đã sử dụng' "
+                + "ELSE status END WHERE id = ? AND (usage_limit IS NULL OR usage_limit = 0 OR used_count < usage_limit)";
+        try (Connection con = DatabaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            if (ps.executeUpdate() == 0) {
+                throw new IllegalStateException("Voucher không tồn tại hoặc đã đạt giới hạn sử dụng");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi khi tăng số lần sử dụng voucher", e);
         }
     }
 

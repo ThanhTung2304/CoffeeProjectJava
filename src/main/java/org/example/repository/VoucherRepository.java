@@ -9,4 +9,5 @@ public interface VoucherRepository {
     void save(Voucher voucher);
     void update(Voucher voucher);
     void delete(int id);
+    void incrementUsedCount(int id);
 }
