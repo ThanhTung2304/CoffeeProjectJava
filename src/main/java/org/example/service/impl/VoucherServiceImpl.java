@@ -11,7 +11,6 @@ import java.util.List;
 public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository repo = new VoucherRepositoryImpl();
 
-    @Override
     public List<Voucher> search(String keyword, String status) {
         List<Voucher> list = repo.findAll(keyword, status);
         LocalDate today = LocalDate.now();
@@ -35,7 +34,6 @@ public class VoucherServiceImpl implements VoucherService {
         return list;
     }
 
-    @Override
     public Voucher findByCode(String code) {
         if (code == null || code.isBlank()) {
             return null;
@@ -43,7 +41,6 @@ public class VoucherServiceImpl implements VoucherService {
         return repo.findByCode(code);
     }
 
-    @Override
     public void add(Voucher voucher) {
         if (voucher == null) {
             throw new IllegalArgumentException("Voucher không được null");
@@ -70,7 +67,6 @@ public class VoucherServiceImpl implements VoucherService {
         repo.save(voucher);
     }
 
-    @Override
     public void update(Voucher voucher) {
         if (voucher == null) {
             throw new IllegalArgumentException("Voucher không được null");
@@ -81,11 +77,18 @@ public class VoucherServiceImpl implements VoucherService {
         repo.update(voucher);
     }
 
-    @Override
     public void delete(int id) {
         if (id <= 0) {
             throw new IllegalArgumentException("ID voucher không hợp lệ");
         }
         repo.delete(id);
+    }
+
+    @Override
+    public void incrementUsedCount(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("ID voucher không hợp lệ");
+        }
+        repo.incrementUsedCount(id);
     }
 }

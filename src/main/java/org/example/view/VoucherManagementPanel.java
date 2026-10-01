@@ -3,6 +3,7 @@ package org.example.view;
 import org.example.controller.VoucherController;
 import org.example.entity.Voucher;
 import org.example.session.UserSession;
+import org.example.event.DataChangeEventBus;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,6 +40,7 @@ public class VoucherManagementPanel extends JPanel {
     private JTextField txtSearch;
     private JComboBox<String> cbStatusFilter;
     private JLabel rowCountLabel;
+    private final DataChangeEventBus.DataChangeListener dataChangeListener = this::refreshAfterDataChange;
 
     public VoucherManagementPanel() {
         setLayout(new BorderLayout());
@@ -46,6 +48,17 @@ public class VoucherManagementPanel extends JPanel {
 
         initUI();
         loadData();
+        DataChangeEventBus.onRegister(dataChangeListener);
+    }
+
+    private void refreshAfterDataChange() {
+        SwingUtilities.invokeLater(this::loadData);
+    }
+
+    @Override
+    public void removeNotify() {
+        DataChangeEventBus.onUnregister(dataChangeListener);
+        super.removeNotify();
     }
 
     private void initUI() {
@@ -305,4 +318,3 @@ public class VoucherManagementPanel extends JPanel {
         return btn;
     }
 }
-

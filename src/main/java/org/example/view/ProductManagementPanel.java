@@ -510,6 +510,7 @@ public class ProductManagementPanel extends JPanel {
 
                 Order order = orderController.createOrder(details, fullNote.toString());
                 orderController.updateFinancials(order.getId(), subtotalRef[0], discountAmount[0], appliedVoucher[0] == null ? null : appliedVoucher[0].getCode());
+                if (appliedVoucher[0] != null) voucherController.incrementUsedCount(appliedVoucher[0].getId());
 
                 // Mark the selected table as occupied after payment succeeds.
                 if (!cbTakeaway.isSelected() && tableIndex >= 0 && tableIndex < tables.size()) {

@@ -25,6 +25,7 @@ public class VoucherController {
         service.update(v);
     }
 
+    public void incrementUsedCount(int id) { service.incrementUsedCount(id); }
     public void delete(int id) {
         service.delete(id);
     }
