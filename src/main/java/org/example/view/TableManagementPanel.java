@@ -5,6 +5,7 @@ import org.example.controller.TableController;
 import org.example.entity.Reservation;
 import org.example.entity.TableSeat;
 import org.example.event.DataChangeEventBus;
+import org.example.session.UserSession;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,8 +25,8 @@ public class TableManagementPanel extends JPanel {
     private static final Color STATUS_EMPTY_FG = new Color(0x166534);
     private static final Color STATUS_IN_USE   = new Color(0xFEE2E2);
     private static final Color STATUS_IN_USE_FG = new Color(0x991B1B);
-    private static final Color STATUS_RESERVED = new Color(0xFEE2E2);
-    private static final Color STATUS_RESERVED_FG = new Color(0xB91C1C);
+    private static final Color STATUS_RESERVED = new Color(0xDBEAFE);
+    private static final Color STATUS_RESERVED_FG = new Color(0x1D4ED8);
 
     private static final Color CARD_BG     = Color.WHITE;
     private static final Color CARD_HOVER  = new Color(0xF1F5F9);
@@ -170,12 +171,12 @@ public class TableManagementPanel extends JPanel {
         } else {
             floor2Title = titleLabel;
         }
-
-        JButton btnAddTable = createSmallButton("＋ Thêm bàn Tầng " + floor, BTN_GREEN);
-        btnAddTable.addActionListener(e -> addTable(floor));
-
+        if (UserSession.getInstance().isAdmin()) {
+            JButton btnAddTable = createSmallButton("Thêm bàn Tầng " + floor, BTN_GREEN);
+            btnAddTable.addActionListener(e -> addTable(floor));
+            titleBar.add(btnAddTable, BorderLayout.EAST);
+        }
         titleBar.add(titleLabel, BorderLayout.WEST);
-        titleBar.add(btnAddTable, BorderLayout.EAST);
 
         panel.add(titleBar, BorderLayout.NORTH);
 
@@ -285,7 +286,7 @@ public class TableManagementPanel extends JPanel {
 
     private void showTableStatusDialog(TableSeat table) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Thông Tin Bàn", true);
-        dialog.setSize(400, 380);
+        dialog.setSize(520, 380);
         dialog.setLocationRelativeTo(this);
         dialog.setResizable(true);
 
@@ -340,7 +341,8 @@ public class TableManagementPanel extends JPanel {
 
         JButton btnEmpty = createDialogButton("Trống", STATUS_EMPTY, STATUS_EMPTY_FG);
         JButton btnReserved = createDialogButton("Đặt", STATUS_RESERVED, STATUS_RESERVED_FG);
-        JButton btnClose = createDialogButton("Đóng", new Color(0xE2E8F0), new Color(0x475569));
+        JButton btnDelete = createDialogButton("Xóa bàn", new Color(0xFEE2E2), new Color(0xB91C1C));
+        btnDelete.setVisible(UserSession.getInstance().isAdmin());
 
         btnEmpty.addActionListener(e -> {
             table.setStatus("Trống");
@@ -357,11 +359,22 @@ public class TableManagementPanel extends JPanel {
             dialog.dispose();
         });
 
-        btnClose.addActionListener(e -> dialog.dispose());
+        btnDelete.addActionListener(e -> {
+            if ("Đặt".equals(table.getStatus())) {
+                JOptionPane.showMessageDialog(dialog, "Không thể xóa bàn đang được đặt!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            int confirm = JOptionPane.showConfirmDialog(dialog, "Bạn có chắc muốn xóa bàn này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                controller.deleteTable(table.getTableNumber());
+                dialog.dispose();
+                loadData();
+            }
+        });
 
         btnPanel.add(btnEmpty);
+        btnPanel.add(btnDelete);
         btnPanel.add(btnReserved);
-        btnPanel.add(btnClose);
 
         content.add(btnPanel, BorderLayout.SOUTH);
 
